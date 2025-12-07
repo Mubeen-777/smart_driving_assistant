@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include <cerrno>
 #include <iostream>
-
+using namespace std;
 struct CompositeKey
 {
     uint8_t entity_type; 

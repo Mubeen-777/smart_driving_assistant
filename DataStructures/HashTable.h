@@ -1,4 +1,3 @@
-
 #ifndef HASHTABLE_H
 #define HASHTABLE_H
 
@@ -7,7 +6,7 @@
 #include <cstdint>
 #include <functional>
 #include <stdexcept>
-#include<iostream>
+#include <iostream>
 using namespace std;
 
 template <typename K, typename V>
@@ -28,9 +27,9 @@ private:
     size_t capacity_;
     size_t size_;
     float load_factor_;
-    hash<K> hasher_;
+    std::hash<K> hasher_; 
 
-    size_t hash(const K &key) const
+    size_t compute_hash(const K &key) const 
     {
         return hasher_(key) % capacity_;
     }
@@ -71,7 +70,7 @@ public:
 
     void insert(const K &key, const V &value)
     {
-        size_t index = hash(key);
+        size_t index = compute_hash(key); 
         HashNode<K, V> *node = buckets_[index];
 
         while (node)
@@ -97,7 +96,7 @@ public:
 
     bool get(const K &key, V &value) const
     {
-        size_t index = hash(key);
+        size_t index = compute_hash(key); 
         HashNode<K, V> *node = buckets_[index];
 
         while (node)
@@ -121,7 +120,7 @@ public:
 
     bool remove(const K &key)
     {
-        size_t index = hash(key);
+        size_t index = compute_hash(key); 
         HashNode<K, V> *node = buckets_[index];
         HashNode<K, V> *prev = nullptr;
 
@@ -320,4 +319,4 @@ public:
     }
 };
 
-#endif 
+#endif

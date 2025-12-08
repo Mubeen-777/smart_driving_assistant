@@ -1,0 +1,65 @@
+[database]
+total_size = 524288000           # 500 MB
+block_size = 4096                # 4 KB blocks
+max_drivers = 50
+max_vehicles = 10
+max_trips = 1000
+btree_order = 5
+cache_size = 256
+
+[server]
+port = 8080
+max_connections = 1000
+queue_capacity = 10000
+worker_threads = 16
+
+[security]
+require_authentication = true
+password_hash_algo = SHA256
+session_timeout = 1800           # 30 minutes
+admin_username = admin
+admin_password = admin123
+
+[analytics]
+segment_tree_depth = 15
+alert_check_interval = 3600      # 1 hour
+
+[paths]
+database_path = compiled/SDM.db
+index_path = compiled/indexes
+log_path = compiled/SDM.log
+
+[vision]
+# Optimized for CPU performance with YOLOv8n
+enable_camera = true
+camera_count = 2
+
+# Model paths (lightweight for CPU)
+yolo_model_path = models/yolov8n.pt
+dlib_model_path = models/shape_predictor_68_face_landmarks.dat
+
+# Performance settings (CPU-optimized)
+target_fps = 10
+frame_skip = 3
+input_width = 640
+input_height = 640
+confidence_threshold = 0.6
+nms_threshold = 0.45
+
+# Feature flags (6 core features)
+enable_collision_warning = true
+enable_lane_departure = true
+enable_traffic_signs = true
+enable_pedestrian_alert = true
+enable_distance_estimation = true
+enable_drowsiness_detection = true
+
+# Alert thresholds
+collision_distance_threshold = 15.0
+lane_deviation_threshold = 0.3
+drowsiness_frame_threshold = 15
+eye_aspect_ratio_threshold = 0.25
+
+# Storage
+save_detection_frames = true
+detection_output_path = compiled/detections

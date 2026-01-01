@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Smart Drive</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ===== CSS Variables ===== */
+        :root {
+            --primary: #6d5dfc;
+            --primary-dark: #5b4ff0;
+            --primary-light: #8a7ffc;
+            --secondary: #ff6584;
+            --accent: #00d9c0;
+            --dark: #1a1d28;
+            --dark-light: #2a2e3e;
+            --gray: #8c92a3;
+            --gray-light: #f0f2f8;
+            --gray-lighter: #f8f9fc;
+            --white: #ffffff;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+
+            --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 5px 20px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12);
+            --shadow-hover: 0 15px 50px rgba(109, 93, 252, 0.2);
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --radius-full: 50%;
+
+            --transition-fast: 0.2s ease;
+            --transition-normal: 0.3s ease;
+            --transition-slow: 0.5s ease;
+        }
+
+        /* ===== Reset & Base Styles ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7ff 0%, #f0f4ff 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ===== Background Animation ===== */
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-light) 0%, transparent 70%);
+            opacity: 0.1;
+            animation: float 20s infinite linear;
+        }
+
+        .bg-circle:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: -150px;
+            right: -150px;
+            animation-delay: 0s;
+        }
+
+        .bg-circle:nth-child(2) {
+            width: 400px;
+            height: 400px;
+            bottom: -200px;
+            left: -200px;
+            background: linear-gradient(135deg, var(--accent) 0%, transparent 70%);
+            animation-delay: -5s;
+        }
+
+        .bg-circle:nth-child(3) {
+            width: 200px;
+            height: 200px;
+            top: 50%;
+            left: 10%;
+            background: linear-gradient(135deg, var(--secondary) 0%, transparent 70%);
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(-20px) rotate(90deg);
+            }
+
+            50% {
+                transform: translateY(0) rotate(180deg);
+            }
+
+            75% {
+                transform: translateY(20px) rotate(270deg);
+            }
+        }
+
+        /* ===== Login Container ===== */
+        .login-container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            min-height: 700px;
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== Left Side - Branding ===== */
+        .brand-side {
+            flex: 1;
+            background: linear-gradient(135deg, var(--dark) 0%, #131722 100%);
+            color: var(--white);
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand-side::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="%236d5dfc" opacity="0.05"/></svg>');
+            background-size: cover;
+        }
+
+        .brand-header {
+            position: relative;
+            z-index: 2;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--white);
+        }
+
+        .logo-text {
+            font-size: 28px;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .brand-content {
+            position: relative;
+            z-index: 2;
+            max-width: 500px;
+        }
+
+        .brand-title {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .brand-title span {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .features-list {
+            margin-top: 40px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+        }
+
+        .feature-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 18px;
+        }
+
+        .feature-text {
+            flex: 1;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 15px;
+        }
+
+        .feature-desc {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+        }
+
+        .brand-footer {
+            position: relative;
+            z-index: 2;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            margin-top: 40px;
+        }
+
+        /* ===== Right Side - Login Form ===== */
+        .login-side {
+            flex: 1;
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .login-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 10px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .login-subtitle {
+            color: var(--gray);
+            font-size: 15px;
+        }
+
+        /* ===== Form Styles ===== */
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 20px 16px 48px;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            color: var(--dark);
+            background: var(--gray-lighter);
+            transition: all var(--transition-fast);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 4px rgba(109, 93, 252, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--gray);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            font-size: 18px;
+            transition: color var(--transition-fast);
+        }
+
+        .form-input:focus+.input-icon {
+            color: var(--primary);
+        }
+
+        /* ===== Buttons ===== */
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .login-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ===== Divider ===== */
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: var(--gray-light);
+        }
+
+        .divider::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: var(--gray-light);
+        }
+
+        /* ===== Admin Link ===== */
+        .admin-link {
+            text-align: center;
+            margin-top: 25px;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .admin-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color var(--transition-fast);
+        }
+
+        .admin-link a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* ===== Alert ===== */
+        .alert {
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 25px;
+            display: none;
+            animation: slideIn 0.3s ease;
+            font-size: 14px;
+            border-left: 4px solid transparent;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .alert.error {
+            background: linear-gradient(135deg, #fff5f7, #ffeef2);
+            color: var(--danger);
+            border-left-color: var(--danger);
+        }
+
+        .alert.success {
+            background: linear-gradient(135deg, #f0fff4, #e6fffa);
+            color: #2f855a;
+            border-left-color: var(--success);
+        }
+
+        /* ===== Loading State ===== */
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(109, 93, 252, 0.1);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ===== Back to Home ===== */
+        .back-home {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            background: var(--white);
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            z-index: 100;
+        }
+
+        .back-home:hover {
+            transform: translateX(-5px);
+            color: var(--primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* ===== Status Indicator ===== */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--gray-lighter);
+            border-radius: var(--radius-full);
+            font-size: 13px;
+            color: var(--gray);
+            margin-top: 20px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--danger);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: var(--success);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* ===== Responsive Design ===== */
+        @media (max-width: 992px) {
+            .login-container {
+                flex-direction: column;
+                max-width: 500px;
+                min-height: auto;
+            }
+
+            .brand-side {
+                padding: 40px;
+            }
+
+            .login-side {
+                padding: 40px;
+            }
+
+            .brand-title {
+                font-size: 32px;
+            }
+
+            .back-home {
+                top: 20px;
+                left: 20px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            body {
+                padding: 15px;
+            }
+
+            .login-container {
+                border-radius: var(--radius-lg);
+            }
+
+            .brand-side,
+            .login-side {
+                padding: 30px 25px;
+            }
+
+            .brand-title {
+                font-size: 28px;
+            }
+
+            .login-title {
+                font-size: 26px;
+            }
+
+            .feature-item {
+                padding: 12px;
+            }
+
+            .back-home {
+                top: 15px;
+                left: 15px;
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+
+        /* ===== Utilities ===== */
+        .hidden {
+            display: none;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Background Animation -->
+    <div class="background-animation">
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+    </div>
+
+    <!-- Back to Home Link -->
+    <a href="index.html" class="back-home">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to Home</span>
+    </a>
+
+    <!-- Main Login Container -->
+    <div class="login-container">
+        <!-- Left Side - Branding -->
+        <div class="brand-side">
+            <div class="brand-header">
+                <div class="brand-logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <div class="logo-text">SmartDrive</div>
+                </div>
+
+                <div class="brand-content">
+                    <h1 class="brand-title">Welcome to <span>Smart Drive</span></h1>
+                    <p class="brand-description">
+                        Advanced Driver Assistance System with real-time monitoring,
+                        lane detection, and intelligent analytics for safer journeys.
+                    </p>
+
+                    <div class="features-list">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="feature-text">
+                                <div class="feature-title">Real-time GPS Tracking</div>
+                                <div class="feature-desc">Live location monitoring with detailed trip analytics</div>
+                            </div>
+                        </div>
+
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-video"></i>
+                            </div>
+                            <div class="feature-text">
+                                <div class="feature-title">AI Lane Detection</div>
+                                <div class="feature-desc">Computer vision for lane keeping assistance</div>
+                            </div>
+                        </div>
+
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="feature-text">
+                                <div class="feature-title">Performance Analytics</div>
+                                <div class="feature-desc">Comprehensive driving behavior insights</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="brand-footer">
+                <div>© 2024 Smart Drive Manager. All rights reserved.</div>
+                <div class="status-indicator">
+                    <div class="status-dot" id="backendStatusDot"></div>
+                    <span>Backend: <span id="backendStatus">Checking...</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Login Form -->
+        <div class="login-side">
+            <div class="login-header">
+                <h2 class="login-title">Sign In</h2>
+                <p class="login-subtitle">Enter your credentials to access your dashboard</p>
+            </div>
+
+            <div class="login-form">
+                <!-- Alert Messages -->
+                <div id="alert" class="alert"></div>
+
+                <!-- Login Form -->
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <div class="input-group">
+                            <input type="text" id="username" class="form-input" placeholder="Enter your username"
+                                required>
+                            <div class="input-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <div class="input-group">
+                            <input type="password" id="password" class="form-input" placeholder="Enter your password"
+                                required>
+                            <div class="input-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="login-btn">
+                        <span>Sign In</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <!-- Loading State -->
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <span>Authenticating...</span>
+                </div>
+
+                <!-- Divider -->
+                <div class="divider">OR</div>
+
+                <!-- Register Link -->
+                <div class="admin-link">
+                    <p>Don't have an account? <a href="register.html">Register New Driver</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== Configuration =====
+        const API_URL = 'http://43.204.211.180:8080';
+
+        // ===== DOM Elements =====
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const alertBox = document.getElementById('alert');
+        const loading = document.getElementById('loading');
+        const backendStatus = document.getElementById('backendStatus');
+        const backendStatusDot = document.getElementById('backendStatusDot');
+
+        // ===== Check if Already Logged In =====
+        window.addEventListener('load', function () {
+            const sessionId = localStorage.getItem('session_id');
+            if (sessionId) {
+                window.location.href = 'dashboard.html';
+            } else {
+                checkBackendStatus();
+            }
+        });
+
+        // ===== Check Backend Status =====
+        async function checkBackendStatus() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'ping' })
+                });
+
+                if (response.ok) {
+                    backendStatus.textContent = 'Connected';
+                    backendStatusDot.classList.add('connected');
+                } else {
+                    backendStatus.textContent = 'Not Responding';
+                }
+            } catch (error) {
+                backendStatus.textContent = 'Offline';
+                console.log('Backend is offline or not running');
+            }
+        }
+
+        // ===== Show Alert =====
+        function showAlert(message, type) {
+            alertBox.textContent = message;
+            alertBox.className = `alert ${type}`;
+            alertBox.style.display = 'block';
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+
+        // ===== Show Loading =====
+        function showLoading(show) {
+            loading.style.display = show ? 'block' : 'none';
+            loginForm.querySelector('button[type="submit"]').disabled = show;
+        }
+
+        // ===== Handle Login =====
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+
+            if (!username || !password) {
+                showAlert('Please enter both username and password', 'error');
+                return;
+            }
+
+            // Show loading
+            loginForm.style.display = 'none';
+            loading.style.display = 'block';
+            alertBox.style.display = 'none';
+
+            try {
+                console.log("Attempting login to:", API_URL);
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'user_login',
+                        username: username,
+                        password: password
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log("Login response:", data);
+
+                if (data.status === 'success') {
+                    // Save session
+                    localStorage.setItem('session_id', data.data.session_id);
+                    localStorage.setItem('driver_id', data.data.driver_id);
+                    localStorage.setItem('driver_name', data.data.driver_name);
+                    localStorage.setItem('driver_info', JSON.stringify(data.data)); // Backup full info
+
+                    showAlert('Login successful! Redirecting...', 'success');
+
+                    // Check for and clear any "stuck" trips from previous sessions
+                    try {
+                        const tripCheck = await fetch(API_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                operation: 'trip_get_active',
+                                session_id: data.data.session_id
+                            })
+                        });
+                        const tripData = await tripCheck.json();
+
+                        let activeTrip = tripData.data && (tripData.data.trip || (tripData.data.trip_id ? tripData.data : null));
+                        if (activeTrip && activeTrip.trip_id) {
+                            console.log('Login: Found stuck active trip. Auto-resetting...');
+                            // End the trip silently
+                            await fetch(API_URL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    operation: 'trip_end',
+                                    session_id: data.data.session_id,
+                                    trip_id: activeTrip.trip_id,
+                                    latitude: 0,
+                                    longitude: 0,
+                                    distance: 0,
+                                    address: 'Login Auto-Reset',
+                                    duration: 0
+                                })
+                            });
+                        }
+                    } catch (e) {
+                        console.warn('Login: Failed to check/clear active trips', e);
+                    }
+
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+                } else {
+                    // Show error
+                    loginForm.style.display = 'block';
+                    loading.style.display = 'none';
+                    showAlert(data.message || 'Login failed', 'error');
+                }
+            } catch (error) {
+                console.error("Login error:", error);
+                loginForm.style.display = 'block';
+                loading.style.display = 'none';
+
+                let errorMsg = 'Could not connect to server. Ensure it is running on ' + API_URL;
+                if (error.message.includes('Server returned')) {
+                    errorMsg = 'Server error: ' + error.message;
+                }
+                showAlert(errorMsg, 'error');
+            }
+        }
+
+        // ===== Add Shake Animation =====
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // ===== Enter Key Submission =====
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' && !loading.style.display) {
+                event.preventDefault();
+                handleLogin(event);
+            }
+        });
+
+        // ===== Input Focus Effects =====
+        const inputs = document.querySelectorAll('.form-input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function () {
+                this.parentElement.classList.add('focused');
+            });
+
+            input.addEventListener('blur', function () {
+                this.parentElement.classList.remove('focused');
+            });
+        });
+    </script>
+</body>
+
+</html>

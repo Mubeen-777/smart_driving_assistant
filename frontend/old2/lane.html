@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lane Detection - Smart Drive Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .navbar-menu {
+            display: flex;
+            gap: 20px;
+        }
+
+        .navbar-menu a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .navbar-menu a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .navbar-menu a.active {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .status-bar {
+            background: #2a2a2a;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff4444;
+        }
+
+        .status-dot.connected {
+            background: #00ff88;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 20px;
+        }
+
+        .video-container {
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        #videoFeed {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .no-video {
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+
+        .no-video i {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .overlay-badge {
+            background: rgba(0,0,0,0.7);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .overlay-badge.fps {
+            color: #00ff88;
+        }
+
+        .overlay-badge.warning {
+            color: #ff4444;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50%, 100% { opacity: 1; }
+            25%, 75% { opacity: 0.5; }
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .panel h3 {
+            margin-bottom: 15px;
+            color: #00ff88;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .event-log {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: #666;
+        }
+
+        .log-message {
+            color: #00ff88;
+        }
+
+        .log-message.warning {
+            color: #ff9800;
+        }
+
+        .log-message.error {
+            color: #f44336;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">📹 Lane Detection System</div>
+        <div class="navbar-menu">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="trips.html">Trips</a>
+            <a href="vehicles.html">Vehicles</a>
+            <a href="lane_detection.html" class="active">Camera</a>
+        </div>
+        <a href="dashboard.html" class="back-btn">← Back</a>
+    </nav>
+
+    <div class="container">
+        <div class="status-bar">
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div class="status-item">
+                    <div class="status-dot" id="wsStatusDot"></div>
+                    <span>WebSocket: <strong id="wsStatus">Disconnected</strong></span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot" id="cameraStatusDot"></div>
+                    <span>Camera: <strong id="cameraStatus">Inactive</strong></span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot" id="laneStatusDot"></div>
+                    <span>Lane Detection: <strong id="laneStatus">Standby</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="video-container">
+                <img id="videoFeed" style="display: none;">
+                <div class="no-video" id="noVideo">
+                    <div style="font-size: 64px; margin-bottom: 20px;">📹</div>
+                    <h2>Camera Feed</h2>
+                    <p style="margin-top: 10px; opacity: 0.7;">
+                        Click "Start Camera" to begin lane detection
+                    </p>
+                    <p style="font-size: 12px; margin-top: 10px; opacity: 0.5;">
+                        Ensure DroidCam is connected via USB
+                    </p>
+                </div>
+                <div class="video-overlay" id="videoOverlay" style="display: none;">
+                    <div class="overlay-badge fps">
+                        FPS: <span id="fpsCounter">0</span>
+                    </div>
+                    <div class="overlay-badge warning" id="laneWarning" style="display: none;">
+                        ⚠️ LANE DEPARTURE
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="panel">
+                    <h3>🎮 Camera Controls</h3>
+                    <div class="controls">
+                        <button class="btn btn-success" id="startBtn" onclick="startCamera()">
+                            ▶️ Start Camera
+                        </button>
+                        <button class="btn btn-danger" id="stopBtn" onclick="stopCamera()" disabled>
+                            ⏹️ Stop Camera
+                        </button>
+                        <button class="btn btn-primary" onclick="connectWebSocket()">
+                            🔌 Reconnect
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>📊 Statistics</h3>
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="frameCount">0</div>
+                            <div class="stat-label">Frames</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="dataReceived">0 KB</div>
+                            <div class="stat-label">Data</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="latency">0 ms</div>
+                            <div class="stat-label">Latency</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="warnings">0</div>
+                            <div class="stat-label">Warnings</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>📝 Event Log</h3>
+                    <div class="event-log" id="eventLog">
+                        <div class="log-entry">
+                            <span class="log-time">[--:--:--]</span>
+                            <span class="log-message">System ready</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WS_URL = 'ws://localhost:8081';
+        let ws = null;
+        let frameCount = 0;
+        let totalDataReceived = 0;
+        let warningCount = 0;
+        let fpsCounter = 0;
+        let lastFpsUpdate = Date.now();
+
+        function connectWebSocket() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                addLog('Already connected', 'warning');
+                return;
+            }
+
+            addLog('Connecting to WebSocket...');
+            updateStatus('wsStatus', 'Connecting...', 'wsStatusDot', false);
+
+            try {
+                ws = new WebSocket(WS_URL);
+
+                ws.onopen = () => {
+                    addLog('WebSocket connected', 'success');
+                    updateStatus('wsStatus', 'Connected', 'wsStatusDot', true);
+                    document.getElementById('startBtn').disabled = false;
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        handleMessage(data);
+                    } catch (error) {
+                        console.error('Error parsing message:', error);
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    updateStatus('wsStatus', 'Error', 'wsStatusDot', false);
+                    addLog('WebSocket error', 'error');
+                };
+
+                ws.onclose = () => {
+                    addLog('WebSocket disconnected', 'warning');
+                    updateStatus('wsStatus', 'Disconnected', 'wsStatusDot', false);
+                    updateStatus('cameraStatus', 'Inactive', 'cameraStatusDot', false);
+                    
+                    document.getElementById('startBtn').disabled = true;
+                    document.getElementById('stopBtn').disabled = true;
+                    document.getElementById('videoFeed').style.display = 'none';
+                    document.getElementById('noVideo').style.display = 'flex';
+                    document.getElementById('videoOverlay').style.display = 'none';
+                };
+            } catch (error) {
+                console.error('Failed to create WebSocket:', error);
+                addLog('Failed to connect', 'error');
+            }
+        }
+
+        function handleMessage(data) {
+            switch (data.type) {
+                case 'video_frame':
+                    displayFrame(data.data, data.timestamp);
+                    break;
+                    
+                case 'camera_status':
+                    const status = data.data.enabled ? 'Active' : 'Inactive';
+                    updateStatus('cameraStatus', status, 'cameraStatusDot', data.data.enabled);
+                    document.getElementById('stopBtn').disabled = !data.data.enabled;
+                    
+                    if (data.data.enabled) {
+                        updateStatus('laneStatus', 'Detecting', 'laneStatusDot', true);
+                    } else {
+                        updateStatus('laneStatus', 'Standby', 'laneStatusDot', false);
+                    }
+                    break;
+                    
+                case 'lane_warning':
+                    handleLaneWarning(data.data);
+                    break;
+                    
+                case 'init':
+                    addLog('System initialized', 'success');
+                    break;
+                    
+                case 'error':
+                    addLog('Error: ' + data.message, 'error');
+                    break;
+            }
+        }
+
+        function displayFrame(base64Data, timestamp) {
+            const videoFeed = document.getElementById('videoFeed');
+            const noVideo = document.getElementById('noVideo');
+            const overlay = document.getElementById('videoOverlay');
+            
+            videoFeed.src = 'data:image/jpeg;base64,' + base64Data;
+            videoFeed.style.display = 'block';
+            noVideo.style.display = 'none';
+            overlay.style.display = 'flex';
+            
+            // Update stats
+            frameCount++;
+            document.getElementById('frameCount').textContent = frameCount;
+            
+            const dataSize = base64Data.length * 0.75;
+            totalDataReceived += dataSize;
+            document.getElementById('dataReceived').textContent = 
+                (totalDataReceived / 1024).toFixed(1) + ' KB';
+            
+            // Calculate FPS
+            fpsCounter++;
+            const now = Date.now();
+            const elapsed = now - lastFpsUpdate;
+            
+            if (elapsed >= 1000) {
+                const fps = Math.round(fpsCounter * 1000 / elapsed);
+                document.getElementById('fpsCounter').textContent = fps;
+                fpsCounter = 0;
+                lastFpsUpdate = now;
+            }
+            
+            // Calculate latency
+            if (timestamp) {
+                const latency = Date.now() - (timestamp * 1000);
+                document.getElementById('latency').textContent = Math.max(0, latency) + ' ms';
+            }
+        }
+
+        function handleLaneWarning(data) {
+            warningCount++;
+            document.getElementById('warnings').textContent = warningCount;
+            
+            const warningBadge = document.getElementById('laneWarning');
+            warningBadge.textContent = `⚠️ LANE DEPARTURE: ${data.direction}`;
+            warningBadge.style.display = 'block';
+            
+            setTimeout(() => {
+                warningBadge.style.display = 'none';
+            }, 2000);
+            
+            addLog(`Lane departure: ${data.direction} (${Math.round(data.deviation * 100)}%)`, 'warning');
+        }
+
+        function startCamera() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addLog('Not connected to WebSocket', 'error');
+                return;
+            }
+
+            addLog('Starting camera...');
+            ws.send(JSON.stringify({
+                command: 'toggle_camera',
+                enable: true
+            }));
+
+            document.getElementById('startBtn').disabled = true;
+            updateStatus('cameraStatus', 'Starting...', 'cameraStatusDot', false);
+        }
+
+        function stopCamera() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addLog('Not connected to WebSocket', 'error');
+                return;
+            }
+
+            addLog('Stopping camera...');
+            ws.send(JSON.stringify({
+                command: 'toggle_camera',
+                enable: false
+            }));
+
+            document.getElementById('stopBtn').disabled = true;
+            updateStatus('cameraStatus', 'Stopping...', 'cameraStatusDot', false);
+        }
+
+        function updateStatus(elementId, text, dotId, isConnected = true) {
+            document.getElementById(elementId).textContent = text;
+            const dot = document.getElementById(dotId);
+            if (isConnected) {
+                dot.classList.add('connected');
+            } else {
+                dot.classList.remove('connected');
+            }
+        }
+
+        function addLog(message, type = 'info') {
+            const eventLog = document.getElementById('eventLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            const time = new Date().toLocaleTimeString();
+            entry.innerHTML = `
+                <span class="log-time">[${time}]</span>
+                <span class="log-message ${type}">${message}</span>
+            `;
+            
+            eventLog.insertBefore(entry, eventLog.firstChild);
+            
+            while (eventLog.children.length > 50) {
+                eventLog.removeChild(eventLog.lastChild);
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            addLog('Lane detection system ready');
+            connectWebSocket();
+        });
+    </script>
+</body>
+</html>

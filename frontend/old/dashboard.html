@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Drive Manager - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .status-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-items {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4444;
+        }
+
+        .status-dot.connected {
+            background: #00ff88;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-success { background: #4cc9f0; color: white; }
+        .btn-danger { background: #f72585; color: white; }
+        .btn-primary { background: #4361ee; color: white; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #1a1a2e;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .speedometer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #speedometer {
+            width: 250px;
+            height: 250px;
+        }
+
+        .speed-display {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .speed-value {
+            font-size: 4rem;
+            font-weight: 700;
+            color: #4361ee;
+        }
+
+        .video-container {
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #videoFeed {
+            width: 100%;
+            height: auto;
+            display: none;
+        }
+
+        .no-video {
+            color: #666;
+            text-align: center;
+        }
+
+        .no-video i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .lane-overlay {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .fps-display {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .event-counters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .event-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-blur: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .event-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .event-label {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .alerts-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        .alert {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-left: 4px solid #4361ee;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease-out;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-danger { border-left-color: #f72585; }
+        .alert-warning { border-left-color: #f8961e; }
+        .alert-success { border-left-color: #4cc9f0; }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-car"></i> Smart Drive Manager</h1>
+            <p>Real-time Vehicle Monitoring & Safety System</p>
+        </div>
+
+        <div class="alerts-container" id="alertsContainer"></div>
+
+        <div class="status-bar">
+            <div class="status-items">
+                <div class="status-indicators">
+                    <div class="status-item">
+                        <div class="status-dot" id="wsStatusDot"></div>
+                        <span><strong id="wsStatus">Disconnected</strong></span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-dot" id="tripStatusDot"></div>
+                        <span>Trip: <strong id="tripStatus">Inactive</strong></span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-dot" id="cameraStatusDot"></div>
+                        <span>Camera: <strong id="cameraStatus">Off</strong></span>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-success" onclick="startTrip()" id="startTripBtn" disabled>
+                        <i class="fas fa-play"></i> Start Trip
+                    </button>
+                    <button class="btn btn-danger" onclick="stopTrip()" id="stopTripBtn" disabled>
+                        <i class="fas fa-stop"></i> Stop Trip
+                    </button>
+                    <button class="btn btn-primary" onclick="toggleCamera()" id="cameraBtn" disabled>
+                        <i class="fas fa-video"></i> Start Camera
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(67, 97, 238, 0.1); color: #4361ee;">
+                    <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <div class="stat-value" id="speedValue">0</div>
+                <div class="stat-label">Current Speed (km/h)</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(76, 201, 240, 0.1); color: #4cc9f0;">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="stat-value" id="accelValue">0.0</div>
+                <div class="stat-label">Acceleration (m/s²)</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(248, 150, 30, 0.1); color: #f8961e;">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="stat-value" id="safetyScore">1000</div>
+                <div class="stat-label">Safety Score</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-gauge"></i> Speed Monitor
+                    </div>
+                </div>
+                <div class="speedometer-container">
+                    <canvas id="speedometer"></canvas>
+                    <div class="speed-display">
+                        <span class="speed-value" id="speedDisplay">0</span>
+                        <span style="font-size: 1.5rem; color: #666;"> km/h</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-camera"></i> Live Lane Detection
+                    </div>
+                </div>
+                <div class="video-container">
+                    <img id="videoFeed" alt="Camera Feed">
+                    <div class="no-video" id="noVideo">
+                        <i class="fas fa-video-slash"></i>
+                        <p>Camera not active</p>
+                        <p style="font-size: 0.85rem; margin-top: 10px; opacity: 0.7;">
+                            Click "Start Camera" to begin
+                        </p>
+                    </div>
+                    <div class="lane-overlay" id="laneOverlay" style="display: none;">
+                        Lane: <span id="laneStatus">CENTERED</span>
+                    </div>
+                    <div class="fps-display" id="fpsDisplay" style="display: none;">
+                        FPS: <span id="fpsValue">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="event-counters">
+            <div class="event-card">
+                <div class="event-value" style="color: #f8961e;" id="rapidAccelCount">0</div>
+                <div class="event-label">Rapid Acceleration</div>
+            </div>
+            <div class="event-card">
+                <div class="event-value" style="color: #f72585;" id="hardBrakeCount">0</div>
+                <div class="event-label">Hard Braking</div>
+            </div>
+            <div class="event-card">
+                <div class="event-value" style="color: #f8961e;" id="laneDepartureCount">0</div>
+                <div class="event-label">Lane Departures</div>
+            </div>
+            <div class="event-card">
+                <div class="event-value" style="color: #4361ee;" id="totalEvents">0</div>
+                <div class="event-label">Total Events</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let isConnected = false;
+        let isTripActive = false;
+        let isCameraActive = false;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        
+        let frameCount = 0;
+        let lastFpsUpdate = Date.now();
+        let fpsCounter = 0;
+
+        const liveData = {
+            speed: 0,
+            acceleration: 0,
+            safety_score: 1000,
+            lane_status: 'CENTERED',
+            rapid_accel_count: 0,
+            hard_brake_count: 0,
+            lane_departures: 0
+        };
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            initializeSpeedometer();
+            connectWebSocket();
+        });
+
+        function connectWebSocket() {
+            console.log('🔌 Connecting to WebSocket bridge...');
+            
+            ws = new WebSocket('ws://localhost:8081');
+            
+            ws.onopen = () => {
+                console.log('✅ WebSocket connected');
+                isConnected = true;
+                reconnectAttempts = 0;
+                updateStatus('wsStatus', 'Connected', 'wsStatusDot', true);
+                addAlert('Connected to system', 'success');
+                
+                // Enable buttons
+                document.getElementById('startTripBtn').disabled = false;
+                document.getElementById('cameraBtn').disabled = false;
+                
+                // Start ping interval
+                setInterval(() => {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ command: 'ping' }));
+                    }
+                }, 30000);
+            };
+            
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                } catch (error) {
+                    console.error('Error parsing message:', error);
+                }
+            };
+            
+            ws.onerror = (error) => {
+                console.error('❌ WebSocket error:', error);
+                isConnected = false;
+                updateStatus('wsStatus', 'Error', 'wsStatusDot', false);
+            };
+            
+            ws.onclose = () => {
+                console.log('🔌 WebSocket disconnected');
+                isConnected = false;
+                updateStatus('wsStatus', 'Disconnected', 'wsStatusDot', false);
+                
+                // Disable buttons
+                document.getElementById('startTripBtn').disabled = true;
+                document.getElementById('stopTripBtn').disabled = true;
+                document.getElementById('cameraBtn').disabled = true;
+                
+                // Auto-reconnect
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    console.log(`🔄 Reconnecting... (${reconnectAttempts}/${maxReconnectAttempts})`);
+                    setTimeout(connectWebSocket, 3000);
+                } else {
+                    addAlert('Connection lost. Please refresh the page.', 'danger');
+                }
+            };
+        }
+
+        function handleWebSocketMessage(data) {
+            switch (data.type) {
+                case 'video_frame':
+                    updateVideoFrame(data.data);
+                    break;
+                    
+                case 'live_data':
+                    updateLiveData(data.data);
+                    break;
+                    
+                case 'lane_warning':
+                    addAlert(`⚠️ LANE DEPARTURE: ${data.data.direction}`, 'warning');
+                    playAlertSound();
+                    break;
+                    
+                case 'warning':
+                    addAlert(`⚠️ ${data.data.warning_type}: ${data.data.value.toFixed(2)}`, 'warning');
+                    playAlertSound();
+                    break;
+                    
+                case 'trip_started':
+                    isTripActive = true;
+                    updateStatus('tripStatus', 'Active', 'tripStatusDot', true);
+                    document.getElementById('startTripBtn').disabled = true;
+                    document.getElementById('stopTripBtn').disabled = false;
+                    addAlert('Trip started successfully!', 'success');
+                    break;
+                    
+                case 'trip_stopped':
+                    isTripActive = false;
+                    updateStatus('tripStatus', 'Inactive', 'tripStatusDot', false);
+                    document.getElementById('startTripBtn').disabled = false;
+                    document.getElementById('stopTripBtn').disabled = true;
+                    addAlert(`Trip ended. Distance: ${data.data.distance || 'N/A'}`, 'success');
+                    break;
+                    
+                case 'camera_status':
+                    isCameraActive = data.data.enabled;
+                    updateCameraUI(data.data.enabled);
+                    break;
+                    
+                case 'init':
+                    console.log('📋 System capabilities:', data.data);
+                    break;
+                    
+                case 'error':
+                    addAlert(data.message, 'danger');
+                    break;
+            }
+        }
+
+        function updateVideoFrame(base64Data) {
+            const videoFeed = document.getElementById('videoFeed');
+            const noVideo = document.getElementById('noVideo');
+            
+            videoFeed.src = 'data:image/jpeg;base64,' + base64Data;
+            videoFeed.style.display = 'block';
+            noVideo.style.display = 'none';
+            
+            // Update FPS
+            frameCount++;
+            fpsCounter++;
+            const now = Date.now();
+            const elapsed = now - lastFpsUpdate;
+            
+            if (elapsed >= 1000) {
+                const fps = Math.round(fpsCounter * 1000 / elapsed);
+                document.getElementById('fpsValue').textContent = fps;
+                fpsCounter = 0;
+                lastFpsUpdate = now;
+            }
+        }
+
+        function updateLiveData(data) {
+            Object.assign(liveData, data);
+            
+            document.getElementById('speedValue').textContent = Math.round(liveData.speed);
+            document.getElementById('speedDisplay').textContent = Math.round(liveData.speed);
+            document.getElementById('accelValue').textContent = liveData.acceleration.toFixed(2);
+            document.getElementById('safetyScore').textContent = liveData.safety_score;
+            document.getElementById('laneStatus').textContent = liveData.lane_status;
+            
+            document.getElementById('rapidAccelCount').textContent = liveData.rapid_accel_count;
+            document.getElementById('hardBrakeCount').textContent = liveData.hard_brake_count;
+            document.getElementById('laneDepartureCount').textContent = liveData.lane_departures;
+            document.getElementById('totalEvents').textContent = 
+                liveData.rapid_accel_count + liveData.hard_brake_count + liveData.lane_departures;
+            
+            drawSpeedometer(liveData.speed);
+        }
+
+        function startTrip() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addAlert('Not connected to backend!', 'danger');
+                return;
+            }
+            
+            ws.send(JSON.stringify({
+                command: 'start_trip',
+                driver_id: 1,
+                vehicle_id: 1
+            }));
+            
+            addAlert('Starting trip...', 'info');
+        }
+
+        function stopTrip() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addAlert('Not connected to backend!', 'danger');
+                return;
+            }
+            
+            ws.send(JSON.stringify({
+                command: 'stop_trip'
+            }));
+            
+            addAlert('Stopping trip...', 'info');
+        }
+
+        function toggleCamera() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addAlert('Not connected to backend!', 'danger');
+                return;
+            }
+            
+            ws.send(JSON.stringify({
+                command: 'toggle_camera',
+                enable: !isCameraActive
+            }));
+            
+            addAlert(isCameraActive ? 'Stopping camera...' : 'Starting camera...', 'info');
+        }
+
+        function updateCameraUI(enabled) {
+            const btn = document.getElementById('cameraBtn');
+            const status = document.getElementById('cameraStatus');
+            const statusDot = document.getElementById('cameraStatusDot');
+            const laneOverlay = document.getElementById('laneOverlay');
+            const fpsDisplay = document.getElementById('fpsDisplay');
+            
+            if (enabled) {
+                btn.innerHTML = '<i class="fas fa-video-slash"></i> Stop Camera';
+                btn.className = 'btn btn-danger';
+                status.textContent = 'Active';
+                statusDot.classList.add('connected');
+                laneOverlay.style.display = 'block';
+                fpsDisplay.style.display = 'block';
+            } else {
+                btn.innerHTML = '<i class="fas fa-video"></i> Start Camera';
+                btn.className = 'btn btn-primary';
+                status.textContent = 'Off';
+                statusDot.classList.remove('connected');
+                laneOverlay.style.display = 'none';
+                fpsDisplay.style.display = 'none';
+                
+                document.getElementById('videoFeed').style.display = 'none';
+                document.getElementById('noVideo').style.display = 'block';
+            }
+        }
+
+        function initializeSpeedometer() {
+            drawSpeedometer(0);
+        }
+
+        function drawSpeedometer(speed) {
+            const canvas = document.getElementById('speedometer');
+            if (!canvas) return;
+            
+            canvas.width = 250;
+            canvas.height = 250;
+            
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 100;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Outer circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'rgba(67, 97, 238, 0.2)';
+            ctx.lineWidth = 15;
+            ctx.stroke();
+
+            // Speed arc
+            const maxSpeed = 200;
+            const speedAngle = (Math.min(speed, maxSpeed) / maxSpeed) * 1.5 * Math.PI - 0.75 * Math.PI;
+            const color = speed < 60 ? '#4cc9f0' : speed < 100 ? '#f8961e' : '#f72585';
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, -0.75 * Math.PI, speedAngle);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 15;
+            ctx.stroke();
+
+            // Center circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 10, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+
+            // Needle
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(speedAngle);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(radius - 25, 0);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            ctx.restore();
+
+            // Speed markers
+            ctx.fillStyle = '#666';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            
+            for (let i = 0; i <= 200; i += 40) {
+                const angle = (i / maxSpeed) * 1.5 * Math.PI - 0.75 * Math.PI;
+                const x = centerX + (radius + 20) * Math.cos(angle);
+                const y = centerY + (radius + 20) * Math.sin(angle);
+                ctx.fillText(i, x, y);
+            }
+        }
+
+        function updateStatus(elementId, text, dotId, isActive) {
+            document.getElementById(elementId).textContent = text;
+            const dot = document.getElementById(dotId);
+            if (isActive) {
+                dot.classList.add('connected');
+            } else {
+                dot.classList.remove('connected');
+            }
+        }
+
+        function addAlert(message, type = 'info') {
+            const container = document.getElementById('alertsContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            
+            const icon = type === 'danger' ? 'fa-exclamation-triangle' :
+                        type === 'warning' ? 'fa-exclamation-circle' :
+                        type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+            
+            alert.innerHTML = `
+                <i class="fas ${icon}"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        function playAlertSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            gainNode.gain.value = 0.3;
+            
+            oscillator.start();
+            setTimeout(() => oscillator.stop(), 200);
+        }
+    </script>
+</body>
+</html>

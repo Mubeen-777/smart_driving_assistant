@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Smart Drive</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        /* Reusing Login Styles for Consistency */
+        :root {
+            --primary: #6d5dfc;
+            --primary-dark: #5b4ff0;
+            --primary-light: #8a7ffc;
+            --secondary: #ff6584;
+            --accent: #00d9c0;
+            --dark: #1a1d28;
+            --dark-light: #2a2e3e;
+            --gray: #8c92a3;
+            --gray-light: #f0f2f8;
+            --gray-lighter: #f8f9fc;
+            --white: #ffffff;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+
+            --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 5px 20px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12);
+            --shadow-hover: 0 15px 50px rgba(109, 93, 252, 0.2);
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --radius-full: 50%;
+
+            --transition-fast: 0.2s ease;
+            --transition-normal: 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7ff 0%, #f0f4ff 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            padding: 40px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 5px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .subtitle {
+            color: var(--gray);
+            font-size: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--dark);
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 20px 14px 45px;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            transition: all var(--transition-fast);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--white);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            font-size: 18px;
+        }
+
+        .form-input:focus+.input-icon {
+            color: var(--primary);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .login-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert.error {
+            background: #fff5f5;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .alert.success {
+            background: #f0fff4;
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Create Account</h1>
+            <p class="subtitle">Join Smart Drive to start tracking your trips</p>
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <form id="registerForm" onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <div class="input-group">
+                    <input type="text" id="regName" class="form-input" placeholder="John Doe" required>
+                    <div class="input-icon"><i class="fas fa-user"></i></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <div class="input-group">
+                    <input type="text" id="regUsername" class="form-input" placeholder="johndoe" required>
+                    <div class="input-icon"><i class="fas fa-at"></i></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">License Number</label>
+                <div class="input-group">
+                    <input type="text" id="regLicense" class="form-input" placeholder="DL-12345678" required>
+                    <div class="input-icon"><i class="fas fa-id-card"></i></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <div class="input-group">
+                    <input type="password" id="regPassword" class="form-input" placeholder="Min 6 characters" required
+                        minlength="6">
+                    <div class="input-icon"><i class="fas fa-lock"></i></div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn" id="submitBtn">
+                Sign Up
+            </button>
+        </form>
+
+        <div class="login-link">
+            <p>Already have an account? <a href="login.html">Sign In</a></p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://43.204.211.180:8080';
+        const alertBox = document.getElementById('alert');
+
+        function showAlert(msg, type) {
+            alertBox.textContent = msg;
+            alertBox.className = `alert ${type}`;
+            alertBox.style.display = 'block';
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('regName').value;
+            const username = document.getElementById('regUsername').value;
+            const license = document.getElementById('regLicense').value;
+            const password = document.getElementById('regPassword').value;
+            const btn = document.getElementById('submitBtn');
+
+            if (password.length < 6) {
+                showAlert('Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Creating...';
+            alertBox.style.display = 'none';
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'user_register',
+                        full_name: name,
+                        username: username,
+                        license_number: license,
+                        password: password,
+                        email: username + "@example.com"
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    showAlert('Registration successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                } else {
+                    showAlert(data.message || 'Registration failed', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            } catch (error) {
+                showAlert('Connection error. Please create account later.', 'error');
+                console.error(error);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+    </script>
+</body>
+
+</html>

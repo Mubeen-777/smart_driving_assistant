@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incidents - Smart Drive Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .navbar-menu {
+            display: flex;
+            gap: 20px;
+        }
+
+        .navbar-menu a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .navbar-menu a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .navbar-menu a.active {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .incidents-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .incident-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .incident-card:hover {
+            border-color: #f44336;
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.2);
+        }
+
+        .incident-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .incident-type {
+            font-size: 18px;
+            font-weight: bold;
+            color: #f44336;
+        }
+
+        .incident-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-resolved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .incident-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .detail-item {
+            font-size: 14px;
+        }
+
+        .detail-label {
+            color: #999;
+        }
+
+        .detail-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .location-info {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .location-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .location-value {
+            font-size: 14px;
+            color: #333;
+            font-family: monospace;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">🚗 Smart Drive</div>
+        <div class="navbar-menu">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="trips.html">Trips</a>
+            <a href="vehicles.html">Vehicles</a>
+            <a href="expenses.html">Expenses</a>
+            <a href="incidents.html" class="active">Incidents</a>
+            <a href="lane_detection.html">Camera</a>
+        </div>
+        <a href="dashboard.html" class="back-btn">← Dashboard</a>
+    </nav>
+
+    <div class="container">
+        <div class="grid">
+            <!-- Report Form -->
+            <div class="card">
+                <h2>🚨 Report Incident</h2>
+                
+                <div id="alert" class="alert"></div>
+
+                <div class="location-info">
+                    <div class="location-label">📍 Current Location</div>
+                    <div class="location-value" id="currentLocation">Getting location...</div>
+                </div>
+
+                <form id="incidentForm" onsubmit="reportIncident(event)">
+                    <div class="form-group">
+                        <label for="vehicleSelect">Vehicle *</label>
+                        <select id="vehicleSelect" required>
+                            <option value="">Select Vehicle...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="incidentType">Incident Type *</label>
+                        <select id="incidentType" required>
+                            <option value="0">Accident</option>
+                            <option value="1">Breakdown</option>
+                            <option value="2">Theft</option>
+                            <option value="3">Vandalism</option>
+                            <option value="4">Traffic Violation</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description *</label>
+                        <textarea id="description" placeholder="Describe what happened..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn" id="submitBtn">
+                        📝 Report Incident
+                    </button>
+                </form>
+            </div>
+
+            <!-- Incidents List -->
+            <div class="card">
+                <h2>📋 Incident History</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalIncidents">0</div>
+                        <div class="stat-label">Total Incidents</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="unresolvedIncidents">0</div>
+                        <div class="stat-label">Unresolved</div>
+                    </div>
+                </div>
+
+                <div id="incidentsContent">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading incidents...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080';
+        const WS_URL = 'ws://localhost:8081';
+        const sessionId = localStorage.getItem('session_id');
+        const driverId = localStorage.getItem('driver_id');
+
+        let ws = null;
+        let currentLatitude = 31.5204;
+        let currentLongitude = 74.3587;
+
+        if (!sessionId || !driverId) {
+            window.location.href = 'login.html';
+        }
+
+        function connectWebSocket() {
+            try {
+                ws = new WebSocket(WS_URL);
+
+                ws.onopen = () => {
+                    console.log('WebSocket connected for GPS updates');
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.type === 'live_data' && data.data.latitude && data.data.longitude) {
+                            currentLatitude = data.data.latitude;
+                            currentLongitude = data.data.longitude;
+                            updateLocationDisplay();
+                        }
+                    } catch (error) {
+                        console.error('Error parsing WebSocket message:', error);
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                };
+
+                ws.onclose = () => {
+                    console.log('WebSocket disconnected');
+                    // Reconnect after 5 seconds
+                    setTimeout(connectWebSocket, 5000);
+                };
+            } catch (error) {
+                console.error('Failed to create WebSocket:', error);
+            }
+        }
+
+        function updateLocationDisplay() {
+            document.getElementById('currentLocation').textContent = 
+                `${currentLatitude.toFixed(6)}, ${currentLongitude.toFixed(6)}`;
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type}`;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        async function loadVehicles() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'vehicle_get_list',
+                        session_id: sessionId
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.data.vehicles) {
+                    const select = document.getElementById('vehicleSelect');
+                    select.innerHTML = '<option value="">Select Vehicle...</option>';
+                    
+                    data.data.vehicles.forEach(vehicle => {
+                        const option = document.createElement('option');
+                        option.value = vehicle.vehicle_id;
+                        option.textContent = `${vehicle.make} ${vehicle.model} (${vehicle.license_plate})`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading vehicles:', error);
+            }
+        }
+
+        async function reportIncident(event) {
+            event.preventDefault();
+            
+            const vehicleId = document.getElementById('vehicleSelect').value;
+            const type = document.getElementById('incidentType').value;
+            const description = document.getElementById('description').value;
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Reporting...';
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'incident_report',
+                        session_id: sessionId,
+                        vehicle_id: vehicleId,
+                        type: type,
+                        latitude: currentLatitude,
+                        longitude: currentLongitude,
+                        description: description
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    showAlert('Incident reported successfully!', 'success');
+                    document.getElementById('incidentForm').reset();
+                    loadIncidents();
+                } else {
+                    showAlert('Failed to report incident: ' + (data.message || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Error reporting incident:', error);
+                showAlert('Connection error. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '📝 Report Incident';
+            }
+        }
+
+        async function loadIncidents() {
+            const content = document.getElementById('incidentsContent');
+            
+            content.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading incidents...</p>
+                </div>
+            `;
+
+            try {
+                const [listResponse, statsResponse] = await Promise.all([
+                    fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            operation: 'incident_get_list',
+                            session_id: sessionId
+                        })
+                    }),
+                    fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            operation: 'incident_get_statistics',
+                            session_id: sessionId
+                        })
+                    })
+                ]);
+
+                const listData = await listResponse.json();
+                const statsData = await statsResponse.json();
+
+                if (statsData.status === 'success') {
+                    document.getElementById('totalIncidents').textContent = 
+                        statsData.data.total_incidents || 0;
+                    document.getElementById('unresolvedIncidents').textContent = 
+                        statsData.data.unresolved_incidents || 0;
+                }
+
+                if (listData.status === 'success' && listData.data.incidents) {
+                    displayIncidents(listData.data.incidents);
+                } else {
+                    content.innerHTML = `
+                        <div class="empty-state">
+                            <div style="font-size: 64px; margin-bottom: 20px;">✅</div>
+                            <h3>No incidents reported</h3>
+                            <p>Keep driving safely!</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading incidents:', error);
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 64px; margin-bottom: 20px; color: #f44336;">⚠️</div>
+                        <h3>Error Loading Incidents</h3>
+                        <p>Please ensure the backend server is running</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayIncidents(incidents) {
+            const content = document.getElementById('incidentsContent');
+            
+            if (incidents.length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 64px; margin-bottom: 20px;">✅</div>
+                        <h3>No incidents reported</h3>
+                        <p>Keep driving safely!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const incidentsList = document.createElement('div');
+            incidentsList.className = 'incidents-list';
+
+            const typeNames = ['Accident', 'Breakdown', 'Theft', 'Vandalism', 'Traffic Violation'];
+
+            incidents.forEach(incident => {
+                const incidentCard = document.createElement('div');
+                incidentCard.className = 'incident-card';
+                
+                const incidentDate = new Date(parseInt(incident.incident_time) / 1000000);
+                const typeName = typeNames[parseInt(incident.type)] || 'Unknown';
+                const isResolved = incident.is_resolved === '1';
+
+                incidentCard.innerHTML = `
+                    <div class="incident-header">
+                        <span class="incident-type">🚨 ${typeName}</span>
+                        <span class="incident-badge ${isResolved ? 'badge-resolved' : 'badge-pending'}">
+                            ${isResolved ? 'Resolved' : 'Pending'}
+                        </span>
+                    </div>
+                    
+                    <p style="color: #666; margin-bottom: 10px;">${incident.description}</p>
+                    
+                    <div class="incident-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Date:</span>
+                            <span class="detail-value">${incidentDate.toLocaleDateString()}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Time:</span>
+                            <span class="detail-value">${incidentDate.toLocaleTimeString()}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Location:</span>
+                            <span class="detail-value">${parseFloat(incident.latitude).toFixed(4)}, ${parseFloat(incident.longitude).toFixed(4)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Incident ID:</span>
+                            <span class="detail-value">#${incident.incident_id}</span>
+                        </div>
+                    </div>
+                `;
+
+                incidentsList.appendChild(incidentCard);
+            });
+
+            content.innerHTML = '';
+            content.appendChild(incidentsList);
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            connectWebSocket();
+            loadVehicles();
+            loadIncidents();
+            updateLocationDisplay();
+        });
+    </script>
+</body>
+</html>

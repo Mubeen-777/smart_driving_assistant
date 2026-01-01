@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Smart Drive Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .navbar-menu {
+            display: flex;
+            gap: 20px;
+        }
+
+        .navbar-menu a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .navbar-menu a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .navbar-menu a.active {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .profile-header {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+        }
+
+        .profile-info h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .safety-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .recommendations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .recommendation-item {
+            padding: 20px;
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+        }
+
+        .recommendation-item.high-priority {
+            border-left-color: #f44336;
+            background: #fff5f5;
+        }
+
+        .recommendation-item.medium-priority {
+            border-left-color: #ff9800;
+            background: #fff9f0;
+        }
+
+        .recommendation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .recommendation-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .priority-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .priority-high {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .priority-medium {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .priority-low {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .recommendation-description {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .improvement-meter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .meter-bar {
+            flex: 1;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%);
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .info-item {
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">🚗 Smart Drive</div>
+        <div class="navbar-menu">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="trips.html">Trips</a>
+            <a href="vehicles.html">Vehicles</a>
+            <a href="incidents.html">Incidents</a>
+            <a href="profile.html" class="active">Profile</a>
+        </div>
+        <a href="dashboard.html" class="back-btn">← Dashboard</a>
+    </nav>
+
+    <div class="container">
+        <div class="profile-header" style="position: relative;">
+            <div class="profile-avatar">👤</div>
+            <div class="profile-info">
+                <h1 id="driverName">Loading...</h1>
+                <div class="profile-meta">
+                    <span>📧 <span id="driverEmail">-</span></span>
+                    <span>📱 <span id="driverPhone">-</span></span>
+                    <span>🪪 <span id="driverLicense">-</span></span>
+                </div>
+            </div>
+            <div class="safety-badge">
+                🛡️ <span id="safetyScore">1000</span>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">🚗</div>
+                <div class="stat-value" id="totalTrips">0</div>
+                <div class="stat-label">Total Trips</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📏</div>
+                <div class="stat-value" id="totalDistance">0 km</div>
+                <div class="stat-label">Total Distance</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-value" id="avgSpeed">0 km/h</div>
+                <div class="stat-label">Average Speed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value" id="ranking">-</div>
+                <div class="stat-label">Fleet Ranking</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📈 Driving Behavior</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Harsh Braking Rate</div>
+                    <div class="info-value" id="brakingRate">0.0 per 100km</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Acceleration Rate</div>
+                    <div class="info-value" id="accelRate">0.0 per 100km</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Speeding Violations</div>
+                    <div class="info-value" id="speedingCount">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Percentile</div>
+                    <div class="info-value" id="percentile">Top 0%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>💡 Improvement Recommendations</h2>
+            <div id="recommendationsContent">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading recommendations...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080';
+        const sessionId = localStorage.getItem('session_id');
+        const driverId = localStorage.getItem('driver_id');
+
+        if (!sessionId || !driverId) {
+            window.location.href = 'login.html';
+        }
+
+        async function loadProfile() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'driver_get_profile',
+                        session_id: sessionId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    const profile = data.data;
+                    document.getElementById('driverName').textContent = profile.name || 'Driver';
+                    document.getElementById('driverEmail').textContent = profile.email || 'N/A';
+                    document.getElementById('driverPhone').textContent = profile.phone || 'N/A';
+                    document.getElementById('safetyScore').textContent = profile.safety_score || 1000;
+                    document.getElementById('totalTrips').textContent = profile.total_trips || 0;
+                    document.getElementById('totalDistance').textContent = 
+                        parseFloat(profile.total_distance || 0).toFixed(2) + ' km';
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        async function loadBehavior() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'driver_get_behavior',
+                        session_id: sessionId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    const behavior = data.data;
+                    document.getElementById('avgSpeed').textContent = 
+                        parseFloat(behavior.avg_speed || 0).toFixed(1) + ' km/h';
+                    document.getElementById('brakingRate').textContent = 
+                        parseFloat(behavior.harsh_braking_rate || 0).toFixed(2) + ' per 100km';
+                    document.getElementById('speedingCount').textContent = 
+                        behavior.speeding_rate || 0;
+                    document.getElementById('ranking').textContent = 
+                        '#' + (behavior.rank || '-');
+                    document.getElementById('percentile').textContent = 
+                        'Top ' + parseFloat(behavior.percentile || 0).toFixed(1) + '%';
+                }
+            } catch (error) {
+                console.error('Error loading behavior:', error);
+            }
+        }
+
+        async function loadRecommendations() {
+            const content = document.getElementById('recommendationsContent');
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'driver_get_recommendations',
+                        session_id: sessionId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success' && data.data.recommendations) {
+                    displayRecommendations(data.data.recommendations);
+                } else {
+                    content.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #666;">
+                            <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
+                            <h3>Great Job!</h3>
+                            <p>No specific recommendations at this time. Keep up the safe driving!</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading recommendations:', error);
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #f44336;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                        <h3>Error Loading Recommendations</h3>
+                        <p>Please try again later</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayRecommendations(recommendations) {
+            const content = document.getElementById('recommendationsContent');
+            
+            if (recommendations.length === 0) {
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
+                        <h3>Great Job!</h3>
+                        <p>No specific recommendations at this time. Keep up the safe driving!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const list = document.createElement('div');
+            list.className = 'recommendations-list';
+
+            recommendations.forEach(rec => {
+                const priority = parseInt(rec.priority);
+                const priorityClass = priority === 3 ? 'high-priority' : 
+                                     priority === 2 ? 'medium-priority' : 'low-priority';
+                const priorityLabel = priority === 3 ? 'High' : 
+                                     priority === 2 ? 'Medium' : 'Low';
+                const priorityBadgeClass = priority === 3 ? 'priority-high' : 
+                                          priority === 2 ? 'priority-medium' : 'priority-low';
+
+                const item = document.createElement('div');
+                item.className = `recommendation-item ${priorityClass}`;
+                
+                const improvement = parseFloat(rec.potential_improvement || 0);
+                
+                item.innerHTML = `
+                    <div class="recommendation-header">
+                        <span class="recommendation-title">${rec.category}</span>
+                        <span class="priority-badge ${priorityBadgeClass}">
+                            ${priorityLabel} Priority
+                        </span>
+                    </div>
+                    <p class="recommendation-description">${rec.recommendation}</p>
+                    <div class="improvement-meter">
+                        <span style="font-size: 12px; color: #666;">Potential improvement:</span>
+                        <div class="meter-bar">
+                            <div class="meter-fill" style="width: ${Math.min(improvement, 100)}%"></div>
+                        </div>
+                        <span style="font-size: 14px; font-weight: 600; color: #4CAF50;">
+                            +${improvement.toFixed(0)} points
+                        </span>
+                    </div>
+                `;
+
+                list.appendChild(item);
+            });
+
+            content.innerHTML = '';
+            content.appendChild(list);
+        }
+
+        // Load all data on page load
+        window.addEventListener('load', () => {
+            loadProfile();
+            loadBehavior();
+            loadRecommendations();
+        });
+    </script>
+</body>
+</html>

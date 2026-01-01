@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicles - Smart Drive</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ===== CSS Variables & Reset ===== */
+        :root {
+            --primary: #6d5dfc;
+            --primary-dark: #5b4ff0;
+            --primary-light: #8a7ffc;
+            --secondary: #ff6584;
+            --secondary-dark: #e85573;
+            --accent: #00d9c0;
+            --dark: #1a1d28;
+            --dark-light: #2a2e3e;
+            --gray: #8c92a3;
+            --gray-light: #f0f2f8;
+            --gray-lighter: #f8f9fc;
+            --white: #ffffff;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #3498db;
+            
+            --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 5px 20px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12);
+            --shadow-hover: 0 15px 50px rgba(109, 93, 252, 0.15);
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --radius-full: 50%;
+            
+            --transition-fast: 0.2s ease;
+            --transition-normal: 0.3s ease;
+            --transition-slow: 0.5s ease;
+            
+            --sidebar-width: 260px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--gray-lighter);
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+        
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        ul {
+            list-style: none;
+        }
+        
+        img {
+            max-width: 100%;
+        }
+        
+        /* ===== Layout ===== */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* ===== Sidebar ===== */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--dark) 0%, #131722 100%);
+            color: var(--white);
+            padding: 30px 0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            box-shadow: var(--shadow-md);
+            transition: transform var(--transition-normal);
+        }
+        
+        .sidebar-header {
+            padding: 0 25px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .nav-links {
+            flex: 1;
+            padding: 0 20px;
+        }
+        
+        .nav-item {
+            margin-bottom: 8px;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--white);
+            transform: translateX(5px);
+        }
+        
+        .nav-link.active {
+            background: linear-gradient(90deg, rgba(109, 93, 252, 0.2) 0%, rgba(109, 93, 252, 0.1) 100%);
+            color: var(--white);
+            border-left: 3px solid var(--primary);
+        }
+        
+        .nav-link i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .sidebar-footer {
+            padding: 25px 25px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin-top: auto;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            border-radius: var(--radius-md);
+            background-color: rgba(255, 255, 255, 0.05);
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+        
+        .user-profile:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        
+        .user-role {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .logout-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 18px;
+            cursor: pointer;
+            transition: color var(--transition-fast);
+        }
+        
+        .logout-btn:hover {
+            color: var(--danger);
+        }
+        
+        /* ===== Main Content ===== */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+            transition: margin-left var(--transition-normal);
+        }
+        
+        /* ===== Header ===== */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .page-title h1 {
+            font-size: 28px;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .page-title p {
+            color: var(--gray);
+            font-size: 15px;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .notification-btn {
+            position: relative;
+            background: none;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-full);
+            background-color: var(--white);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            color: var(--gray);
+            font-size: 18px;
+        }
+        
+        .notification-btn:hover {
+            background-color: var(--primary);
+            color: var(--white);
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--danger);
+            color: white;
+            border-radius: var(--radius-full);
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            background-color: var(--white);
+            box-shadow: var(--shadow-sm);
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            color: var(--dark);
+            font-size: 20px;
+        }
+        
+        .mobile-menu-btn:hover {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+        
+        /* ===== Buttons ===== */
+        .btn {
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            box-shadow: 0 5px 15px rgba(109, 93, 252, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(109, 93, 252, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--gray-lighter);
+            color: var(--dark);
+            border: 2px solid var(--gray-light);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--gray-light);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #27ae60 100%);
+            color: var(--white);
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(46, 204, 113, 0.4);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning) 0%, #e67e22 100%);
+            color: var(--white);
+            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(243, 156, 18, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #c0392b 100%);
+            color: var(--white);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+        
+        /* ===== Alerts Section ===== */
+        .alerts-section {
+            background: linear-gradient(135deg, rgba(255, 101, 132, 0.1) 0%, rgba(255, 141, 161, 0.05) 100%);
+            border-left: 4px solid var(--secondary);
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            margin-bottom: 30px;
+            display: none;
+        }
+        
+        .alerts-section.active {
+            display: block;
+        }
+        
+        .alerts-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .alerts-header i {
+            color: var(--secondary);
+            font-size: 22px;
+        }
+        
+        .alerts-header h3 {
+            color: var(--dark);
+            font-size: 18px;
+        }
+        
+        .alert-item {
+            background-color: var(--white);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 4px solid var(--warning);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-fast);
+        }
+        
+        .alert-item:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .alert-item.critical {
+            border-left-color: var(--danger);
+            background: linear-gradient(to right, rgba(231, 76, 60, 0.05), transparent);
+        }
+        
+        .alert-item.warning {
+            border-left-color: var(--warning);
+            background: linear-gradient(to right, rgba(243, 156, 18, 0.05), transparent);
+        }
+        
+        .alert-item.info {
+            border-left-color: var(--info);
+            background: linear-gradient(to right, rgba(52, 152, 219, 0.05), transparent);
+        }
+        
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--white);
+        }
+        
+        .alert-item.critical .alert-icon {
+            background-color: var(--danger);
+        }
+        
+        .alert-item.warning .alert-icon {
+            background-color: var(--warning);
+        }
+        
+        .alert-item.info .alert-icon {
+            background-color: var(--info);
+        }
+        
+        .alert-content {
+            flex: 1;
+        }
+        
+        .alert-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .alert-description {
+            font-size: 13px;
+            color: var(--gray);
+        }
+        
+        /* ===== Vehicles Grid ===== */
+        .vehicles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .vehicle-card {
+            background-color: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .vehicle-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .vehicle-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+        }
+        
+        .vehicle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        
+        .vehicle-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: var(--white);
+            margin-bottom: 15px;
+        }
+        
+        .vehicle-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .vehicle-year {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .vehicle-plate {
+            background: linear-gradient(135deg, var(--accent) 0%, #2eeccf 100%);
+            color: var(--white);
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(0, 217, 192, 0.3);
+        }
+        
+        .vehicle-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            background-color: var(--gray-lighter);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+        }
+        
+        .info-item:hover {
+            background-color: var(--gray-light);
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: var(--gray);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .vehicle-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .vehicle-actions .btn {
+            flex: 1;
+        }
+        
+        /* ===== Loading State ===== */
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--gray-light);
+            border-top: 4px solid var(--primary);
+            border-radius: var(--radius-full);
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: var(--gray);
+            font-size: 16px;
+        }
+        
+        /* ===== Empty State ===== */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+        
+        .empty-state-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(135deg, var(--gray-light) 0%, #e8eaef 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: var(--gray);
+            margin-bottom: 25px;
+        }
+        
+        .empty-state-title {
+            font-size: 22px;
+            color: var(--dark);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .empty-state-description {
+            color: var(--gray);
+            max-width: 400px;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        /* ===== Modals ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(26, 29, 40, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-normal);
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background-color: var(--white);
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(20px);
+            transition: transform var(--transition-normal);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            padding: 25px 30px;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        }
+        
+        .modal-title {
+            font-size: 22px;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            background-color: rgba(255, 255, 255, 0.2);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        
+        .modal-close:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .modal-body {
+            padding: 30px;
+        }
+        
+        /* ===== Form Styles ===== */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+        
+        .form-label span {
+            color: var(--danger);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            border: 2px solid var(--gray-light);
+            background-color: var(--white);
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            color: var(--dark);
+            transition: all var(--transition-fast);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(109, 93, 252, 0.1);
+        }
+        
+        .form-control::placeholder {
+            color: var(--gray);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .form-actions .btn {
+            flex: 1;
+        }
+        
+        /* ===== Responsive ===== */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .mobile-menu-btn {
+                display: flex;
+            }
+            
+            .vehicles-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px 15px;
+            }
+            
+            .vehicles-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .vehicle-actions {
+                flex-direction: column;
+            }
+            
+            .vehicle-actions .btn {
+                width: 100%;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .form-actions .btn {
+                width: 100%;
+            }
+        }
+        
+        /* ===== Utilities ===== */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .mb-0 { margin-bottom: 0; }
+        .mt-10 { margin-top: 10px; }
+        .mt-20 { margin-top: 20px; }
+        .mb-10 { margin-bottom: 10px; }
+        .mb-20 { margin-bottom: 20px; }
+        .p-0 { padding: 0; }
+        
+        /* ===== Vehicle Type Colors ===== */
+        .vehicle-sedan .vehicle-icon {
+            background: linear-gradient(135deg, #3498db 0%, #5dade2 100%);
+        }
+        
+        .vehicle-suv .vehicle-icon {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+        
+        .vehicle-truck .vehicle-icon {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+        
+        .vehicle-van .vehicle-icon {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        }
+        
+        .vehicle-motorcycle .vehicle-icon {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        
+        .vehicle-other .vehicle-icon {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <span>SmartDrive</span>
+                </div>
+            </div>
+            
+            <nav class="nav-links">
+                <li class="nav-item">
+                    <a href="dashboard.html" class="nav-link">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="trips.html" class="nav-link">
+                        <i class="fas fa-route"></i>
+                        <span>Trips</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="incidents.html" class="nav-link">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Incidents</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="vehicles.html" class="nav-link active">
+                        <i class="fas fa-car-side"></i>
+                        <span>Vehicles</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="expenses.html" class="nav-link">
+                        <i class="fas fa-dollar-sign"></i>
+                        <span>Expenses</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="leaderboard.html" class="nav-link">
+                        <i class="fas fa-trophy"></i>
+                        <span>Leaderboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="lane_detection.html" class="nav-link">
+                        <i class="fas fa-video"></i>
+                        <span>Camera</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="profile.html" class="nav-link">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="avatar" id="userAvatar">
+                        JD
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">John Driver</div>
+                        <div class="user-role">Premium Driver</div>
+                    </div>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="page-title">
+                    <h1>My Vehicles</h1>
+                    <p>Manage your vehicles and track maintenance</p>
+                </div>
+                
+                <div class="header-actions">
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">2</span>
+                    </button>
+                    
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Add Vehicle Button -->
+            <div style="text-align: right; margin-bottom: 30px;">
+                <button class="btn btn-primary" onclick="showAddVehicleModal()">
+                    <i class="fas fa-plus"></i>
+                    Add New Vehicle
+                </button>
+            </div>
+            
+            <!-- Maintenance Alerts -->
+            <div class="alerts-section" id="alertsSection">
+                <div class="alerts-header">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Maintenance Alerts</h3>
+                </div>
+                <div id="alertsList"></div>
+            </div>
+            
+            <!-- Vehicles Grid -->
+            <div class="vehicles-grid" id="vehiclesGrid">
+                <!-- Loading State -->
+                <div class="loading-state" id="loadingState">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Loading vehicles...</div>
+                </div>
+                
+                <!-- Empty State (Hidden by default) -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <h3 class="empty-state-title">No Vehicles Yet</h3>
+                    <p class="empty-state-description">
+                        Add your first vehicle to start tracking maintenance, trips, and expenses.
+                    </p>
+                    <button class="btn btn-primary" onclick="showAddVehicleModal()">
+                        <i class="fas fa-plus"></i>
+                        Add Your First Vehicle
+                    </button>
+                </div>
+                
+                <!-- Vehicles will be dynamically inserted here -->
+            </div>
+        </main>
+    </div>
+    
+    <!-- Add Vehicle Modal -->
+    <div class="modal-overlay" id="addVehicleModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Vehicle</h2>
+                <button class="modal-close" onclick="closeAddVehicleModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addVehicleForm" onsubmit="addVehicle(event)">
+                    <div class="form-group">
+                        <label class="form-label">License Plate <span>*</span></label>
+                        <input type="text" class="form-control" id="licensePlate" required 
+                               placeholder="ABC-123">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Make <span>*</span></label>
+                        <input type="text" class="form-control" id="make" required 
+                               placeholder="Toyota, Honda, Ford, etc.">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Model <span>*</span></label>
+                        <input type="text" class="form-control" id="model" required 
+                               placeholder="Corolla, Civic, F-150, etc.">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Year <span>*</span></label>
+                        <input type="number" class="form-control" id="year" required 
+                               min="1900" max="2025" value="2023">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Vehicle Type <span>*</span></label>
+                        <select class="form-control" id="vehicleType" required>
+                            <option value="0">Sedan</option>
+                            <option value="1">SUV</option>
+                            <option value="2">Truck</option>
+                            <option value="3">Van</option>
+                            <option value="4">Motorcycle</option>
+                            <option value="5">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">VIN (Optional)</label>
+                        <input type="text" class="form-control" id="vin" 
+                               placeholder="Vehicle Identification Number">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeAddVehicleModal()">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i>
+                            Add Vehicle
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Update Odometer Modal -->
+    <div class="modal-overlay" id="odometerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Update Odometer</h2>
+                <button class="modal-close" onclick="closeOdometerModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="odometerForm" onsubmit="updateOdometer(event)">
+                    <input type="hidden" id="odometerVehicleId">
+                    
+                    <div class="form-group">
+                        <label class="form-label">Current Reading (km) <span>*</span></label>
+                        <input type="number" class="form-control" id="odometerReading" 
+                               step="0.1" required>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeOdometerModal()">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Update Odometer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Maintenance Modal -->
+    <div class="modal-overlay" id="maintenanceModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Maintenance Record</h2>
+                <button class="modal-close" onclick="closeMaintenanceModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="maintenanceForm" onsubmit="addMaintenance(event)">
+                    <input type="hidden" id="maintenanceVehicleId">
+                    
+                    <div class="form-group">
+                        <label class="form-label">Maintenance Type <span>*</span></label>
+                        <select class="form-control" id="maintenanceType" required>
+                            <option value="0">Oil Change</option>
+                            <option value="1">Tire Rotation</option>
+                            <option value="2">Brake Service</option>
+                            <option value="3">Engine Check</option>
+                            <option value="4">Transmission</option>
+                            <option value="5">Battery</option>
+                            <option value="6">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Odometer Reading (km) <span>*</span></label>
+                        <input type="number" class="form-control" id="maintenanceOdometer" 
+                               step="0.1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Service Center <span>*</span></label>
+                        <input type="text" class="form-control" id="serviceCenter" required 
+                               placeholder="Auto Service Center Name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Description <span>*</span></label>
+                        <input type="text" class="form-control" id="maintenanceDescription" required 
+                               placeholder="Describe the maintenance performed">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Cost (USD) <span>*</span></label>
+                        <input type="number" class="form-control" id="maintenanceCost" 
+                               step="0.01" required placeholder="0.00">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeMaintenanceModal()">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-tools"></i>
+                            Add Maintenance Record
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== Configuration =====
+        const API_URL = 'http://43.204.211.180:8080';
+        
+        // ===== State Variables =====
+        let vehicles = [];
+        
+        // ===== Authentication Check =====
+        const sessionId = localStorage.getItem('session_id');
+        const driverId = localStorage.getItem('driver_id');
+        const driverName = localStorage.getItem('driver_name');
+        
+        if (!sessionId || !driverId) {
+            window.location.href = 'login.html';
+        }
+        
+        // ===== DOM Elements =====
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.querySelector('.sidebar');
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+        const vehiclesGrid = document.getElementById('vehiclesGrid');
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+        const alertsSection = document.getElementById('alertsSection');
+        
+        // ===== Initialize =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set user info
+            if (driverName) {
+                userName.textContent = driverName;
+                userAvatar.textContent = driverName.charAt(0) + driverName.split(' ')[1]?.charAt(0) || driverName.charAt(1) || driverName.charAt(0);
+            }
+            
+            // Mobile menu toggle
+            mobileMenuBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 992) {
+                    if (!sidebar.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
+                        sidebar.classList.remove('active');
+                    }
+                }
+            });
+            
+            // Load vehicles and maintenance alerts
+            loadVehicles();
+        });
+        
+        // ===== Get Vehicle Type Class =====
+        function getVehicleTypeClass(type) {
+            const classes = ['vehicle-sedan', 'vehicle-suv', 'vehicle-truck', 'vehicle-van', 'vehicle-motorcycle', 'vehicle-other'];
+            return classes[parseInt(type)] || 'vehicle-other';
+        }
+        
+        // ===== Get Vehicle Type Icon =====
+        function getVehicleTypeIcon(type) {
+            const icons = ['fas fa-car', 'fas fa-truck', 'fas fa-truck-pickup', 'fas fa-shuttle-van', 'fas fa-motorcycle', 'fas fa-car'];
+            return icons[parseInt(type)] || 'fas fa-car';
+        }
+        
+        // ===== Get Vehicle Type Name =====
+        function getVehicleTypeName(type) {
+            const names = ['Sedan', 'SUV', 'Truck', 'Van', 'Motorcycle', 'Other'];
+            return names[parseInt(type)] || 'Other';
+        }
+        
+        // ===== Load Vehicles =====
+        async function loadVehicles() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'vehicle_get_list',
+                        session_id: sessionId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading state
+                loadingState.style.display = 'none';
+                
+                if (data.status === 'success' && data.data.vehicles && data.data.vehicles.length > 0) {
+                    vehicles = data.data.vehicles;
+                    displayVehicles(vehicles);
+                    loadMaintenanceAlerts();
+                } else {
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('Error loading vehicles:', error);
+                loadingState.style.display = 'none';
+                showEmptyState();
+            }
+        }
+        
+        // ===== Show Empty State =====
+        function showEmptyState() {
+            emptyState.style.display = 'flex';
+            vehiclesGrid.innerHTML = '';
+            vehiclesGrid.appendChild(emptyState);
+        }
+        
+        // ===== Display Vehicles =====
+        function displayVehicles(vehicles) {
+            vehiclesGrid.innerHTML = '';
+            
+            vehicles.forEach(vehicle => {
+                const vehicleCard = document.createElement('div');
+                vehicleCard.className = `vehicle-card ${getVehicleTypeClass(vehicle.type)}`;
+                
+                const typeIcon = getVehicleTypeIcon(vehicle.type);
+                const typeName = getVehicleTypeName(vehicle.type);
+                const odometer = Math.round(vehicle.current_odometer || 0);
+                const fuelType = vehicle.fuel_type || 'N/A';
+                const vin = vehicle.vin || 'N/A';
+                
+                vehicleCard.innerHTML = `
+                    <div class="vehicle-header">
+                        <div>
+                            <div class="vehicle-icon">
+                                <i class="${typeIcon}"></i>
+                            </div>
+                            <div class="vehicle-name">${vehicle.make} ${vehicle.model}</div>
+                            <div class="vehicle-year">${vehicle.year} • ${typeName}</div>
+                        </div>
+                        <div class="vehicle-plate">${vehicle.license_plate}</div>
+                    </div>
+                    
+                    <div class="vehicle-info">
+                        <div class="info-item">
+                            <div class="info-label">Odometer</div>
+                            <div class="info-value">${odometer.toLocaleString()} km</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Fuel Type</div>
+                            <div class="info-value">${fuelType}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">VIN</div>
+                            <div class="info-value" style="font-size: 13px;">${vin}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Vehicle ID</div>
+                            <div class="info-value">#${vehicle.vehicle_id}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="vehicle-actions">
+                        <button class="btn btn-secondary btn-small" onclick="showOdometerModal(${vehicle.vehicle_id}, ${vehicle.current_odometer})">
+                            <i class="fas fa-tachometer-alt"></i>
+                            Odometer
+                        </button>
+                        <button class="btn btn-warning btn-small" onclick="showMaintenanceModal(${vehicle.vehicle_id})">
+                            <i class="fas fa-tools"></i>
+                            Maintenance
+                        </button>
+                    </div>
+                `;
+                
+                vehiclesGrid.appendChild(vehicleCard);
+            });
+        }
+        
+        // ===== Load Maintenance Alerts =====
+        async function loadMaintenanceAlerts() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'vehicle_get_alerts',
+                        session_id: sessionId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.data.alerts && data.data.alerts.length > 0) {
+                    displayAlerts(data.data.alerts);
+                }
+            } catch (error) {
+                console.error('Error loading maintenance alerts:', error);
+            }
+        }
+        
+        // ===== Display Alerts =====
+        function displayAlerts(alerts) {
+            const alertsList = document.getElementById('alertsList');
+            alertsList.innerHTML = '';
+            
+            alerts.forEach(alert => {
+                const alertDiv = document.createElement('div');
+                const severity = parseInt(alert.severity) || 1;
+                
+                if (severity >= 4) {
+                    alertDiv.className = 'alert-item critical';
+                    alertDiv.innerHTML = `
+                        <div class="alert-icon">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="alert-content">
+                            <div class="alert-title">Critical Maintenance Required</div>
+                            <div class="alert-description">${alert.description}</div>
+                        </div>
+                    `;
+                } else if (severity >= 3) {
+                    alertDiv.className = 'alert-item warning';
+                    alertDiv.innerHTML = `
+                        <div class="alert-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="alert-content">
+                            <div class="alert-title">Maintenance Due Soon</div>
+                            <div class="alert-description">${alert.description}</div>
+                        </div>
+                    `;
+                } else {
+                    alertDiv.className = 'alert-item info';
+                    alertDiv.innerHTML = `
+                        <div class="alert-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="alert-content">
+                            <div class="alert-title">Maintenance Reminder</div>
+                            <div class="alert-description">${alert.description}</div>
+                        </div>
+                    `;
+                }
+                
+                alertsList.appendChild(alertDiv);
+            });
+            
+            alertsSection.classList.add('active');
+        }
+        
+        // ===== Modal Functions =====
+        function showAddVehicleModal() {
+            document.getElementById('addVehicleModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeAddVehicleModal() {
+            document.getElementById('addVehicleModal').classList.remove('active');
+            document.getElementById('addVehicleForm').reset();
+            document.body.style.overflow = 'auto';
+        }
+        
+        function showOdometerModal(vehicleId, currentReading) {
+            document.getElementById('odometerVehicleId').value = vehicleId;
+            document.getElementById('odometerReading').value = currentReading || 0;
+            document.getElementById('odometerModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeOdometerModal() {
+            document.getElementById('odometerModal').classList.remove('active');
+            document.getElementById('odometerForm').reset();
+            document.body.style.overflow = 'auto';
+        }
+        
+        function showMaintenanceModal(vehicleId) {
+            document.getElementById('maintenanceVehicleId').value = vehicleId;
+            
+            // Set current odometer value
+            const vehicle = vehicles.find(v => v.vehicle_id == vehicleId);
+            if (vehicle) {
+                document.getElementById('maintenanceOdometer').value = vehicle.current_odometer || 0;
+            }
+            
+            document.getElementById('maintenanceModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeMaintenanceModal() {
+            document.getElementById('maintenanceModal').classList.remove('active');
+            document.getElementById('maintenanceForm').reset();
+            document.body.style.overflow = 'auto';
+        }
+        
+        // ===== Add Vehicle =====
+        async function addVehicle(event) {
+            event.preventDefault();
+            
+            const vehicleData = {
+                operation: 'vehicle_add',
+                session_id: sessionId,
+                license_plate: document.getElementById('licensePlate').value,
+                make: document.getElementById('make').value,
+                model: document.getElementById('model').value,
+                year: document.getElementById('year').value,
+                type: document.getElementById('vehicleType').value,
+                vin: document.getElementById('vin').value
+            };
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(vehicleData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showNotification('Vehicle added successfully!', 'success');
+                    closeAddVehicleModal();
+                    loadVehicles();
+                } else {
+                    showNotification('Failed to add vehicle: ' + (data.message || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Error adding vehicle:', error);
+                showNotification('Error adding vehicle. Please try again.', 'error');
+            }
+        }
+        
+        // ===== Update Odometer =====
+        async function updateOdometer(event) {
+            event.preventDefault();
+            
+            const vehicleId = document.getElementById('odometerVehicleId').value;
+            const reading = document.getElementById('odometerReading').value;
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'vehicle_update_odometer',
+                        session_id: sessionId,
+                        vehicle_id: vehicleId,
+                        odometer: reading
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showNotification('Odometer updated successfully!', 'success');
+                    closeOdometerModal();
+                    loadVehicles();
+                } else {
+                    showNotification('Failed to update odometer: ' + (data.message || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Error updating odometer:', error);
+                showNotification('Error updating odometer. Please try again.', 'error');
+            }
+        }
+        
+        // ===== Add Maintenance =====
+        async function addMaintenance(event) {
+            event.preventDefault();
+            
+            const maintenanceData = {
+                operation: 'vehicle_add_maintenance',
+                session_id: sessionId,
+                vehicle_id: document.getElementById('maintenanceVehicleId').value,
+                type: document.getElementById('maintenanceType').value,
+                odometer: document.getElementById('maintenanceOdometer').value,
+                service_center: document.getElementById('serviceCenter').value,
+                description: document.getElementById('maintenanceDescription').value,
+                cost: document.getElementById('maintenanceCost').value
+            };
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(maintenanceData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showNotification('Maintenance record added successfully!', 'success');
+                    closeMaintenanceModal();
+                    loadVehicles();
+                } else {
+                    showNotification('Failed to add maintenance: ' + (data.message || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Error adding maintenance:', error);
+                showNotification('Error adding maintenance record. Please try again.', 'error');
+            }
+        }
+        
+        // ===== Show Notification =====
+        function showNotification(message, type = 'info') {
+            // Remove any existing notification
+            const existingNotification = document.querySelector('.notification-toast');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // Create notification
+            const notification = document.createElement('div');
+            notification.className = `notification-toast`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 30px;
+                right: 30px;
+                padding: 15px 20px;
+                border-radius: ${getComputedStyle(document.documentElement).getPropertyValue('--radius-md')};
+                background-color: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--danger)' : 'var(--primary)'};
+                color: white;
+                font-weight: 600;
+                z-index: 10000;
+                box-shadow: var(--shadow-lg);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                transform: translateX(150%);
+                transition: transform 0.3s ease;
+            `;
+            
+            const icon = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle';
+            notification.innerHTML = `<i class="${icon}"></i> ${message}`;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 10);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                notification.style.transform = 'translateX(150%)';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 5000);
+            
+            // Click to dismiss
+            notification.addEventListener('click', () => {
+                notification.style.transform = 'translateX(150%)';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            });
+        }
+        
+        // ===== Logout =====
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear local storage
+                localStorage.clear();
+                
+                // Redirect to login page
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // ===== Utility Functions =====
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 992) {
+                sidebar.classList.remove('active');
+            }
+        });
+        
+        // Close modals when clicking outside
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            });
+        });
+        
+        // Close modals with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+                document.body.style.overflow = 'auto';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,3418 @@
+// camera.cpp - FIXED: Stable DroidCam USB with proper device detection
+#include "camera.h"
+#include <iostream>
+#include <chrono>
+#include <sstream>
+#include <fstream>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <algorithm>
+
+using namespace std::chrono;
+
+CameraManager::CameraManager()
+    : camera_opened(false),
+      capturing(false),
+      new_frame_available(false),
+      read_index(0),
+      write_index(1),
+      current_fps(0.0),
+      frame_counter(0),
+      frame_size(1280, 720),
+      phone_camera_fd(-1),
+      phone_connected(false)
+{
+#ifdef __linux__
+    v4l2_fd = -1;
+    is_streaming = false;
+    v4l2_pixel_format = 0;
+#endif
+
+    frame_buffers.resize(3);
+    fps_start_time = steady_clock::now();
+}
+
+CameraManager::~CameraManager()
+{
+    stopBackgroundCapture();
+    release();
+}
+
+bool CameraManager::initialize(const CameraConfig &cfg)
+{
+    config = cfg;
+    return initializeImpl();
+}
+
+bool CameraManager::initialize(const string &source, int width, int height, int fps, CameraType type)
+{
+    config.source = source;
+    config.width = width;
+    config.height = height;
+    config.fps = fps;
+    config.type = type;
+    return initializeImpl();
+}
+
+bool CameraManager::initializePhoneCamera(PhoneCameraMode mode, int width, int height, int fps)
+{
+    config.phone_mode = mode;
+    config.width = width;
+    config.height = height;
+    config.fps = fps;
+    config.type = CAMERA_ANDROID_USB;
+
+    // Auto-detect DroidCam device
+    config.source = findDroidCamDevice();
+
+    return initializeImpl();
+}
+string CameraManager::findDroidCamDevice()
+{
+    cout << "Searching for DroidCam device..." << endl;
+
+    // PRIORITY 1: Check /dev/video0 first (DroidCam default)
+    string preferred_device = "/dev/video0";
+    int fd = open(preferred_device.c_str(), O_RDWR | O_NONBLOCK);
+    if (fd >= 0)
+    {
+        struct v4l2_capability cap;
+        if (ioctl(fd, VIDIOC_QUERYCAP, &cap) == 0)
+        {
+            string card((char *)cap.card);
+            cout << "  Found " << preferred_device << ": " << card << endl;
+            close(fd);
+
+            // Accept /dev/video0 regardless of name
+            cout << "  ✓ Using: " << preferred_device << " (DroidCam expected location)" << endl;
+            return preferred_device;
+        }
+        close(fd);
+    }
+
+    // PRIORITY 2: Scan other devices only if video0 failed
+    for (int i = 1; i < 5; i++)
+    {
+        string device = "/dev/video" + to_string(i);
+        fd = open(device.c_str(), O_RDWR | O_NONBLOCK);
+        if (fd < 0)
+            continue;
+
+        struct v4l2_capability cap;
+        if (ioctl(fd, VIDIOC_QUERYCAP, &cap) == 0)
+        {
+            string card((char *)cap.card);
+            if (card.find("Droidcam") != string::npos ||
+                card.find("droidcam") != string::npos)
+            {
+                cout << "  ✓ Found DroidCam at " << device << endl;
+                close(fd);
+                return device;
+            }
+        }
+        close(fd);
+    }
+
+    cout << "  ⚠ No DroidCam found, defaulting to /dev/video0" << endl;
+    return "/dev/video0";
+}
+bool CameraManager::initializeImpl()
+{
+    // Special handling for phone cameras
+    if (config.source == "/dev/video4" || config.source.find("phone") != string::npos)
+    {
+        // Re-detect the actual DroidCam device
+        config.source = findDroidCamDevice();
+    }
+
+    // Regular camera detection
+    if (config.source.find("http://") == 0 || config.source.find("rtsp://") == 0)
+    {
+        config.type = CAMERA_GSTREAMER;
+    }
+    else if (config.source.find("/dev/video") == 0)
+    {
+#ifdef __linux__
+        config.type = CAMERA_V4L2;
+#else
+        config.type = CAMERA_OPENCV;
+#endif
+    }
+    else
+    {
+        config.type = CAMERA_OPENCV;
+    }
+
+    bool success = false;
+
+    switch (config.type)
+    {
+#ifdef __linux__
+    case CAMERA_V4L2:
+        success = initializeV4L2();
+        break;
+#endif
+    case CAMERA_GSTREAMER:
+        success = initializeGStreamer();
+        break;
+    case CAMERA_OPENCV:
+    default:
+        success = initializeOpenCV();
+        break;
+    }
+
+    if (success)
+    {
+        camera_opened = true;
+        frame_size = Size(config.width, config.height);
+        cout << "Camera initialized: " << config.source
+             << " [" << config.width << "x" << config.height << "@" << config.fps << "fps]"
+             << " Type: " << (config.type == CAMERA_V4L2 ? "V4L2" : "OpenCV")
+             << endl;
+    }
+
+    return success;
+}
+
+#ifdef __linux__
+bool CameraManager::initializeV4L2()
+{
+    cout << "Initializing V4L2 device: " << config.source << endl;
+
+    // Open device with non-blocking flag
+    v4l2_fd = open(config.source.c_str(), O_RDWR | O_NONBLOCK, 0);
+    if (v4l2_fd < 0)
+    {
+        cerr << "  ✗ Cannot open V4L2 device: " << config.source << " (" << strerror(errno) << ")" << endl;
+        return false;
+    }
+
+    // Check capabilities
+    struct v4l2_capability cap;
+    if (ioctl(v4l2_fd, VIDIOC_QUERYCAP, &cap) < 0)
+    {
+        cerr << "  ✗ Not a V4L2 device" << endl;
+        close(v4l2_fd);
+        v4l2_fd = -1;
+        return false;
+    }
+
+    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
+    {
+        cerr << "  ✗ Device does not support capture" << endl;
+        close(v4l2_fd);
+        v4l2_fd = -1;
+        return false;
+    }
+
+    cout << "  Device: " << cap.card << " (" << cap.driver << ")" << endl;
+
+    // FIXED: Better format negotiation
+    if (!setupV4L2Format())
+    {
+        cerr << "  ✗ Failed to setup format" << endl;
+        close(v4l2_fd);
+        v4l2_fd = -1;
+        return false;
+    }
+
+    // FIXED: Smaller buffer size for lower latency
+    config.buffer_size = 2; // Minimum buffers for stability
+
+    if (!setupV4L2Buffers())
+    {
+        cerr << "  ✗ Failed to setup buffers" << endl;
+        close(v4l2_fd);
+        v4l2_fd = -1;
+        return false;
+    }
+
+    if (!startV4L2Streaming())
+    {
+        cerr << "  ✗ Failed to start streaming" << endl;
+        close(v4l2_fd);
+        v4l2_fd = -1;
+        return false;
+    }
+
+    // Apply optimizations
+    if (config.low_latency)
+    {
+        optimizeForLowLatency();
+    }
+
+    frame_size = Size(config.width, config.height);
+    cout << "  ✓ V4L2 camera initialized successfully" << endl;
+    camera_opened = true;
+    return true;
+}
+
+bool CameraManager::optimizeForLowLatency()
+{
+    cout << "  Applying low-latency optimizations..." << endl;
+
+    // FIXED: More conservative settings to avoid overwhelming USB
+
+    // Set manual exposure for consistent timing
+    setV4L2Control(V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL);
+    setV4L2Control(V4L2_CID_EXPOSURE_ABSOLUTE, 150);
+
+    // Disable auto white balance
+    setV4L2Control(V4L2_CID_AUTO_WHITE_BALANCE, 0);
+
+    // Set power line frequency
+    setV4L2Control(V4L2_CID_POWER_LINE_FREQUENCY, V4L2_CID_POWER_LINE_FREQUENCY_50HZ);
+
+    cout << "  ✓ Low-latency optimizations applied" << endl;
+    return true;
+}
+
+bool CameraManager::setupV4L2Format()
+{
+    struct v4l2_format format = {};
+    format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+    if (ioctl(v4l2_fd, VIDIOC_G_FMT, &format) < 0)
+    {
+        cerr << "  ✗ Failed to get format" << endl;
+        return false;
+    }
+
+    cout << "  Current: " << format.fmt.pix.width << "x" << format.fmt.pix.height << endl;
+
+    v4l2_pixel_format = format.fmt.pix.pixelformat;
+
+    // FIXED: Try formats in order of preference for DroidCam
+    format.fmt.pix.width = config.width;
+    format.fmt.pix.height = config.height;
+    format.fmt.pix.field = V4L2_FIELD_NONE;
+
+    // Try MJPEG first (best for bandwidth)
+    format.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
+    if (ioctl(v4l2_fd, VIDIOC_S_FMT, &format) >= 0)
+    {
+        config.use_mjpeg = true;
+        v4l2_pixel_format = V4L2_PIX_FMT_MJPEG;
+        cout << "  Format: MJPEG [COMPRESSED - Best for USB]" << endl;
+        goto format_success;
+    }
+
+    // Try YUYV (good compatibility)
+    cout << "  ! MJPEG not supported, trying YUYV..." << endl;
+    format.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
+    if (ioctl(v4l2_fd, VIDIOC_S_FMT, &format) >= 0)
+    {
+        config.use_mjpeg = false;
+        v4l2_pixel_format = V4L2_PIX_FMT_YUYV;
+        cout << "  Format: YUYV [UNCOMPRESSED]" << endl;
+        goto format_success;
+    }
+
+    // Try YUV420/YU12 (last resort)
+    cout << "  ! YUYV not supported, trying YUV420..." << endl;
+    format.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420;
+    if (ioctl(v4l2_fd, VIDIOC_S_FMT, &format) >= 0)
+    {
+        config.use_mjpeg = false;
+        v4l2_pixel_format = V4L2_PIX_FMT_YUV420;
+        cout << "  Format: YUV420 [UNCOMPRESSED - High bandwidth]" << endl;
+        goto format_success;
+    }
+
+    cerr << "  ✗ No suitable format found" << endl;
+    return false;
+
+format_success:
+    // Update actual resolution
+    config.width = format.fmt.pix.width;
+    config.height = format.fmt.pix.height;
+
+    char fourcc[5] = {0};
+    memcpy(fourcc, &v4l2_pixel_format, 4);
+    cout << "  Resolution: " << config.width << "x" << config.height << " (" << fourcc << ")" << endl;
+
+    // Set FPS
+    struct v4l2_streamparm parm = {};
+    parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+    if (ioctl(v4l2_fd, VIDIOC_G_PARM, &parm) == 0)
+    {
+        parm.parm.capture.timeperframe.numerator = 1;
+        parm.parm.capture.timeperframe.denominator = config.fps;
+
+        if (ioctl(v4l2_fd, VIDIOC_S_PARM, &parm) >= 0)
+        {
+            cout << "  FPS: " << config.fps << endl;
+        }
+    }
+
+    return true;
+}
+
+bool CameraManager::setupV4L2Buffers()
+{
+    // Request minimal buffers
+    struct v4l2_requestbuffers req = {};
+    req.count = config.buffer_size;
+    req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    req.memory = V4L2_MEMORY_MMAP;
+
+    if (ioctl(v4l2_fd, VIDIOC_REQBUFS, &req) < 0)
+    {
+        cerr << "  ✗ Failed to request buffers: " << strerror(errno) << endl;
+        return false;
+    }
+
+    if (req.count < 2)
+    {
+        cerr << "  ✗ Insufficient buffer memory" << endl;
+        return false;
+    }
+
+    // Map buffers
+    v4l2_buffers.resize(req.count);
+
+    for (unsigned int i = 0; i < req.count; ++i)
+    {
+        struct v4l2_buffer buf = {};
+        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.memory = V4L2_MEMORY_MMAP;
+        buf.index = i;
+
+        if (ioctl(v4l2_fd, VIDIOC_QUERYBUF, &buf) < 0)
+        {
+            cerr << "  ✗ Failed to query buffer " << i << endl;
+            return false;
+        }
+
+        v4l2_buffers[i].length = buf.length;
+        v4l2_buffers[i].start = mmap(NULL, buf.length,
+                                     PROT_READ | PROT_WRITE, MAP_SHARED,
+                                     v4l2_fd, buf.m.offset);
+
+        if (v4l2_buffers[i].start == MAP_FAILED)
+        {
+            cerr << "  ✗ Failed to map buffer " << i << endl;
+            return false;
+        }
+
+        v4l2_buffers[i].queued = true;
+
+        // Queue the buffer
+        if (ioctl(v4l2_fd, VIDIOC_QBUF, &buf) < 0)
+        {
+            cerr << "  ✗ Failed to queue buffer " << i << endl;
+            return false;
+        }
+    }
+
+    cout << "  ✓ Allocated " << req.count << " buffers" << endl;
+    return true;
+}
+
+bool CameraManager::startV4L2Streaming()
+{
+    enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (ioctl(v4l2_fd, VIDIOC_STREAMON, &type) < 0)
+    {
+        cerr << "  ✗ Failed to start streaming: " << strerror(errno) << endl;
+        return false;
+    }
+
+    is_streaming = true;
+    cout << "  ✓ Streaming started" << endl;
+    return true;
+}
+
+bool CameraManager::stopV4L2Streaming()
+{
+    if (!is_streaming || v4l2_fd < 0)
+        return true;
+
+    enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (ioctl(v4l2_fd, VIDIOC_STREAMOFF, &type) < 0)
+    {
+        cerr << "  ✗ Failed to stop streaming" << endl;
+        return false;
+    }
+
+    is_streaming = false;
+    return true;
+}
+
+Mat CameraManager::readV4L2Frame(bool blocking)
+{
+    if (v4l2_fd < 0 || !is_streaming)
+    {
+        return Mat();
+    }
+
+    // FIXED: Use poll instead of select for better reliability
+    struct pollfd pfd;
+    pfd.fd = v4l2_fd;
+    pfd.events = POLLIN;
+
+    int timeout_ms = blocking ? 1000 : 100; // Increased timeout
+    int ret = poll(&pfd, 1, timeout_ms);
+
+    if (ret < 0)
+    {
+        if (errno != EINTR)
+        {
+            cerr << "V4L2 poll error: " << strerror(errno) << endl;
+        }
+        return Mat();
+    }
+
+    if (ret == 0)
+    {
+        // Timeout - normal for non-blocking
+        return Mat();
+    }
+
+    struct v4l2_buffer buf = {};
+    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    buf.memory = V4L2_MEMORY_MMAP;
+
+    if (ioctl(v4l2_fd, VIDIOC_DQBUF, &buf) < 0)
+    {
+        if (errno != EAGAIN)
+        {
+            cerr << "V4L2 dequeue error: " << strerror(errno) << endl;
+        }
+        return Mat();
+    }
+
+    Mat frame;
+
+    // FIXED: Better format handling
+    if (v4l2_pixel_format == V4L2_PIX_FMT_MJPEG)
+    {
+        // Decode MJPEG
+        vector<uchar> data((uchar *)v4l2_buffers[buf.index].start,
+                           (uchar *)v4l2_buffers[buf.index].start + buf.bytesused);
+        frame = imdecode(data, IMREAD_COLOR);
+    }
+    else if (v4l2_pixel_format == V4L2_PIX_FMT_YUYV)
+    {
+        // Convert YUYV to BGR
+        Mat yuyv(config.height, config.width, CV_8UC2, v4l2_buffers[buf.index].start);
+        cvtColor(yuyv, frame, COLOR_YUV2BGR_YUYV);
+    }
+    else if (v4l2_pixel_format == V4L2_PIX_FMT_YUV420)
+    {
+        // YUV420 conversion
+        int y_size = config.width * config.height;
+        Mat yuv_frame(config.height + config.height / 2, config.width, CV_8UC1,
+                      v4l2_buffers[buf.index].start);
+
+        try
+        {
+            cvtColor(yuv_frame, frame, COLOR_YUV2BGR_I420);
+        }
+        catch (const cv::Exception &e)
+        {
+            cerr << "YUV420 conversion failed: " << e.what() << endl;
+            frame = Mat();
+        }
+    }
+
+    // Re-queue buffer immediately
+    if (ioctl(v4l2_fd, VIDIOC_QBUF, &buf) < 0)
+    {
+        cerr << "V4L2 requeue error: " << strerror(errno) << endl;
+    }
+
+    return frame;
+}
+
+bool CameraManager::setV4L2Control(unsigned int id, int value)
+{
+    struct v4l2_control ctrl;
+    ctrl.id = id;
+    ctrl.value = value;
+
+    if (ioctl(v4l2_fd, VIDIOC_S_CTRL, &ctrl) < 0)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+int CameraManager::getV4L2Control(unsigned int id)
+{
+    struct v4l2_control ctrl;
+    ctrl.id = id;
+
+    if (ioctl(v4l2_fd, VIDIOC_G_CTRL, &ctrl) < 0)
+    {
+        return -1;
+    }
+
+    return ctrl.value;
+}
+
+vector<string> CameraManager::getV4L2Formats()
+{
+    vector<string> formats;
+
+    if (v4l2_fd < 0)
+        return formats;
+
+    struct v4l2_fmtdesc fmtdesc;
+    fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    fmtdesc.index = 0;
+
+    while (ioctl(v4l2_fd, VIDIOC_ENUM_FMT, &fmtdesc) == 0)
+    {
+        string format_name((char *)fmtdesc.description);
+        formats.push_back(format_name);
+        fmtdesc.index++;
+    }
+
+    return formats;
+}
+#endif
+
+bool CameraManager::initializeAndroidUSB()
+{
+    cout << "Initializing Android phone camera via USB..." << endl;
+    config.type = CAMERA_V4L2;
+    return initializeV4L2();
+}
+
+bool CameraManager::initializeAndroidIP()
+{
+    cout << "Initializing Android phone camera via IP..." << endl;
+
+    string pipeline = "souphttpsrc location=http://" + config.phone_ip +
+                      ":" + to_string(config.phone_port) + "/video is-live=true ! "
+                                                           "jpegdec ! videoconvert ! appsink drop=true max-buffers=1";
+
+    config.source = pipeline;
+    config.type = CAMERA_GSTREAMER;
+
+    return initializeGStreamer();
+}
+
+bool CameraManager::initializeGStreamer()
+{
+    cout << "Initializing GStreamer..." << endl;
+
+    string pipeline;
+
+    if (config.source.find("rtsp://") == 0)
+    {
+        pipeline = "rtspsrc location=" + config.source + " latency=0 ! "
+                                                         "rtph264depay ! h264parse ! avdec_h264 ! "
+                                                         "videoconvert ! videoscale ! video/x-raw,width=" +
+                   to_string(config.width) + ",height=" +
+                   to_string(config.height) + " ! appsink drop=true max-buffers=1";
+    }
+    else if (config.source.find("http://") == 0)
+    {
+        pipeline = "souphttpsrc location=" + config.source + " is-live=true ! "
+                                                             "jpegdec ! videoconvert ! videoscale ! video/x-raw,width=" +
+                   to_string(config.width) + ",height=" +
+                   to_string(config.height) + " ! appsink drop=true max-buffers=1";
+    }
+    else
+    {
+        pipeline = config.source;
+    }
+
+    cout << "  Pipeline: " << pipeline << endl;
+
+    cap.open(pipeline, CAP_GSTREAMER);
+    if (!cap.isOpened())
+    {
+        cerr << "  ✗ Failed to open GStreamer pipeline" << endl;
+        return false;
+    }
+
+    cout << "  ✓ GStreamer initialized" << endl;
+    camera_opened = true;
+    return true;
+}
+
+bool CameraManager::initializeOpenCV()
+{
+    cout << "Initializing OpenCV camera..." << endl;
+
+    if (config.source.find("/dev/video") == 0)
+    {
+        cap.open(config.source, CAP_V4L2);
+    }
+    else
+    {
+        cap.open(config.source);
+    }
+
+    if (!cap.isOpened())
+    {
+        cerr << "  ✗ Failed to open camera with OpenCV" << endl;
+        return false;
+    }
+
+    cap.set(CAP_PROP_FRAME_WIDTH, config.width);
+    cap.set(CAP_PROP_FRAME_HEIGHT, config.height);
+    cap.set(CAP_PROP_FPS, config.fps);
+    cap.set(CAP_PROP_BUFFERSIZE, 1);
+
+    cout << "  ✓ OpenCV camera initialized" << endl;
+    camera_opened = true;
+    return true;
+}
+
+// FIXED: Much more conservative frame grabbing
+bool CameraManager::grabFrame(Mat &frame)
+{
+    if (!camera_opened)
+    {
+        return false;
+    }
+
+    Mat captured_frame;
+    static int consecutive_empty = 0;
+    static auto last_success = steady_clock::now();
+
+    switch (config.type)
+    {
+#ifdef __linux__
+    case CAMERA_V4L2:
+    case CAMERA_ANDROID_USB:
+        captured_frame = readV4L2Frame(false);
+        break;
+#endif
+    case CAMERA_ANDROID_IP:
+    case CAMERA_GSTREAMER:
+    case CAMERA_OPENCV:
+    default:
+        if (!cap.grab())
+        {
+            return false;
+        }
+        if (!cap.retrieve(captured_frame))
+        {
+            return false;
+        }
+        break;
+    }
+
+    if (captured_frame.empty())
+    {
+        consecutive_empty++;
+
+        // Check if we've been getting empty frames for too long
+        auto now = steady_clock::now();
+        auto since_success = duration_cast<seconds>(now - last_success).count();
+
+        if (consecutive_empty % 10 == 0)
+        {
+            cout << "Camera capture empty (" << consecutive_empty << " frames, "
+                 << since_success << "s since last success)" << endl;
+        }
+
+        // If no success for 5 seconds, try to reconnect
+        if (since_success > 5 && consecutive_empty > 20)
+        {
+            cerr << "Camera appears stuck, attempting recovery..." << endl;
+
+            // Try to reset the camera
+            if (config.type == CAMERA_V4L2 || config.type == CAMERA_ANDROID_USB)
+            {
+#ifdef __linux__
+                stopV4L2Streaming();
+                this_thread::sleep_for(chrono::milliseconds(500));
+                startV4L2Streaming();
+#endif
+            }
+
+            consecutive_empty = 0;
+        }
+
+        return false;
+    }
+
+    // Success!
+    consecutive_empty = 0;
+    last_success = steady_clock::now();
+
+    frame = captured_frame;
+
+    // Update FPS
+    frame_counter++;
+    auto current_time = steady_clock::now();
+    auto elapsed = duration_cast<milliseconds>(current_time - fps_start_time).count();
+
+    if (elapsed >= 1000)
+    {
+        current_fps = frame_counter * 1000.0 / elapsed;
+        frame_counter = 0;
+        fps_start_time = current_time;
+    }
+
+    return true;
+}
+
+bool CameraManager::getLatestFrame(Mat &frame)
+{
+    if (!camera_opened || !new_frame_available)
+    {
+        return false;
+    }
+
+    lock_guard<mutex> lock(frame_mutex);
+
+    int current_read = read_index.load();
+    if (!frame_buffers[current_read].empty())
+    {
+        frame = frame_buffers[current_read].clone();
+        new_frame_available = false;
+        return true;
+    }
+
+    return false;
+}
+
+void CameraManager::startBackgroundCapture()
+{
+    if (!camera_opened || capturing)
+    {
+        return;
+    }
+
+    capturing = true;
+    capture_thread = thread(&CameraManager::captureThread, this);
+    cout << "Background capture started" << endl;
+}
+
+void CameraManager::stopBackgroundCapture()
+{
+    capturing = false;
+    if (capture_thread.joinable())
+    {
+        capture_thread.join();
+    }
+    cout << "Background capture stopped" << endl;
+}
+
+void CameraManager::captureThread()
+{
+    while (capturing && camera_opened)
+    {
+        Mat frame;
+
+        if (grabFrame(frame) && !frame.empty())
+        {
+            lock_guard<mutex> lock(frame_mutex);
+
+            int next_write = (write_index.load() + 1) % frame_buffers.size();
+
+            frame.copyTo(frame_buffers[next_write]);
+            write_index.store(next_write);
+            read_index.store(next_write);
+            new_frame_available = true;
+        }
+    }
+}
+
+void CameraManager::release()
+{
+    stopBackgroundCapture();
+
+    if (camera_opened)
+    {
+        camera_opened = false;
+
+#ifdef __linux__
+        if (config.type == CAMERA_V4L2 || config.type == CAMERA_ANDROID_USB)
+        {
+            if (is_streaming)
+            {
+                stopV4L2Streaming();
+            }
+
+            for (auto &buffer : v4l2_buffers)
+            {
+                if (buffer.start)
+                {
+                    munmap(buffer.start, buffer.length);
+                }
+            }
+            v4l2_buffers.clear();
+
+            if (v4l2_fd >= 0)
+            {
+                close(v4l2_fd);
+                v4l2_fd = -1;
+            }
+        }
+#endif
+
+        if (cap.isOpened())
+        {
+            cap.release();
+        }
+
+        for (auto &buffer : frame_buffers)
+        {
+            buffer.release();
+        }
+
+        cout << "Camera released" << endl;
+    }
+}
+
+double CameraManager::getCurrentFPS() const
+{
+    return current_fps.load();
+}
+
+string CameraManager::getCameraInfo() const
+{
+    stringstream info;
+    info << "Source: " << config.source << "\n";
+    info << "Resolution: " << config.width << "x" << config.height << "\n";
+    info << "FPS: " << config.fps << "\n";
+    info << "Type: ";
+
+    switch (config.type)
+    {
+    case CAMERA_OPENCV:
+        info << "OpenCV";
+        break;
+    case CAMERA_V4L2:
+        info << "V4L2";
+        break;
+    case CAMERA_GSTREAMER:
+        info << "GStreamer";
+        break;
+    case CAMERA_ANDROID_USB:
+        info << "Android USB";
+        break;
+    case CAMERA_ANDROID_IP:
+        info << "Android IP";
+        break;
+    default:
+        info << "Unknown";
+    }
+
+    return info.str();
+}
+
+vector<string> CameraManager::listV4L2Devices()
+{
+    vector<string> devices;
+
+#ifdef __linux__
+    DIR *dir;
+    struct dirent *ent;
+
+    if ((dir = opendir("/sys/class/video4linux/")) != NULL)
+    {
+        while ((ent = readdir(dir)) != NULL)
+        {
+            string name = ent->d_name;
+            if (name.find("video") == 0)
+            {
+                string path = "/sys/class/video4linux/" + name + "/name";
+                ifstream file(path);
+                if (file.is_open())
+                {
+                    string device_name;
+                    getline(file, device_name);
+                    devices.push_back(name + ": " + device_name);
+                    file.close();
+                }
+            }
+        }
+        closedir(dir);
+    }
+#endif
+
+    return devices;
+}
+
+vector<string> CameraManager::detectPhoneCameras()
+{
+    vector<string> phones;
+    vector<string> devices = listV4L2Devices();
+
+    for (const auto &dev : devices)
+    {
+        string lower_dev = dev;
+        transform(lower_dev.begin(), lower_dev.end(), lower_dev.begin(), ::tolower);
+
+        if (lower_dev.find("droidcam") != string::npos ||
+            lower_dev.find("uvc") != string::npos ||
+            lower_dev.find("android") != string::npos ||
+            lower_dev.find("usb camera") != string::npos)
+        {
+            phones.push_back(dev);
+        }
+    }
+
+    return phones;
+}
+
+bool CameraManager::togglePhoneFlash(bool on)
+{
+    cout << "Phone flash toggle not implemented" << endl;
+    return false;
+}
+
+bool CameraManager::switchPhoneCamera(bool front)
+{
+    cout << "Camera switch not implemented" << endl;
+    return false;
+}
+
+bool CameraManager::setPhoneZoom(float zoom)
+{
+    cout << "Zoom control not implemented" << endl;
+    return false;
+}
+
+bool CameraManager::connectToPhone()
+{
+    return false;
+}
+
+bool CameraManager::setupPhoneStream()
+{
+    return false;
+}
+
+void CameraManager::phoneMonitorThread()
+{
+    while (phone_connected)
+    {
+        this_thread::sleep_for(chrono::seconds(1));
+    }
+}
+
+void CameraManager::setupZeroCopyBuffers()
+{
+    cout << "Zero-copy buffers not implemented" << endl;
+}
+
+bool CameraManager::mapFrameToMat(void *buffer, size_t size, Mat &frame)
+{
+    return false;
+}
+// camera.h - COMPLETE FIXED VERSION WITH PHONE CAMERA SUPPORT
+#pragma once
+
+#include <opencv2/opencv.hpp>
+#include <string>
+#include <atomic>
+#include <thread>
+#include <memory>
+#include <vector>
+#include <mutex>
+
+#ifdef __linux__
+#include <linux/videodev2.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <poll.h>
+#include <errno.h>
+#include <string.h>
+#endif
+
+using namespace cv;
+using namespace std;
+
+class CameraManager {
+public:
+    enum CameraType {
+        CAMERA_OPENCV,           // Standard OpenCV
+        CAMERA_V4L2,             // Direct V4L2 access
+        CAMERA_GSTREAMER,        // GStreamer pipeline
+        CAMERA_ANDROID_USB,      // Android phone via USB (DroidCam)
+        CAMERA_ANDROID_IP        // Android phone via IP
+    };
+
+    enum PhoneCameraMode {
+        PHONE_MODE_AUTO,         // Auto-detect connection
+        PHONE_MODE_USB_V4L2,     // USB via V4L2 (DroidCam)
+        PHONE_MODE_USB_ADB,      // USB via ADB forward
+        PHONE_MODE_WIFI_IP       // WiFi via IP
+    };
+
+    struct CameraConfig {
+        string source = "/dev/video4";
+        int width = 1280;                     // Higher for phone cameras
+        int height = 720;
+        int fps = 30;
+        int buffer_size = 20;                  // Reduced for lower latency
+        CameraType type = CAMERA_V4L2;
+        PhoneCameraMode phone_mode = PHONE_MODE_AUTO;
+        
+        // V4L2 specific
+        bool use_mjpeg = true;
+        string pixel_format = "MJPG";
+        
+        // Phone specific
+        string phone_ip = "192.168.18.76";
+        int phone_port = 4747;
+        string phone_model = "";
+        
+        // Performance - OPTIMIZED FOR LOW LATENCY
+        bool zero_copy = false;
+        bool low_latency = true;
+        int skip_frames = 0;
+        
+        // Advanced
+        float exposure = -1.0f;
+        int brightness = -1;
+        int contrast = -1;
+    };
+
+    CameraManager();
+    ~CameraManager();
+
+    bool initialize(const CameraConfig& config);
+    bool initialize(const string& source = "/dev/video0", 
+                   int width = 1280, 
+                   int height = 720, 
+                   int fps = 30,
+                   CameraType type = CAMERA_V4L2);
+    
+    bool initializePhoneCamera(PhoneCameraMode mode = PHONE_MODE_USB_V4L2,
+                              int width = 1280,
+                              int height = 720,
+                              int fps = 30);
+    
+    bool grabFrame(Mat& frame);
+    bool getLatestFrame(Mat& frame);
+    
+    bool togglePhoneFlash(bool on);
+    bool switchPhoneCamera(bool front = true);
+    bool setPhoneZoom(float zoom);
+    
+    void startBackgroundCapture();
+    void stopBackgroundCapture();
+    
+    bool isOpened() const { return camera_opened; }
+    Size getFrameSize() const { return frame_size; }
+    double getCurrentFPS() const;
+    string getCameraInfo() const;
+    
+    void release();
+    
+    static vector<string> listV4L2Devices();
+    static vector<string> detectPhoneCameras();
+    static string findDroidCamDevice();
+    
+private:
+    CameraConfig config;
+    atomic<bool> camera_opened;
+    atomic<bool> capturing;
+    atomic<bool> new_frame_available;
+    cv::Size frame_size;
+    
+    VideoCapture cap;
+    
+#ifdef __linux__
+    int v4l2_fd;
+    bool is_streaming;
+    uint32_t v4l2_pixel_format;  // Store the current pixel format
+    
+    struct V4L2Buffer {
+        void* start;
+        size_t length;
+        bool queued;
+    };
+    vector<V4L2Buffer> v4l2_buffers;
+    vector<struct pollfd> v4l2_pollfds;
+#endif
+    
+    vector<Mat> frame_buffers;
+    atomic<int> read_index;
+    atomic<int> write_index;
+    
+    thread capture_thread;
+    
+    atomic<double> current_fps;
+    int frame_counter;
+    chrono::steady_clock::time_point fps_start_time;
+    
+    mutex frame_mutex;
+    mutex v4l2_mutex;
+    
+    int phone_camera_fd;
+    thread phone_monitor_thread;
+    atomic<bool> phone_connected;
+    
+    bool initializeImpl();
+    bool initializeV4L2();
+    bool initializeOpenCV();
+    bool initializeAndroidUSB();
+    bool initializeAndroidIP();
+    bool initializeGStreamer();
+    
+#ifdef __linux__
+    bool setupV4L2Format();
+    bool setupV4L2Buffers();
+    bool startV4L2Streaming();
+    bool stopV4L2Streaming();
+    Mat readV4L2Frame(bool blocking = false);
+    bool setV4L2Control(unsigned int id, int value);
+    int getV4L2Control(unsigned int id);
+    vector<string> getV4L2Formats();
+    bool optimizeForLowLatency();
+#endif
+    
+    bool connectToPhone();
+    bool setupPhoneStream();
+    void phoneMonitorThread();
+    void captureThread();
+    void setupZeroCopyBuffers();
+    bool mapFrameToMat(void* buffer, size_t size, Mat& frame);
+};
+// classical_lane_detector.cpp - Simple, reliable lane detection without neural networks
+// Drop-in replacement for your UltraFastLaneDetector class
+
+#include <opencv2/opencv.hpp>
+#include <vector>
+#include <cmath>
+#include <iostream>
+#include <string>
+#include <chrono>
+#include <algorithm>
+
+using namespace cv;
+using namespace std;
+
+struct UFLD_Lane
+{
+    vector<Point> points;
+    float confidence;
+    int id;
+};
+
+struct UFLD_Result
+{
+    vector<UFLD_Lane> lanes;
+    double inference_time;
+    bool detected;
+    UFLD_Result() : detected(false), inference_time(0) {}
+};
+
+class UltraFastLaneDetector
+{
+private:
+    bool model_loaded;
+    bool debug_mode;
+
+    // ROI parameters
+    float roi_top_ratio = 0.4f;    // Start ROI at 40% from top
+    float roi_bottom_ratio = 1.0f; // End at bottom
+
+    // Edge detection
+    int canny_low = 50;
+    int canny_high = 150;
+
+    // Hough transform
+    int hough_threshold = 50;
+    int min_line_length = 50;
+    int max_line_gap = 50;
+
+    // Lane filtering
+    float min_slope = 0.3f; // Minimum absolute slope for valid lane
+    float max_slope = 3.0f; // Maximum absolute slope
+
+public:
+    UltraFastLaneDetector() : model_loaded(false), debug_mode(false) {}
+
+    bool initialize(const string &model_path = "")
+    {
+        cout << "Initializing Classical Lane Detection..." << endl;
+        cout << "  Using: Edge Detection + Hough Lines" << endl;
+        cout << "  No neural network required!" << endl;
+        model_loaded = true;
+        return true;
+    }
+
+    void setDebugMode(bool enable) { debug_mode = enable; }
+
+    UFLD_Result detectLanes(const Mat &frame)
+    {
+        UFLD_Result result;
+        auto start = chrono::high_resolution_clock::now();
+
+        if (frame.empty())
+            return result;
+
+        // 1. Define ROI (ignore sky and hood)
+        int roi_top = frame.rows * roi_top_ratio;
+        int roi_height = frame.rows * (roi_bottom_ratio - roi_top_ratio);
+        Rect roi(0, roi_top, frame.cols, roi_height);
+        Mat roi_frame = frame(roi);
+
+        // 2. Convert to grayscale
+        Mat gray;
+        cvtColor(roi_frame, gray, COLOR_BGR2GRAY);
+
+        // 3. Apply Gaussian blur to reduce noise
+        Mat blurred;
+        GaussianBlur(gray, blurred, Size(5, 5), 0);
+
+        // 4. Edge detection
+        Mat edges;
+        Canny(blurred, edges, canny_low, canny_high);
+
+        // 5. Mask to focus on lane areas (trapezoidal region)
+        Mat mask = Mat::zeros(edges.size(), edges.type());
+        Point pts[4] = {
+            Point(edges.cols * 0.1, edges.rows),       // Bottom left
+            Point(edges.cols * 0.4, edges.rows * 0.3), // Top left
+            Point(edges.cols * 0.6, edges.rows * 0.3), // Top right
+            Point(edges.cols * 0.9, edges.rows)        // Bottom right
+        };
+        fillConvexPoly(mask, pts, 4, Scalar(255));
+
+        Mat masked_edges;
+        bitwise_and(edges, mask, masked_edges);
+
+        // 6. Detect lines using Hough transform
+        vector<Vec4i> lines;
+        HoughLinesP(masked_edges, lines, 1, CV_PI / 180,
+                    hough_threshold, min_line_length, max_line_gap);
+
+        if (debug_mode)
+        {
+            cout << "Detected " << lines.size() << " raw lines" << endl;
+        }
+
+        // 7. Separate left and right lanes based on slope
+        vector<Vec4i> left_lines, right_lines;
+        int center_x = frame.cols / 2;
+
+        for (const auto &line : lines)
+        {
+            int x1 = line[0], y1 = line[1];
+            int x2 = line[2], y2 = line[3];
+
+            // Calculate slope
+            float slope = (y2 - y1) / (float)(x2 - x1 + 1e-6);
+
+            // Filter by slope
+            if (abs(slope) < min_slope || abs(slope) > max_slope)
+                continue;
+
+            // Separate by position and slope
+            int mid_x = (x1 + x2) / 2;
+            if (slope < 0 && mid_x < center_x)
+            {
+                left_lines.push_back(line);
+            }
+            else if (slope > 0 && mid_x > center_x)
+            {
+                right_lines.push_back(line);
+            }
+        }
+
+        // 8. Average lines to get lane lines
+        result.lanes.clear();
+
+        if (!left_lines.empty())
+        {
+            UFLD_Lane left_lane = averageLines(left_lines, roi, roi_top);
+            left_lane.id = 0;
+            left_lane.confidence = min(1.0f, left_lines.size() / 10.0f);
+            result.lanes.push_back(left_lane);
+        }
+
+        if (!right_lines.empty())
+        {
+            UFLD_Lane right_lane = averageLines(right_lines, roi, roi_top);
+            right_lane.id = 1;
+            right_lane.confidence = min(1.0f, right_lines.size() / 10.0f);
+            result.lanes.push_back(right_lane);
+        }
+
+        result.detected = !result.lanes.empty();
+
+        auto end = chrono::high_resolution_clock::now();
+        result.inference_time = chrono::duration<double, milli>(end - start).count();
+
+        if (debug_mode)
+        {
+            cout << "Left lines: " << left_lines.size()
+                 << ", Right lines: " << right_lines.size() << endl;
+            cout << "Final lanes: " << result.lanes.size() << endl;
+        }
+
+        return result;
+    }
+    bool checkLaneDeparture(const UFLD_Result &result, const Mat &frame,
+                            string &direction, double &deviation)
+    {
+        if (!result.detected || result.lanes.empty())
+        {
+            direction = "CENTERED";
+            deviation = 0.0;
+            return false;
+        }
+
+        int center_x = frame.cols / 2;
+
+        const UFLD_Lane *left_lane = nullptr;
+        const UFLD_Lane *right_lane = nullptr;
+
+        for (const auto &lane : result.lanes)
+        {
+            if (lane.points.empty())
+                continue;
+
+            int bottom_x = lane.points.back().x;
+            if (bottom_x < center_x)
+            {
+                left_lane = &lane;
+            }
+            else
+            {
+                right_lane = &lane;
+            }
+        }
+
+        if (!left_lane && !right_lane)
+        {
+            direction = "CENTERED";
+            deviation = 0.0;
+            return false;
+        }
+
+        float left_x = left_lane ? left_lane->points.back().x : 0.0f;
+        float right_x = right_lane ? right_lane->points.back().x : (float)frame.cols;
+
+        float lane_center = (left_x + right_x) / 2.0f;
+        float lane_width = right_x - left_x;
+
+        if (lane_width < 100.0f)
+        {
+            direction = "CENTERED";
+            deviation = 0.0;
+            return false;
+        }
+
+        deviation = (center_x - lane_center) / lane_width;
+
+        // ✅ use std::abs
+        if (std::abs(deviation) < 0.15)
+        {
+            direction = "CENTERED";
+            return false;
+        }
+        else if (deviation > 0)
+        {
+            direction = "RIGHT";
+        }
+        else
+        {
+            direction = "LEFT";
+            deviation = -deviation;
+        }
+
+        return (deviation > 0.25);
+    }
+
+    void drawLanes(Mat &frame, const UFLD_Result &result, bool show_details = false)
+    {
+        if (!result.detected || result.lanes.empty())
+        {
+            putText(frame, "NO LANES DETECTED",
+                    Point(frame.cols / 2 - 120, frame.rows / 2),
+                    FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2);
+            return;
+        }
+
+        vector<Scalar> colors = {
+            Scalar(0, 255, 0),   // Green for left
+            Scalar(0, 0, 255),   // Red for right
+            Scalar(255, 255, 0), // Cyan
+            Scalar(255, 0, 255)  // Magenta
+        };
+
+        for (size_t i = 0; i < result.lanes.size(); i++)
+        {
+            const auto &lane = result.lanes[i];
+            if (lane.points.size() < 2)
+                continue;
+
+            Scalar color = colors[i % colors.size()];
+
+            // Draw thick lane line
+            for (size_t j = 0; j < lane.points.size() - 1; j++)
+            {
+                line(frame, lane.points[j], lane.points[j + 1], color, 8, LINE_AA);
+            }
+
+            // Draw confidence
+            if (show_details && !lane.points.empty())
+            {
+                string label = "Lane " + to_string(i) +
+                               " (" + to_string((int)(lane.confidence * 100)) + "%)";
+                putText(frame, label, lane.points[0] + Point(10, -10),
+                        FONT_HERSHEY_SIMPLEX, 0.6, color, 2);
+            }
+        }
+
+        // Draw center line
+        int center_x = frame.cols / 2;
+        line(frame, Point(center_x, frame.rows),
+             Point(center_x, frame.rows * 2 / 3),
+             Scalar(255, 255, 255), 3);
+
+        if (show_details)
+        {
+            string info = "Classical CV | " + to_string((int)result.inference_time) + "ms";
+            putText(frame, info, Point(10, 30),
+                    FONT_HERSHEY_SIMPLEX, 0.6, Scalar(0, 255, 0), 2);
+        }
+    }
+
+    void drawDepartureWarning(Mat &frame, const string &direction,
+                              double deviation, bool warning)
+    {
+        if (!warning)
+            return;
+
+        static int pulse = 0;
+        pulse = (pulse + 1) % 60;
+        float alpha = 0.4f + 0.4f * abs(sin(pulse * 0.1f));
+
+        Mat overlay = frame.clone();
+        rectangle(overlay, Point(0, 0), Point(frame.cols, 80),
+                  Scalar(0, 0, 255), FILLED);
+        addWeighted(frame, 1.0 - alpha, overlay, alpha, 0, frame);
+
+        string text = "⚠ LANE DEPARTURE: " + direction + " (" +
+                      to_string((int)(deviation * 100)) + "%)";
+
+        Point pos(frame.cols / 2 - 220, 50);
+        putText(frame, text, pos + Point(2, 2),
+                FONT_HERSHEY_DUPLEX, 1.0, Scalar(0, 0, 0), 3);
+        putText(frame, text, pos,
+                FONT_HERSHEY_DUPLEX, 1.0, Scalar(255, 255, 255), 2);
+    }
+
+private:
+    UFLD_Lane averageLines(const vector<Vec4i> &lines, const Rect &roi, int roi_offset)
+    {
+        UFLD_Lane lane;
+
+        if (lines.empty())
+            return lane;
+
+        // Collect all points
+        vector<Point> all_points;
+        for (const auto &line : lines)
+        {
+            all_points.push_back(Point(line[0], line[1]));
+            all_points.push_back(Point(line[2], line[3]));
+        }
+
+        // Fit line using least squares
+        Vec4f fitted_line;
+        fitLine(all_points, fitted_line, DIST_L2, 0, 0.01, 0.01);
+
+        float vx = fitted_line[0];
+        float vy = fitted_line[1];
+        float x0 = fitted_line[2];
+        float y0 = fitted_line[3];
+
+        // Generate points along the line
+        int y_start = 0;
+        int y_end = roi.height;
+        int num_points = 20;
+
+        for (int i = 0; i < num_points; i++)
+        {
+            float y = y_start + (y_end - y_start) * i / (float)num_points;
+            float t = (y - y0) / (vy + 1e-6);
+            float x = x0 + vx * t;
+
+            // Convert back to full frame coordinates
+            int full_x = (int)x;
+            int full_y = (int)y + roi_offset;
+
+            if (full_x >= 0 && full_x < roi.width && full_y >= roi_offset)
+            {
+                lane.points.push_back(Point(full_x, full_y));
+            }
+        }
+
+        return lane;
+    }
+};
+
+#ifndef UDP_RECEIVER_H
+#define UDP_RECEIVER_H
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <thread>
+#include <atomic>
+#include <functional>
+#include <cstring>
+#include <iostream>
+#include <sstream>
+#include <vector>
+
+using namespace std;
+
+struct AdasData {
+    uint64_t timestamp;
+    double latitude;
+    double longitude;
+    float kalman_speed;    // m/s
+    float gps_speed;       // m/s
+    float accel_x;         // m/s²
+    float accel_y;
+    float accel_z;
+    float gyro_x;          // rad/s
+    float gyro_y;
+    float gyro_z;
+};
+
+struct AdasEvent {
+    string event_type;     // HARD_BRAKE, RAPID_ACCEL, CRASH, IMPACT
+    float value;
+    double latitude;
+    double longitude;
+    uint64_t timestamp;
+};
+
+class UDPReceiver {
+private:
+    int socket_fd_;
+    uint16_t port_;
+    atomic<bool> running_;
+    thread receive_thread_;
+    
+    // Callbacks for data/events
+    function<void(const AdasData&)> data_callback_;
+    function<void(const AdasEvent&)> event_callback_;
+    
+    void receive_loop() {
+        char buffer[2048];
+        struct sockaddr_in client_addr;
+        socklen_t client_len = sizeof(client_addr);
+        
+        cout << "✅ UDP Receiver listening on port " << port_ << endl;
+        cout << "📱 Waiting for ADAS data from device..." << endl;
+        
+        while (running_) {
+            ssize_t bytes_received = recvfrom(socket_fd_, buffer, sizeof(buffer) - 1, 0,
+                                             (struct sockaddr*)&client_addr, &client_len);
+            
+            if (bytes_received > 0) {
+                buffer[bytes_received] = '\0';
+                string message(buffer);
+                
+                // Get client IP for logging
+                char client_ip[INET_ADDRSTRLEN];
+                inet_ntop(AF_INET, &(client_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
+                
+                parse_message(message, client_ip);
+            }
+        }
+    }
+    
+    void parse_message(const string& message, const string& client_ip) {
+        vector<string> parts = split(message, ',');
+        
+        if (parts.empty()) return;
+        
+        if (parts[0] == "ADAS_DATA" && parts.size() >= 12) {
+            AdasData data;
+            try {
+                data.timestamp = stoull(parts[1]);
+                data.latitude = stod(parts[2]);
+                data.longitude = stod(parts[3]);
+                data.kalman_speed = stof(parts[4]);
+                data.gps_speed = stof(parts[5]);
+                data.accel_x = stof(parts[6]);
+                data.accel_y = stof(parts[7]);
+                data.accel_z = stof(parts[8]);
+                data.gyro_x = stof(parts[9]);
+                data.gyro_y = stof(parts[10]);
+                data.gyro_z = stof(parts[11]);
+                
+                if (data_callback_) {
+                    data_callback_(data);
+                }
+                
+                // Log every 50th packet to avoid spam
+                static int packet_count = 0;
+                if (++packet_count % 50 == 0) {
+                    cout << "📊 [" << client_ip << "] Speed: " 
+                         << (data.kalman_speed * 3.6) << " km/h | "
+                         << "GPS: " << data.latitude << ", " << data.longitude 
+                         << " | Accel: " << data.accel_y << " m/s²" << endl;
+                }
+                
+            } catch (const exception& e) {
+                cerr << "❌ Error parsing ADAS_DATA: " << e.what() << endl;
+            }
+        }
+        else if (parts[0] == "ADAS_EVENT" && parts.size() >= 6) {
+            AdasEvent event;
+            try {
+                event.event_type = parts[1];
+                event.value = stof(parts[2]);
+                event.latitude = stod(parts[3]);
+                event.longitude = stod(parts[4]);
+                event.timestamp = stoull(parts[5]);
+                
+                cout << endl << "🚨 EVENT DETECTED: " << event.event_type 
+                     << " | Value: " << event.value 
+                     << " | Location: " << event.latitude << ", " << event.longitude 
+                     << endl << endl;
+                
+                if (event_callback_) {
+                    event_callback_(event);
+                }
+                
+            } catch (const exception& e) {
+                cerr << "❌ Error parsing ADAS_EVENT: " << e.what() << endl;
+            }
+        }
+    }
+    
+    vector<string> split(const string& str, char delimiter) {
+        vector<string> tokens;
+        stringstream ss(str);
+        string token;
+        
+        while (getline(ss, token, delimiter)) {
+            tokens.push_back(token);
+        }
+        
+        return tokens;
+    }
+
+public:
+    UDPReceiver(uint16_t port = 5555) 
+        : socket_fd_(-1), port_(port), running_(false) {}
+    
+    ~UDPReceiver() {
+        stop();
+    }
+    
+    bool start() {
+        if (running_) {
+            cerr << "❌ UDP Receiver already running" << endl;
+            return false;
+        }
+        
+        socket_fd_ = socket(AF_INET, SOCK_DGRAM, 0);
+        if (socket_fd_ < 0) {
+            cerr << "❌ Failed to create UDP socket" << endl;
+            return false;
+        }
+        
+        // Allow socket reuse
+        int opt = 1;
+        setsockopt(socket_fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+        
+        struct sockaddr_in server_addr;
+        memset(&server_addr, 0, sizeof(server_addr));
+        server_addr.sin_family = AF_INET;
+        server_addr.sin_addr.s_addr = INADDR_ANY;
+        server_addr.sin_port = htons(port_);
+        
+        if (bind(socket_fd_, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+            cerr << "❌ Failed to bind UDP socket to port " << port_ << endl;
+            close(socket_fd_);
+            return false;
+        }
+        
+        running_ = true;
+        receive_thread_ = thread(&UDPReceiver::receive_loop, this);
+        
+        return true;
+    }
+    
+    void stop() {
+        if (!running_) return;
+        
+        running_ = false;
+        
+        if (socket_fd_ >= 0) {
+            close(socket_fd_);
+            socket_fd_ = -1;
+        }
+        
+        if (receive_thread_.joinable()) {
+            receive_thread_.join();
+        }
+        
+        cout << "🛑 UDP Receiver stopped" << endl;
+    }
+    
+    void set_data_callback(function<void(const AdasData&)> callback) {
+        data_callback_ = callback;
+    }
+    
+    void set_event_callback(function<void(const AdasEvent&)> callback) {
+        event_callback_ = callback;
+    }
+    
+    bool is_running() const { return running_; }
+};
+
+#endif
+// File: source/modules/websocket_bridge.cpp
+#include <websocketpp/config/asio.hpp>
+#include <websocketpp/server.hpp>
+#include <nlohmann/json.hpp>
+#include <iostream>
+#include <thread>
+#include <mutex>
+#include <queue>
+#include <atomic>
+#include <algorithm>
+#include <cmath>
+#include <opencv2/opencv.hpp>
+#include <chrono>
+#include <functional>
+#include <memory>
+#include <vector>
+#include <cstdint>
+#include <string>
+#include <iomanip>
+#include "camera.h"
+#include "lane_detector.h"
+#include "LocationManager.h"
+#include "../core/DatabaseManager.h"
+#include "../core/TripManager.h"
+#include "../core/VehicleManager.h"
+#include "../core/CacheManager.h"
+#include "../core/IndexManager.h"
+#include "../../include/sdm_config.hpp"
+
+using namespace std;
+using json = nlohmann::json;
+using server = websocketpp::server<websocketpp::config::asio>;
+
+// Simple base64 implementation
+static const std::string base64_chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789+/";
+
+std::string base64_encode(unsigned char const *bytes_to_encode, size_t in_len)
+{
+    std::string ret;
+    int i = 0;
+    int j = 0;
+    unsigned char char_array_3[3];
+    unsigned char char_array_4[4];
+
+    while (in_len--)
+    {
+        char_array_3[i++] = *(bytes_to_encode++);
+        if (i == 3)
+        {
+            char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+            char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+            char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+            char_array_4[3] = char_array_3[2] & 0x3f;
+
+            for (i = 0; i < 4; i++)
+                ret += base64_chars[char_array_4[i]];
+            i = 0;
+        }
+    }
+
+    if (i)
+    {
+        for (j = i; j < 3; j++)
+            char_array_3[j] = '\0';
+
+        char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+        char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+        char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+        char_array_4[3] = char_array_3[2] & 0x3f;
+
+        for (j = 0; j < i + 1; j++)
+            ret += base64_chars[char_array_4[j]];
+
+        while (i++ < 3)
+            ret += '=';
+    }
+
+    return ret;
+}
+
+class SmartDriveBridge
+{
+private:
+    server ws_server;
+    thread server_thread;
+    atomic<bool> running;
+
+    // Camera system
+    unique_ptr<CameraManager> camera;
+    unique_ptr<UltraFastLaneDetector> lane_detector;
+    thread camera_thread;
+    atomic<bool> camera_running;
+
+    // Location
+    unique_ptr<LocationManager> location_manager;
+    thread gps_broadcast_thread;
+    atomic<bool> gps_broadcast_running;
+
+    // Client connections
+    using connection_hdl = websocketpp::connection_hdl;
+    struct connection_data
+    {
+        json info;
+        time_t connected_at;
+    };
+
+    map<connection_hdl, connection_data, owner_less<connection_hdl>> clients;
+    mutex clients_mutex;
+
+    // Video buffer
+    queue<string> video_buffer;
+    mutex video_mutex;
+    condition_variable video_cv;
+
+    // Data with mutex for thread safety
+    struct LiveData
+    {
+        atomic<double> speed{0};
+        atomic<double> acceleration{0};
+        atomic<double> safety_score{1000};
+        atomic<int> rapid_accel_count{0};
+        atomic<int> hard_brake_count{0};
+        atomic<int> lane_departures{0};
+        atomic<bool> trip_active{false};
+        atomic<uint64_t> trip_id{0};
+
+        // String needs protection
+        mutex lane_status_mutex;
+        string lane_status = "CENTERED";
+
+        void set_lane_status(const string &status)
+        {
+            lock_guard<mutex> lock(lane_status_mutex);
+            lane_status = status;
+        }
+
+        string get_lane_status()
+        {
+            lock_guard<mutex> lock(lane_status_mutex);
+            return lane_status;
+        }
+    } live_data;
+
+    // Database connection
+    DatabaseManager *db_manager = nullptr;
+    CacheManager *cache_manager = nullptr;
+    IndexManager *index_manager = nullptr;
+    TripManager *trip_manager = nullptr;
+    VehicleManager *vehicle_manager = nullptr;
+
+    // Active trip tracking
+    uint64_t current_trip_id = 0;
+    double current_trip_start_lat = 0;
+    double current_trip_start_lon = 0;
+
+    // ✅ FIX: Proper trip ID counter
+    atomic<uint64_t> next_trip_id;
+
+    // ✅ FIX: Track last GPS update time
+    std::chrono::steady_clock::time_point last_gps_broadcast;
+
+public:
+    // Add this function to SmartDriveBridge class in websocket_bridge.cpp
+    void send_video_frame(const string &base64_frame)
+    {
+        json video_msg;
+        video_msg["type"] = "video_frame";
+        video_msg["data"] = base64_frame;
+        video_msg["timestamp"] = time(nullptr);
+
+        broadcast_message(video_msg.dump());
+    }
+
+    // Update camera_loop function to send frames with warning cooldown only:
+    void camera_loop()
+    {
+        cv::Mat frame;
+        int frame_count = 0;
+        int processed_frames = 0;
+        auto last_fps_time = chrono::steady_clock::now();
+        auto last_warning_time = chrono::steady_clock::now();
+        double current_fps = 0;
+
+        // Only limit warning messages to prevent flooding (not frame rate)
+        const auto WARNING_COOLDOWN = chrono::milliseconds(500); // Minimum time between warnings
+
+        while (camera_running.load())
+        {
+            try
+            {
+                if (camera && camera->grabFrame(frame) && !frame.empty())
+                {
+                    frame_count++;
+
+                    // Calculate FPS every second
+                    auto now = chrono::steady_clock::now();
+                    auto fps_elapsed = chrono::duration_cast<chrono::milliseconds>(now - last_fps_time).count();
+                    if (fps_elapsed >= 1000)
+                    {
+                        current_fps = processed_frames * 1000.0 / fps_elapsed;
+                        processed_frames = 0;
+                        last_fps_time = now;
+                    }
+
+                    processed_frames++;
+
+                    // Process lane detection (with rate-limited warnings only)
+                    process_frame_rate_limited(frame, current_fps, last_warning_time, WARNING_COOLDOWN);
+
+                    // Encode frame as JPEG with original quality
+                    vector<uchar> buffer;
+                    cv::imencode(".jpg", frame, buffer, {cv::IMWRITE_JPEG_QUALITY, 70});
+
+                    if (!buffer.empty())
+                    {
+                        // Convert to base64
+                        string base64_frame = base64_encode(buffer.data(), buffer.size());
+
+                        // Send via WebSocket
+                        send_video_frame(base64_frame);
+                    }
+
+                    // Small sleep to prevent CPU hogging and allow GPS updates to be processed
+                    // This ensures GPS broadcast thread gets CPU time
+                    this_thread::sleep_for(chrono::milliseconds(10));
+                }
+                else
+                {
+                    // No frame available, small sleep to prevent busy waiting
+                    this_thread::sleep_for(chrono::milliseconds(33)); // ~30 FPS max when no frames
+                }
+            }
+            catch (const exception &e)
+            {
+                cerr << "Camera loop error: " << e.what() << endl;
+                this_thread::sleep_for(chrono::milliseconds(100));
+            }
+        }
+    }
+
+    // Rate-limited frame processing to prevent message flooding
+    void process_frame_rate_limited(cv::Mat &frame, double fps,
+                                    chrono::steady_clock::time_point &last_warning_time,
+                                    const chrono::milliseconds &warning_cooldown)
+    {
+        // Add FPS display
+        cv::putText(frame, "FPS: " + to_string((int)fps),
+                    cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.7,
+                    cv::Scalar(0, 255, 0), 2);
+
+        // Process lane detection if available
+        if (lane_detector)
+        {
+            try
+            {
+                auto result = lane_detector->detectLanes(frame);
+
+                // Draw lanes
+                lane_detector->drawLanes(frame, result, true);
+
+                // Check for lane departure
+                string direction;
+                double deviation;
+                bool departure = lane_detector->checkLaneDeparture(result, frame, direction, deviation);
+
+                if (departure)
+                {
+                    live_data.lane_departures++;
+                    live_data.set_lane_status(direction);
+                    lane_detector->drawDepartureWarning(frame, direction, deviation, true);
+
+                    // Rate limit warning broadcasts to prevent message flooding
+                    auto now = chrono::steady_clock::now();
+                    if (chrono::duration_cast<chrono::milliseconds>(now - last_warning_time) >= warning_cooldown)
+                    {
+                        last_warning_time = now;
+
+                        // Send warning with rate limiting
+                        json data_obj = json::object();
+                        data_obj["direction"] = direction;
+                        data_obj["deviation"] = deviation;
+                        data_obj["count"] = live_data.lane_departures.load();
+                        data_obj["timestamp"] = time(nullptr);
+
+                        json warning = json::object();
+                        warning["type"] = "lane_warning";
+                        warning["data"] = data_obj;
+
+                        broadcast_message(warning.dump());
+                    }
+                }
+                else
+                {
+                    live_data.set_lane_status("CENTERED");
+                }
+            }
+            catch (const exception &e)
+            {
+                cerr << "Lane detection error: " << e.what() << endl;
+            }
+        }
+
+        // Display trip status
+        string status_text = live_data.trip_active.load() ? "TRIP ACTIVE" : "TRIP INACTIVE";
+        cv::Scalar status_color = live_data.trip_active.load() ? cv::Scalar(0, 255, 0) : cv::Scalar(0, 0, 255);
+        cv::putText(frame, status_text, cv::Point(10, 60),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.7, status_color, 2);
+    }
+    SmartDriveBridge() : running(false), camera_running(false), db_manager(nullptr)
+    {
+        // Initialize WebSocket server
+        ws_server.init_asio();
+        ws_server.set_reuse_addr(true);
+
+        // ✅ FIX: Initialize trip ID counter from current timestamp
+        next_trip_id = static_cast<uint64_t>(time(nullptr)) * 1000;
+        last_gps_broadcast = std::chrono::steady_clock::now();
+
+        ws_server.set_open_handler(bind(&SmartDriveBridge::on_open, this, placeholders::_1));
+        ws_server.set_close_handler(bind(&SmartDriveBridge::on_close, this, placeholders::_1));
+        ws_server.set_message_handler(bind(&SmartDriveBridge::on_message, this, placeholders::_1, placeholders::_2));
+
+        // Set up error handler
+        ws_server.set_fail_handler([this](connection_hdl hdl)
+                                   {
+            lock_guard<mutex> lock(clients_mutex);
+            clients.erase(hdl); });
+    }
+
+    ~SmartDriveBridge()
+    {
+        stop();
+        delete trip_manager;
+        delete vehicle_manager;
+        delete index_manager;
+        delete cache_manager;
+        if (db_manager)
+        {
+            delete db_manager;
+        }
+    }
+
+    bool initialize()
+    {
+        cout << "=== Smart Drive WebSocket Bridge ===" << endl;
+
+        try
+        {
+            // Initialize database
+            db_manager = new DatabaseManager("compiled/SDM.db");
+            if (!db_manager->open())
+            {
+                cerr << "Database not found, creating new database..." << endl;
+                SDMConfig config;
+                config.max_drivers = 1000;
+                config.max_vehicles = 5000;
+                config.max_trips = 100000;
+
+                if (!db_manager->create(config))
+                {
+                    cerr << "Failed to create database" << endl;
+                    return false;
+                }
+
+                if (!db_manager->open())
+                {
+                    cerr << "Failed to open newly created database" << endl;
+                    return false;
+                }
+            }
+
+            // Initialize cache and index managers
+            cache_manager = new CacheManager(256, 256, 512, 1024);
+            index_manager = new IndexManager("compiled/indexes");
+            if (!index_manager->open_indexes())
+            {
+                if (!index_manager->create_indexes())
+                {
+                    cerr << "Failed to create indexes" << endl;
+                }
+            }
+
+            // Initialize trip and vehicle managers
+            trip_manager = new TripManager(*db_manager, *cache_manager, *index_manager);
+            vehicle_manager = new VehicleManager(*db_manager, *cache_manager, *index_manager);
+
+            cout << "✓ Database managers initialized" << endl;
+
+            cout << "Initializing camera system..." << endl;
+
+            // Initialize camera
+            camera = make_unique<CameraManager>();
+            CameraManager::CameraConfig cam_cfg;
+            cam_cfg.source = CameraManager::findDroidCamDevice();
+            cam_cfg.width = 640;
+            cam_cfg.height = 480;
+            cam_cfg.fps = 30;
+            cam_cfg.type = CameraManager::CAMERA_V4L2;
+
+            if (!camera->initialize(cam_cfg))
+            {
+                cerr << "Failed to initialize camera! Using fallback..." << endl;
+                camera.reset(nullptr);
+            }
+            else
+            {
+                cout << "✓ Camera initialized" << endl;
+            }
+
+            // Initialize lane detector
+            if (camera)
+            {
+                lane_detector = make_unique<UltraFastLaneDetector>();
+                if (!lane_detector->initialize(""))
+                {
+                    cerr << "Failed to initialize lane detector" << endl;
+                    lane_detector.reset(nullptr);
+                }
+                else
+                {
+                    cout << "✓ Lane detector initialized" << endl;
+                }
+            }
+
+            // Initialize location manager
+            location_manager = make_unique<LocationManager>(1000);
+
+            cout << "✓ Bridge initialized successfully" << endl;
+            return true;
+        }
+        catch (const exception &e)
+        {
+            cerr << "Initialization error: " << e.what() << endl;
+            return false;
+        }
+    }
+
+    void start(uint16_t port = 8081)
+    {
+        if (running)
+            return;
+
+        try
+        {
+            running = true;
+
+            // Start WebSocket server
+            ws_server.listen(port);
+            ws_server.start_accept();
+
+            server_thread = thread([this, port]()
+                                   {
+                cout << "WebSocket server starting on port " << port << endl;
+                try {
+                    ws_server.run();
+                } catch (const exception& e) {
+                    cerr << "WebSocket server error: " << e.what() << endl;
+                } });
+
+            // Start camera processing if available
+            if (camera)
+            {
+                camera_running = true;
+                camera_thread = thread(&SmartDriveBridge::camera_loop, this);
+                cout << "✓ Camera processing started" << endl;
+            }
+
+            // Start location updates
+            if (location_manager)
+            {
+                location_manager->setLocationCallback([this](LocationData loc)
+                                                      { update_location(loc); });
+                location_manager->start();
+                cout << "✓ Location tracking started" << endl;
+            }
+
+            // Start GPS broadcast thread (separate from camera loop)
+            gps_broadcast_running = true;
+            gps_broadcast_thread = thread(&SmartDriveBridge::gps_broadcast_loop, this);
+            cout << "✓ GPS broadcast thread started" << endl;
+
+            cout << "✓ Bridge server started on ws://localhost:" << port << endl;
+        }
+        catch (const exception &e)
+        {
+            cerr << "Failed to start bridge: " << e.what() << endl;
+            running = false;
+        }
+    }
+
+    void stop()
+    {
+        if (!running)
+            return;
+
+        running = false;
+        camera_running = false;
+        gps_broadcast_running = false;
+
+        // Stop location manager
+        if (location_manager)
+        {
+            location_manager->stop();
+        }
+
+        // Stop GPS broadcast thread
+        if (gps_broadcast_thread.joinable())
+        {
+            gps_broadcast_thread.join();
+        }
+
+        // Stop camera thread
+        if (camera_thread.joinable())
+        {
+            camera_thread.join();
+        }
+
+        // Stop WebSocket server
+        try
+        {
+            ws_server.stop_listening();
+
+            // Close all connections
+            {
+                lock_guard<mutex> lock(clients_mutex);
+                for (auto &client : clients)
+                {
+                    try
+                    {
+                        ws_server.close(client.first, websocketpp::close::status::going_away, "Server shutdown");
+                    }
+                    catch (...)
+                    {
+                        // Ignore errors during shutdown
+                    }
+                }
+                clients.clear();
+            }
+
+            ws_server.stop();
+
+            if (server_thread.joinable())
+            {
+                server_thread.join();
+            }
+        }
+        catch (const exception &e)
+        {
+            cerr << "Error stopping server: " << e.what() << endl;
+        }
+
+        // Close camera
+        if (camera)
+        {
+            camera->release();
+        }
+
+        cout << "Bridge stopped" << endl;
+    }
+
+    bool is_running() const { return running; }
+
+private:
+    void broadcast_live_data_with_gps(double lat, double lon, double speed, double accuracy)
+    {
+        json data_obj = json::object();
+        data_obj["speed"] = speed;
+        data_obj["acceleration"] = live_data.acceleration.load();
+        data_obj["safety_score"] = live_data.safety_score.load();
+        data_obj["lane_status"] = live_data.get_lane_status();
+        data_obj["rapid_accel_count"] = live_data.rapid_accel_count.load();
+        data_obj["hard_brake_count"] = live_data.hard_brake_count.load();
+        data_obj["lane_departures"] = live_data.lane_departures.load();
+        data_obj["trip_active"] = live_data.trip_active.load();
+        data_obj["trip_id"] = live_data.trip_id.load();
+        data_obj["latitude"] = lat;
+        data_obj["longitude"] = lon;
+        data_obj["accuracy"] = accuracy;
+        data_obj["timestamp"] = time(nullptr);
+        data_obj["gps_source"] = "browser";
+
+        json data = json::object();
+        data["type"] = "live_data";
+        data["data"] = data_obj;
+
+        broadcast_message(data.dump());
+    }
+    void on_open(connection_hdl hdl)
+    {
+        lock_guard<mutex> lock(clients_mutex);
+
+        connection_data data;
+        data.connected_at = time(nullptr);
+
+        // Fixed JSON construction
+        data.info = json::object();
+        data.info["type"] = "dashboard";
+        data.info["connected_at"] = data.connected_at;
+
+        clients[hdl] = data;
+
+        cout << "New client connected. Total: " << clients.size() << endl;
+
+        // Send initial data
+        send_initial_data(hdl);
+    }
+
+    void handle_gps_update(connection_hdl hdl, const json &data)
+    {
+        try
+        {
+            double latitude = data.value("latitude", 31.5204);
+            double longitude = data.value("longitude", 74.3587);
+            double speed_kmh = data.value("speed_kmh", 0.0);
+            double accuracy = data.value("accuracy", 10.0);
+            uint64_t timestamp = data.value("timestamp", (uint64_t)0);
+            string source = data.value("source", "browser_gps");
+
+            // ✅ FIX: Rate limit console output (once per second)
+            static auto last_log_time = std::chrono::steady_clock::now();
+            auto now = std::chrono::steady_clock::now();
+            auto time_since_log = std::chrono::duration_cast<std::chrono::seconds>(now - last_log_time).count();
+
+            if (time_since_log >= 1)
+            {
+                cout << "📍 GPS: " << fixed << setprecision(6)
+                     << "Lat=" << latitude << ", Lon=" << longitude
+                     << ", Speed=" << setprecision(1) << speed_kmh << " km/h" << endl;
+                last_log_time = now;
+            }
+
+            // Update live data
+            static double last_speed = 0;
+            static auto last_time = chrono::steady_clock::now();
+
+            auto current_time = chrono::steady_clock::now();
+            double time_diff = chrono::duration<double>(current_time - last_time).count();
+
+            if (time_diff > 0.1)
+            {
+                double new_acceleration = (speed_kmh - last_speed) / time_diff;
+                last_speed = speed_kmh;
+
+                if (new_acceleration > 3.0)
+                {
+                    live_data.rapid_accel_count++;
+                    broadcast_warning("rapid_acceleration", new_acceleration);
+                }
+                else if (new_acceleration < -4.0)
+                {
+                    live_data.hard_brake_count++;
+                    broadcast_warning("hard_braking", new_acceleration);
+                }
+
+                live_data.acceleration = new_acceleration;
+            }
+
+            last_time = current_time;
+            live_data.speed = speed_kmh;
+
+            double score = 1000.0 - (live_data.rapid_accel_count.load() * 5.0) -
+                           (live_data.hard_brake_count.load() * 10.0) -
+                           (live_data.lane_departures.load() * 3.0);
+            live_data.safety_score = max(0.0, min(1000.0, score));
+
+            // Log GPS point if trip is active
+            if (live_data.trip_active.load() && trip_manager && current_trip_id > 0)
+            {
+                trip_manager->log_gps_point(current_trip_id, latitude, longitude,
+                                            speed_kmh, 0.0, accuracy);
+            }
+
+            // ✅ FIX: Rate limit broadcasts (every 500ms)
+            auto time_since_broadcast = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_gps_broadcast).count();
+            if (time_since_broadcast >= 500)
+            {
+                broadcast_live_data_with_gps(latitude, longitude, speed_kmh, accuracy);
+                last_gps_broadcast = now;
+            }
+
+            // ✅ FIX: Don't send acknowledgment for every GPS update (too much overhead)
+            // Backend will just process silently
+        }
+        catch (const exception &e)
+        {
+            cerr << "❌ Error handling GPS update: " << e.what() << endl;
+            send_error(hdl, "GPS update error: " + string(e.what()));
+        }
+    }
+    void on_close(connection_hdl hdl)
+    {
+        lock_guard<mutex> lock(clients_mutex);
+        clients.erase(hdl);
+        cout << "Client disconnected. Remaining: " << clients.size() << endl;
+    }
+    void on_message(connection_hdl hdl, server::message_ptr msg)
+    {
+        try
+        {
+            string payload = msg->get_payload();
+            if (payload.empty())
+            {
+                send_error(hdl, "Empty message");
+                return;
+            }
+
+            json data = json::parse(payload);
+            string cmd = data.value("command", "");
+
+            cout << "Received command: " << cmd << endl;
+
+            if (cmd == "start_trip")
+            {
+                handle_start_trip(hdl, data);
+            }
+            else if (cmd == "stop_trip")
+            {
+                handle_stop_trip(hdl, data);
+            }
+            else if (cmd == "toggle_camera")
+            {
+                handle_toggle_camera(hdl, data);
+            }
+            // ✅ NEW: Handle GPS updates from browser
+            else if (cmd == "gps_update")
+            {
+                handle_gps_update(hdl, data);
+            }
+            else if (cmd == "get_stats")
+            {
+                handle_get_stats(hdl, data);
+            }
+            else if (cmd == "ping")
+            {
+                handle_ping(hdl, data);
+            }
+            else
+            {
+                send_error(hdl, "Unknown command: " + cmd);
+            }
+        }
+        catch (const json::exception &e)
+        {
+            cerr << "JSON parse error: " << e.what() << endl;
+            send_error(hdl, "Invalid JSON: " + string(e.what()));
+        }
+        catch (const exception &e)
+        {
+            cerr << "Error processing message: " << e.what() << endl;
+            send_error(hdl, "Processing error: " + string(e.what()));
+        }
+    }
+    void send_initial_data(connection_hdl hdl)
+    {
+        // Fixed JSON construction - use explicit object creation
+        json data_obj = json::object();
+        data_obj["server_version"] = "2.0";
+        data_obj["camera_available"] = (camera != nullptr);
+        data_obj["lane_detection"] = (lane_detector != nullptr);
+        data_obj["location_available"] = (location_manager != nullptr);
+        data_obj["timestamp"] = time(nullptr);
+
+        json response = json::object();
+        response["type"] = "init";
+        response["data"] = data_obj;
+
+        send_message(hdl, response.dump());
+    }
+    void handle_start_trip(connection_hdl hdl, const json &data)
+    {
+        uint64_t driver_id = data.value("driver_id", 1ULL);
+        uint64_t vehicle_id = data.value("vehicle_id", 1ULL);
+
+        if (!trip_manager)
+        {
+            send_error(hdl, "Trip manager not initialized");
+            return;
+        }
+
+        double start_lat = 31.5204;
+        double start_lon = 74.3587;
+        if (location_manager)
+        {
+            LocationData loc = location_manager->getLocation();
+            if (loc.valid)
+            {
+                start_lat = loc.latitude;
+                start_lon = loc.longitude;
+            }
+        }
+
+        // ✅ FIX: Generate unique trip ID
+        uint64_t trip_id = next_trip_id.fetch_add(1);
+
+        cout << "🚗 Starting trip with generated ID: " << trip_id << endl;
+
+        // ✅ FIX: Try to start trip, retry with new ID if it fails
+        int retry_count = 0;
+        bool trip_created = false;
+
+        while (!trip_created && retry_count < 5)
+        {
+            try
+            {
+                trip_id = trip_manager->start_trip(driver_id, vehicle_id, start_lat, start_lon, "");
+
+                if (trip_id > 0)
+                {
+                    trip_created = true;
+                    break;
+                }
+                else
+                {
+                    cout << "⚠️ Backend returned invalid trip_id, retrying..." << endl;
+                    trip_id = next_trip_id.fetch_add(1);
+                    retry_count++;
+                }
+            }
+            catch (const exception &e)
+            {
+                cerr << "❌ Exception starting trip: " << e.what() << endl;
+                trip_id = next_trip_id.fetch_add(1);
+                retry_count++;
+            }
+        }
+
+        if (trip_id > 0 && trip_created)
+        {
+            live_data.trip_active = true;
+            live_data.trip_id = trip_id;
+            current_trip_id = trip_id;
+            current_trip_start_lat = start_lat;
+            current_trip_start_lon = start_lon;
+
+            cout << "✅ Trip started with ID: " << trip_id << endl;
+
+            json data_obj = json::object();
+            data_obj["trip_id"] = trip_id;
+            data_obj["start_time"] = time(nullptr);
+            data_obj["driver_id"] = driver_id;
+            data_obj["vehicle_id"] = vehicle_id;
+            data_obj["status"] = "active";
+            data_obj["start_latitude"] = start_lat;
+            data_obj["start_longitude"] = start_lon;
+
+            json response = json::object();
+            response["type"] = "trip_started";
+            response["data"] = data_obj;
+
+            send_message(hdl, response.dump());
+            broadcast_live_data();
+        }
+        else
+        {
+            cerr << "❌ Failed to start trip after " << retry_count << " retries" << endl;
+            send_error(hdl, "Failed to start trip in database. Database may be full or corrupted.");
+        }
+    }
+
+    // ✅ FIXED: handle_stop_trip with validation
+    void handle_stop_trip(connection_hdl hdl, const json &data)
+    {
+        if (!trip_manager)
+        {
+            send_error(hdl, "Trip manager not initialized");
+            return;
+        }
+
+        // ✅ FIX: Get trip_id from data or use current_trip_id
+        uint64_t trip_id = 0;
+
+        if (data.contains("trip_id"))
+        {
+            trip_id = data["trip_id"].get<uint64_t>();
+        }
+        else
+        {
+            trip_id = current_trip_id > 0 ? current_trip_id : live_data.trip_id.load();
+        }
+
+        cout << "🛑 Attempting to stop trip: " << trip_id << endl;
+
+        if (trip_id == 0)
+        {
+            send_error(hdl, "No active trip to stop (trip_id = 0)");
+            return;
+        }
+
+        // ✅ FIX: Validate trip exists before trying to end it
+        TripRecord trip_record;
+        if (!trip_manager->get_trip_details(trip_id, trip_record))
+        {
+            cerr << "❌ Trip " << trip_id << " not found in database" << endl;
+            send_error(hdl, "Trip not found. It may have already been stopped or never started.");
+
+            // Clear local state even if trip not found
+            live_data.trip_active = false;
+            live_data.trip_id = 0;
+            current_trip_id = 0;
+
+            return;
+        }
+
+        double end_lat = 31.5204;
+        double end_lon = 74.3587;
+        if (location_manager)
+        {
+            LocationData loc = location_manager->getLocation();
+            if (loc.valid)
+            {
+                end_lat = loc.latitude;
+                end_lon = loc.longitude;
+            }
+        }
+
+        cout << "🛑 Ending trip " << trip_id << " at: "
+             << fixed << setprecision(6) << end_lat << ", " << end_lon << endl;
+
+        bool success = trip_manager->end_trip(trip_id, end_lat, end_lon, "");
+
+        if (success)
+        {
+            live_data.trip_active = false;
+            live_data.trip_id = 0;
+            current_trip_id = 0;
+
+            cout << "✅ Trip " << trip_id << " ended successfully" << endl;
+
+            json data_obj = json::object();
+            data_obj["trip_id"] = trip_id;
+            data_obj["end_time"] = time(nullptr);
+            data_obj["distance"] = 0;
+            data_obj["duration"] = 0;
+            data_obj["status"] = "completed";
+
+            json response = json::object();
+            response["type"] = "trip_stopped";
+            response["data"] = data_obj;
+
+            send_message(hdl, response.dump());
+            broadcast_live_data();
+        }
+        else
+        {
+            cerr << "❌ Failed to save trip " << trip_id << " to database" << endl;
+            send_error(hdl, "Failed to save trip to database. Database may be corrupted or full.");
+        }
+    }
+    void handle_toggle_camera(connection_hdl hdl, const json &data)
+    {
+        bool enable = data.value("enable", !camera_running.load());
+
+        if (enable && !camera_running.load())
+        {
+            if (camera)
+            {
+                // Join the old thread if it exists and has finished
+                if (camera_thread.joinable())
+                {
+                    camera_thread.join();
+                }
+
+                camera_running = true;
+                camera_thread = thread(&SmartDriveBridge::camera_loop, this);
+            }
+        }
+        else if (!enable && camera_running.load())
+        {
+            camera_running = false;
+
+            // Wait for camera thread to finish
+            if (camera_thread.joinable())
+            {
+                camera_thread.join();
+            }
+        }
+
+        // FIXED: Use .load() for atomic<bool>
+        json data_obj = json::object();
+        data_obj["enabled"] = camera_running.load(); // Use .load() here
+        data_obj["available"] = (camera != nullptr);
+
+        json response = json::object();
+        response["type"] = "camera_status";
+        response["data"] = data_obj;
+
+        send_message(hdl, response.dump());
+    }
+
+    void handle_get_stats(connection_hdl hdl, const json &data)
+    {
+        // Fixed JSON construction with .load() for atomic values
+        json data_obj = json::object();
+        data_obj["speed"] = live_data.speed.load();
+        data_obj["acceleration"] = live_data.acceleration.load();
+        data_obj["safety_score"] = live_data.safety_score.load();
+        data_obj["lane_status"] = live_data.get_lane_status(); // Use getter for thread-safe access
+        data_obj["rapid_accel_count"] = live_data.rapid_accel_count.load();
+        data_obj["hard_brake_count"] = live_data.hard_brake_count.load();
+        data_obj["lane_departures"] = live_data.lane_departures.load();
+        data_obj["trip_active"] = live_data.trip_active.load();
+        data_obj["trip_id"] = live_data.trip_id.load();
+
+        json response = json::object();
+        response["type"] = "stats_response";
+        response["data"] = data_obj;
+
+        send_message(hdl, response.dump());
+    }
+
+    void handle_get_trip_history(connection_hdl hdl, const json &data)
+    {
+        if (!trip_manager)
+        {
+            send_error(hdl, "Trip manager not initialized");
+            return;
+        }
+
+        uint64_t driver_id = data.value("driver_id", 1ULL);
+        int limit = data.value("limit", 20);
+
+        auto trips = trip_manager->get_driver_trips(driver_id, limit);
+
+        json trips_array = json::array();
+        for (const auto &trip : trips)
+        {
+            json trip_obj = json::object();
+            trip_obj["trip_id"] = trip.trip_id;
+            trip_obj["driver_id"] = trip.driver_id;
+            trip_obj["vehicle_id"] = trip.vehicle_id;
+            trip_obj["start_time"] = trip.start_time;
+            trip_obj["end_time"] = trip.end_time;
+            trip_obj["duration"] = trip.duration;
+            trip_obj["distance"] = trip.distance;
+            trip_obj["avg_speed"] = trip.avg_speed;
+            trip_obj["max_speed"] = trip.max_speed;
+            trip_obj["fuel_consumed"] = trip.fuel_consumed;
+            trip_obj["fuel_efficiency"] = trip.fuel_efficiency;
+            trip_obj["start_address"] = string(trip.start_address);
+            trip_obj["end_address"] = string(trip.end_address);
+            trips_array.push_back(trip_obj);
+        }
+
+        json response = json::object();
+        response["type"] = "trip_history";
+        response["data"] = trips_array;
+
+        send_message(hdl, response.dump());
+    }
+
+    void handle_get_vehicles(connection_hdl hdl, const json &data)
+    {
+        if (!vehicle_manager)
+        {
+            send_error(hdl, "Vehicle manager not initialized");
+            return;
+        }
+
+        uint64_t driver_id = data.value("driver_id", 1ULL);
+
+        auto vehicles = vehicle_manager->get_driver_vehicles(driver_id);
+
+        json vehicles_array = json::array();
+        for (const auto &vehicle : vehicles)
+        {
+            json vehicle_obj = json::object();
+            vehicle_obj["vehicle_id"] = vehicle.vehicle_id;
+            vehicle_obj["owner_driver_id"] = vehicle.owner_driver_id;
+            vehicle_obj["license_plate"] = string(vehicle.license_plate);
+            vehicle_obj["make"] = string(vehicle.make);
+            vehicle_obj["model"] = string(vehicle.model);
+            vehicle_obj["year"] = vehicle.year;
+            vehicle_obj["type"] = static_cast<int>(vehicle.type);
+            vehicle_obj["current_odometer"] = vehicle.current_odometer;
+            vehicle_obj["fuel_type"] = string(vehicle.fuel_type);
+            vehicle_obj["vin"] = string(vehicle.vin);
+            vehicles_array.push_back(vehicle_obj);
+        }
+
+        json response = json::object();
+        response["type"] = "vehicles";
+        response["data"] = vehicles_array;
+
+        send_message(hdl, response.dump());
+    }
+
+    void handle_ping(connection_hdl hdl, const json &data)
+    {
+        json response = json::object();
+        response["type"] = "pong";
+        response["timestamp"] = time(nullptr);
+
+        send_message(hdl, response.dump());
+    }
+
+    void send_error(connection_hdl hdl, const string &message)
+    {
+        json response = json::object();
+        response["type"] = "error";
+        response["message"] = message;
+        response["timestamp"] = time(nullptr);
+
+        send_message(hdl, response.dump());
+    }
+
+    void update_location(const LocationData &loc)
+    {
+        if (!loc.valid)
+        {
+            static auto last_warning_time = chrono::steady_clock::now();
+            auto now = chrono::steady_clock::now();
+            auto time_since_warning = chrono::duration_cast<chrono::seconds>(now - last_warning_time).count();
+
+            // Warn about invalid GPS every 10 seconds
+            if (time_since_warning >= 10)
+            {
+                cerr << "⚠️ GPS: Invalid location data received" << endl;
+                last_warning_time = now;
+            }
+            return;
+        }
+
+        // Log GPS update with rate limiting
+        static auto last_log_time = chrono::steady_clock::now();
+        auto now = chrono::steady_clock::now();
+        auto time_since_log = chrono::duration_cast<chrono::seconds>(now - last_log_time).count();
+
+        // Log GPS update every 5 seconds to avoid spam
+        if (time_since_log >= 5)
+        {
+            cout << "📍 GPS Update: Lat=" << fixed << setprecision(6) << loc.latitude
+                 << ", Lon=" << loc.longitude
+                 << ", Speed=" << setprecision(1) << loc.speed_kmh << " km/h"
+                 << ", Accuracy=" << setprecision(1) << loc.accuracy << "m" << endl;
+            last_log_time = now;
+        }
+
+        static double last_speed = 0;
+        static auto last_time = chrono::steady_clock::now();
+
+        auto current_time = chrono::steady_clock::now();
+        double time_diff = chrono::duration<double>(current_time - last_time).count();
+
+        if (time_diff > 0)
+        {
+            double new_acceleration = (loc.speed_kmh - last_speed) / time_diff;
+            last_speed = loc.speed_kmh;
+
+            // Check for harsh events
+            if (new_acceleration > 3.0)
+            {
+                live_data.rapid_accel_count++;
+                broadcast_warning("rapid_acceleration", new_acceleration);
+            }
+            else if (new_acceleration < -4.0)
+            {
+                live_data.hard_brake_count++;
+                broadcast_warning("hard_braking", new_acceleration);
+            }
+
+            live_data.acceleration = new_acceleration;
+        }
+
+        last_time = current_time;
+        live_data.speed = loc.speed_kmh;
+
+        // Update safety score
+        double score = 1000.0 - (live_data.rapid_accel_count.load() * 5.0) -
+                       (live_data.hard_brake_count.load() * 10.0) -
+                       (live_data.lane_departures.load() * 3.0);
+        live_data.safety_score = max(0.0, min(1000.0, score));
+
+        // Log GPS point if trip is active
+        if (live_data.trip_active.load() && trip_manager && current_trip_id > 0)
+        {
+            trip_manager->log_gps_point(current_trip_id, loc.latitude, loc.longitude,
+                                        loc.speed_kmh, loc.altitude, loc.accuracy);
+        }
+
+        // Note: GPS updates are now broadcast via separate gps_broadcast_loop thread
+        // This callback still updates live_data, but broadcasting happens independently
+    }
+
+    // Separate GPS broadcast loop - runs independently of camera loop
+    void gps_broadcast_loop()
+    {
+        const auto GPS_UPDATE_INTERVAL = chrono::milliseconds(1000); // Broadcast GPS every 1 second
+        static auto last_broadcast_log = chrono::steady_clock::now();
+        int broadcast_count = 0;
+
+        while (gps_broadcast_running.load())
+        {
+            try
+            {
+                // Always broadcast GPS data, regardless of trip status
+                // This ensures GPS updates are sent regularly even when camera is busy
+                broadcast_live_data();
+                broadcast_count++;
+
+                // Log broadcast status every 10 seconds
+                auto now = chrono::steady_clock::now();
+                auto time_since_log = chrono::duration_cast<chrono::seconds>(now - last_broadcast_log).count();
+                if (time_since_log >= 10)
+                {
+                    cout << "📡 GPS Broadcast: " << broadcast_count << " broadcasts in last 10s" << endl;
+                    broadcast_count = 0;
+                    last_broadcast_log = now;
+                }
+
+                // Sleep for the update interval
+                this_thread::sleep_for(GPS_UPDATE_INTERVAL);
+            }
+            catch (const exception &e)
+            {
+                cerr << "❌ GPS broadcast loop error: " << e.what() << endl;
+                // Sleep a bit longer on error to prevent tight error loop
+                this_thread::sleep_for(chrono::milliseconds(500));
+            }
+        }
+    }
+
+    void broadcast_live_data()
+    {
+        double lat = 31.5204;
+        double lon = 74.3587;
+        bool gps_valid = false;
+        static double last_lat = 0;
+        static double last_lon = 0;
+        static int stuck_count = 0;
+
+        if (location_manager)
+        {
+            LocationData loc = location_manager->getLocation();
+            if (loc.valid)
+            {
+                lat = loc.latitude;
+                lon = loc.longitude;
+                gps_valid = true;
+
+                // Check if GPS is stuck (same coordinates for too long)
+                if (abs(lat - last_lat) < 0.000001 && abs(lon - last_lon) < 0.000001)
+                {
+                    stuck_count++;
+                    if (stuck_count > 30) // 30 seconds of no movement
+                    {
+                        static auto last_stuck_warning = chrono::steady_clock::now();
+                        auto now = chrono::steady_clock::now();
+                        auto time_since_warning = chrono::duration_cast<chrono::seconds>(now - last_stuck_warning).count();
+                        if (time_since_warning >= 10)
+                        {
+                            cerr << "⚠️ GPS WARNING: Coordinates unchanged for " << stuck_count << " seconds - GPS may be stuck!" << endl;
+                            last_stuck_warning = now;
+                        }
+                    }
+                }
+                else
+                {
+                    stuck_count = 0; // Reset if coordinates changed
+                    last_lat = lat;
+                    last_lon = lon;
+                }
+            }
+            else
+            {
+                static auto last_invalid_warning = chrono::steady_clock::now();
+                auto now = chrono::steady_clock::now();
+                auto time_since_warning = chrono::duration_cast<chrono::seconds>(now - last_invalid_warning).count();
+                if (time_since_warning >= 10)
+                {
+                    cerr << "⚠️ GPS: Location manager returned invalid data" << endl;
+                    last_invalid_warning = now;
+                }
+            }
+        }
+
+        json data_obj = json::object();
+        data_obj["speed"] = live_data.speed.load();
+        data_obj["acceleration"] = live_data.acceleration.load();
+        data_obj["safety_score"] = live_data.safety_score.load();
+        data_obj["lane_status"] = live_data.get_lane_status();
+        data_obj["rapid_accel_count"] = live_data.rapid_accel_count.load();
+        data_obj["hard_brake_count"] = live_data.hard_brake_count.load();
+        data_obj["lane_departures"] = live_data.lane_departures.load();
+        data_obj["trip_active"] = live_data.trip_active.load();
+        data_obj["trip_id"] = live_data.trip_id.load();
+        data_obj["latitude"] = lat;
+        data_obj["longitude"] = lon;
+        data_obj["timestamp"] = time(nullptr);
+
+        json data = json::object();
+        data["type"] = "live_data";
+        data["data"] = data_obj;
+
+        broadcast_message(data.dump());
+    }
+
+    void broadcast_warning(const string &type, double value)
+    {
+        // Fixed JSON construction
+        json data_obj = json::object();
+        data_obj["warning_type"] = type;
+        data_obj["value"] = value;
+        data_obj["timestamp"] = time(nullptr);
+        data_obj["trip_active"] = live_data.trip_active.load();
+
+        json warning = json::object();
+        warning["type"] = "warning";
+        warning["data"] = data_obj;
+
+        broadcast_message(warning.dump());
+    }
+
+    void send_message(connection_hdl hdl, const string &msg)
+    {
+        try
+        {
+            ws_server.send(hdl, msg, websocketpp::frame::opcode::text);
+        }
+        catch (const exception &e)
+        {
+            cerr << "Error sending message: " << e.what() << endl;
+            lock_guard<mutex> lock(clients_mutex);
+            clients.erase(hdl);
+        }
+    }
+
+    void broadcast_message(const string &msg)
+    {
+        lock_guard<mutex> lock(clients_mutex);
+        vector<connection_hdl> to_remove;
+
+        for (const auto &client : clients)
+        {
+            try
+            {
+                ws_server.send(client.first, msg, websocketpp::frame::opcode::text);
+            }
+            catch (...)
+            {
+                to_remove.push_back(client.first);
+            }
+        }
+
+        // Remove dead connections
+        for (const auto &hdl : to_remove)
+        {
+            clients.erase(hdl);
+        }
+    }
+};
+
+int main(int argc, char **argv)
+{
+    cout << "Smart Drive WebSocket Bridge v2.0" << endl;
+    cout << "==================================" << endl;
+
+    SmartDriveBridge bridge;
+
+    if (!bridge.initialize())
+    {
+        cerr << "Failed to initialize bridge. Exiting..." << endl;
+        return 1;
+    }
+
+    uint16_t port = 8081;
+    if (argc > 1)
+    {
+        try
+        {
+            port = static_cast<uint16_t>(stoi(argv[1]));
+        }
+        catch (...)
+        {
+            cerr << "Invalid port number. Using default 8081." << endl;
+        }
+    }
+
+    cout << "Starting WebSocket bridge on port " << port << "..." << endl;
+    cout << "Frontend should connect to: ws://localhost:" << port << endl;
+    cout << endl;
+    cout << "Commands:" << endl;
+    cout << "  Enter 'stop' or 'exit' to stop the server" << endl;
+    cout << "  Enter 'status' to show current status" << endl;
+    cout << "  Enter 'help' to show this help" << endl;
+    cout << endl;
+
+    bridge.start(port);
+
+    // Command loop
+    string command;
+    while (bridge.is_running())
+    {
+        cout << "> ";
+        getline(cin, command);
+
+        if (command == "stop" || command == "exit")
+        {
+            break;
+        }
+        else if (command == "status")
+        {
+            cout << "Bridge is running on port " << port << endl;
+        }
+        else if (command == "help")
+        {
+            cout << "Commands: stop, exit, status, help" << endl;
+        }
+        else if (!command.empty())
+        {
+            cout << "Unknown command. Type 'help' for available commands." << endl;
+        }
+    }
+
+    cout << "Stopping bridge..." << endl;
+    bridge.stop();
+
+    cout << "Bridge stopped successfully." << endl;
+    return 0;
+}
+
+// websocket_bridge_udp.cpp - WebSocket bridge with UDP ADAS receiver
+// Compile: g++ -std=c++17 websocket_bridge_udp.cpp -o websocket_bridge -pthread -lwebsockets
+
+#include <libwebsockets.h>
+#include <thread>
+#include <mutex>
+#include <queue>
+#include <atomic>
+#include <cstring>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
+#include "udp_receiver.h"
+
+using namespace std;
+
+// Global state
+struct per_session_data {
+    bool initialized;
+};
+
+queue<string> message_queue;
+mutex queue_mutex;
+atomic<bool> running(true);
+
+// UDP Receiver
+UDPReceiver* udp_receiver = nullptr;
+
+// Convert ADAS data to JSON for WebSocket
+string adas_data_to_json(const AdasData& data) {
+    ostringstream oss;
+    oss << fixed << setprecision(6);
+    oss << "{"
+        << "\"type\":\"live_data\","
+        << "\"data\":{"
+        << "\"speed\":" << (data.kalman_speed * 3.6) << ","  // Convert m/s to km/h
+        << "\"acceleration\":" << data.accel_y << ","
+        << "\"latitude\":" << data.latitude << ","
+        << "\"longitude\":" << data.longitude << ","
+        << "\"gps_speed\":" << (data.gps_speed * 3.6) << ","
+        << "\"accel_x\":" << data.accel_x << ","
+        << "\"accel_y\":" << data.accel_y << ","
+        << "\"accel_z\":" << data.accel_z << ","
+        << "\"gyro_x\":" << data.gyro_x << ","
+        << "\"gyro_y\":" << data.gyro_y << ","
+        << "\"gyro_z\":" << data.gyro_z << ","
+        << "\"timestamp\":" << data.timestamp
+        << "}}";
+    return oss.str();
+}
+
+string adas_event_to_json(const AdasEvent& event) {
+    ostringstream oss;
+    oss << fixed << setprecision(6);
+    
+    string type = "warning";
+    if (event.event_type == "CRASH" || event.event_type == "IMPACT") {
+        type = "crash";
+    }
+    
+    oss << "{"
+        << "\"type\":\"" << type << "\","
+        << "\"data\":{"
+        << "\"warning_type\":\"" << event.event_type << "\","
+        << "\"value\":" << event.value << ","
+        << "\"latitude\":" << event.latitude << ","
+        << "\"longitude\":" << event.longitude << ","
+        << "\"timestamp\":" << event.timestamp
+        << "}}";
+    return oss.str();
+}
+
+// Broadcast message to all WebSocket clients
+void broadcast_message(const string& message) {
+    lock_guard<mutex> lock(queue_mutex);
+    message_queue.push(message);
+}
+
+// WebSocket callback
+static int callback_smartdrive(struct lws *wsi, enum lws_callback_reasons reason,
+                               void *user, void *in, size_t len) {
+    per_session_data *pss = (per_session_data*)user;
+    
+    switch (reason) {
+        case LWS_CALLBACK_ESTABLISHED:
+            cout << "✅ WebSocket client connected" << endl;
+            pss->initialized = true;
+            break;
+            
+        case LWS_CALLBACK_RECEIVE: {
+            string message((char*)in, len);
+            cout << "📨 Received from frontend: " << message << endl;
+            
+            // Handle frontend commands (trip start/stop, etc.)
+            // Forward to backend via HTTP if needed
+            break;
+        }
+        
+        case LWS_CALLBACK_SERVER_WRITEABLE: {
+            lock_guard<mutex> lock(queue_mutex);
+            
+            if (!message_queue.empty()) {
+                string msg = message_queue.front();
+                message_queue.pop();
+                
+                unsigned char buf[LWS_PRE + 4096];
+                size_t msg_len = msg.length();
+                
+                if (msg_len < 4096) {
+                    memcpy(&buf[LWS_PRE], msg.c_str(), msg_len);
+                    lws_write(wsi, &buf[LWS_PRE], msg_len, LWS_WRITE_TEXT);
+                }
+                
+                if (!message_queue.empty()) {
+                    lws_callback_on_writable(wsi);
+                }
+            }
+            break;
+        }
+        
+        case LWS_CALLBACK_CLOSED:
+            cout << "❌ WebSocket client disconnected" << endl;
+            break;
+            
+        default:
+            break;
+    }
+    
+    return 0;
+}
+
+static struct lws_protocols protocols[] = {
+    {
+        "smartdrive-protocol",
+        callback_smartdrive,
+        sizeof(per_session_data),
+        4096,
+    },
+    { NULL, NULL, 0, 0 }
+};
+
+void websocket_thread() {
+    struct lws_context_creation_info info;
+    memset(&info, 0, sizeof(info));
+    
+    info.port = 8081;
+    info.protocols = protocols;
+    info.gid = -1;
+    info.uid = -1;
+    
+    struct lws_context *context = lws_create_context(&info);
+    if (!context) {
+        cerr << "❌ Failed to create WebSocket context" << endl;
+        return;
+    }
+    
+    cout << "✅ WebSocket server listening on port 8081" << endl;
+    
+    while (running) {
+        lws_service(context, 50);
+        lws_callback_on_writable_all_protocol(context, &protocols[0]);
+    }
+    
+    lws_context_destroy(context);
+}
+
+int main() {
+    cout << "═══════════════════════════════════════════════" << endl;
+    cout << "  SMART DRIVE WEBSOCKET BRIDGE WITH UDP" << endl;
+    cout << "═══════════════════════════════════════════════" << endl;
+    
+    // Start UDP receiver
+    udp_receiver = new UDPReceiver(5555);
+    
+    // Set callback for ADAS data
+    udp_receiver->set_data_callback([](const AdasData& data) {
+        string json = adas_data_to_json(data);
+        broadcast_message(json);
+    });
+    
+    // Set callback for ADAS events
+    udp_receiver->set_event_callback([](const AdasEvent& event) {
+        string json = adas_event_to_json(event);
+        broadcast_message(json);
+        
+        // Log critical events
+        if (event.event_type == "CRASH" || event.event_type == "IMPACT") {
+            cout << "🚨🚨🚨 CRITICAL EVENT: " << event.event_type << " 🚨🚨🚨" << endl;
+        }
+    });
+    
+    if (!udp_receiver->start()) {
+        cerr << "❌ Failed to start UDP receiver" << endl;
+        delete udp_receiver;
+        return 1;
+    }
+    
+    cout << endl;
+    cout << "📱 Configure your Android device:" << endl;
+    cout << "   1. Open MainActivity.kt" << endl;
+    cout << "   2. Set UDP_SERVER_IP to your computer's IP" << endl;
+    cout << "   3. Set UDP_PORT to 5555" << endl;
+    cout << endl;
+    
+    // Start WebSocket server
+    thread ws_thread(websocket_thread);
+    
+    cout << "✅ System ready. Press Ctrl+C to stop." << endl;
+    
+    // Wait for shutdown signal
+    ws_thread.join();
+    
+    // Cleanup
+    running = false;
+    udp_receiver->stop();
+    delete udp_receiver;
+    
+    cout << "👋 Shutdown complete" << endl;
+    
+    return 0;
+}

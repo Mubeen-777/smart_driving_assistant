@@ -1,0 +1,2370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Smart Drive</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ===== CSS Variables & Reset ===== */
+        :root {
+            --primary: #6d5dfc;
+            --primary-dark: #5b4ff0;
+            --primary-light: #8a7ffc;
+            --secondary: #ff6584;
+            --secondary-dark: #e85573;
+            --accent: #00d9c0;
+            --dark: #1a1d28;
+            --dark-light: #2a2e3e;
+            --gray: #8c92a3;
+            --gray-light: #f0f2f8;
+            --gray-lighter: #f8f9fc;
+            --white: #ffffff;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #3498db;
+
+            --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 5px 20px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12);
+            --shadow-hover: 0 15px 50px rgba(109, 93, 252, 0.15);
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --radius-full: 50%;
+
+            --transition-fast: 0.2s ease;
+            --transition-normal: 0.3s ease;
+            --transition-slow: 0.5s ease;
+
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--gray-lighter);
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        /* ===== Layout ===== */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ===== Sidebar ===== */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--dark) 0%, #131722 100%);
+            color: var(--white);
+            padding: 30px 0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            box-shadow: var(--shadow-md);
+            transition: transform var(--transition-normal);
+        }
+
+        .sidebar-header {
+            padding: 0 25px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .nav-links {
+            flex: 1;
+            padding: 0 20px;
+        }
+
+        .nav-item {
+            margin-bottom: 8px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--white);
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(90deg, rgba(109, 93, 252, 0.2) 0%, rgba(109, 93, 252, 0.1) 100%);
+            color: var(--white);
+            border-left: 3px solid var(--primary);
+        }
+
+        .nav-link i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            padding: 25px 25px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin-top: auto;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            border-radius: var(--radius-md);
+            background-color: rgba(255, 255, 255, 0.05);
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .user-profile:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 18px;
+            cursor: pointer;
+            transition: color var(--transition-fast);
+        }
+
+        .logout-btn:hover {
+            color: var(--danger);
+        }
+
+        /* ===== Main Content ===== */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+            transition: margin-left var(--transition-normal);
+        }
+
+        /* ===== Header ===== */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title h1 {
+            font-size: 28px;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .page-title p {
+            color: var(--gray);
+            font-size: 15px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: none;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-full);
+            background-color: var(--white);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            color: var(--gray);
+            font-size: 18px;
+        }
+
+        .notification-btn:hover {
+            background-color: var(--primary);
+            color: var(--white);
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--danger);
+            color: white;
+            border-radius: var(--radius-full);
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            background-color: var(--white);
+            box-shadow: var(--shadow-sm);
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            color: var(--dark);
+            font-size: 20px;
+        }
+
+        .mobile-menu-btn:hover {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        /* ===== Status Cards ===== */
+        .status-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .status-card {
+            background-color: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-normal);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .status-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--accent));
+        }
+
+        .status-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--white);
+        }
+
+        .status-icon.speed {
+            background: linear-gradient(135deg, #6d5dfc 0%, #8a7ffc 100%);
+        }
+
+        .status-icon.acceleration {
+            background: linear-gradient(135deg, #ff6584 0%, #ff8da1 100%);
+        }
+
+        .status-icon.safety {
+            background: linear-gradient(135deg, #00d9c0 0%, #2eeccf 100%);
+        }
+
+        .status-icon.distance {
+            background: linear-gradient(135deg, #3498db 0%, #5dade2 100%);
+        }
+
+        .status-info h3 {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 5px;
+            line-height: 1;
+        }
+
+        .status-unit {
+            font-size: 14px;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .status-change {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .status-change.positive {
+            color: var(--success);
+        }
+
+        .status-change.negative {
+            color: var(--danger);
+        }
+
+        /* ===== Dashboard Grid ===== */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== Cards ===== */
+        .card {
+            background-color: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 25px;
+            margin-bottom: 30px;
+            transition: all var(--transition-normal);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .card-action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            background-color: var(--gray-light);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .card-action-btn:hover {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        /* ===== Map Card ===== */
+        .map-container {
+            height: 300px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, #6d5dfc10 0%, #00d9c010 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .map-placeholder {
+            text-align: center;
+            color: var(--gray);
+        }
+
+        .map-placeholder i {
+            font-size: 80px;
+            margin-bottom: 15px;
+            color: var(--primary-light);
+            opacity: 0.5;
+        }
+
+        .location-info {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .location-item {
+            text-align: center;
+            padding: 15px;
+            background-color: var(--gray-lighter);
+            border-radius: var(--radius-md);
+        }
+
+        .location-label {
+            font-size: 13px;
+            color: var(--gray);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .location-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        /* ===== Events Card ===== */
+        .events-list {
+            max-height: 350px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .events-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .events-list::-webkit-scrollbar-track {
+            background: var(--gray-light);
+            border-radius: 10px;
+        }
+
+        .events-list::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .event-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px;
+            border-radius: var(--radius-md);
+            background-color: var(--gray-lighter);
+            margin-bottom: 12px;
+            transition: all var(--transition-fast);
+            border-left: 4px solid transparent;
+        }
+
+        .event-item:hover {
+            background-color: var(--gray-light);
+            transform: translateX(5px);
+        }
+
+        .event-item.warning {
+            border-left-color: var(--warning);
+            background-color: rgba(243, 156, 18, 0.05);
+        }
+
+        .event-item.danger {
+            border-left-color: var(--danger);
+            background-color: rgba(231, 76, 60, 0.05);
+        }
+
+        .event-item.success {
+            border-left-color: var(--success);
+            background-color: rgba(46, 204, 113, 0.05);
+        }
+
+        .event-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--white);
+        }
+
+        .event-item.warning .event-icon {
+            background-color: var(--warning);
+        }
+
+        .event-item.danger .event-icon {
+            background-color: var(--danger);
+        }
+
+        .event-item.success .event-icon {
+            background-color: var(--success);
+        }
+
+        .event-info {
+            flex: 1;
+        }
+
+        .event-time {
+            font-size: 12px;
+            color: var(--gray);
+            margin-bottom: 4px;
+        }
+
+        .event-message {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        /* ===== Trip Control Card ===== */
+        .trip-control-card {
+            text-align: center;
+        }
+
+        .vehicle-select-container {
+            margin-bottom: 25px;
+        }
+
+        .vehicle-select {
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            border: 2px solid var(--gray-light);
+            background-color: var(--white);
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            color: var(--dark);
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .vehicle-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(109, 93, 252, 0.1);
+        }
+
+        .trip-info {
+            background-color: var(--gray-lighter);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .trip-info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .trip-info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .trip-info-label {
+            font-size: 14px;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .trip-info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .trip-controls {
+            display: flex;
+            gap: 15px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px 24px;
+            border-radius: var(--radius-md);
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            box-shadow: 0 5px 15px rgba(109, 93, 252, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(109, 93, 252, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #27ae60 100%);
+            color: var(--white);
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #c0392b 100%);
+            color: var(--white);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* ===== Statistics Card ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--gray-lighter);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+        }
+
+        .stat-item:hover {
+            background-color: var(--gray-light);
+            transform: translateY(-3px);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--gray);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== Connection Status ===== */
+        .connection-status {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px;
+            background-color: var(--white);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: var(--radius-full);
+            background-color: var(--danger);
+        }
+
+        .status-dot.connected {
+            background-color: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .status-text {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-label {
+            color: var(--gray);
+        }
+
+        .status-value {
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-menu-btn {
+                display: flex;
+            }
+
+            .status-cards {
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px 15px;
+            }
+
+            .status-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .connection-status {
+                justify-content: center;
+            }
+
+            .header-actions {
+                gap: 10px;
+            }
+
+            .trip-controls {
+                flex-direction: column;
+            }
+        }
+
+        /* ===== Utilities ===== */
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .mb-0 {
+            margin-bottom: 0;
+        }
+
+        .mt-10 {
+            margin-top: 10px;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        .mb-10 {
+            margin-bottom: 10px;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+
+        .p-0 {
+            padding: 0;
+        }
+
+        /* ===== Loading Spinner ===== */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--gray-light);
+            border-top: 4px solid var(--primary);
+            border-radius: var(--radius-full);
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <span>SmartDrive</span>
+                </div>
+            </div>
+
+            <nav class="nav-links">
+                <li class="nav-item">
+                    <a href="dashboard.html" class="nav-link active">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="trips.html" class="nav-link">
+                        <i class="fas fa-route"></i>
+                        <span>Trips</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="incidents.html" class="nav-link">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Incidents</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="vehicles.html" class="nav-link">
+                        <i class="fas fa-car-side"></i>
+                        <span>Vehicles</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="expenses.html" class="nav-link">
+                        <i class="fas fa-dollar-sign"></i>
+                        <span>Expenses</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="leaderboard.html" class="nav-link">
+                        <i class="fas fa-trophy"></i>
+                        <span>Leaderboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="lane_detection.html" class="nav-link">
+                        <i class="fas fa-video"></i>
+                        <span>Camera</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="profile.html" class="nav-link">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="avatar" id="userAvatar">
+                        JD
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">John Driver</div>
+                        <div class="user-role">Premium Driver</div>
+                    </div>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="page-title">
+                    <h1>Dashboard</h1>
+                    <p>Welcome back! Here's your driving overview</p>
+                </div>
+
+                <div class="header-actions">
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </button>
+
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Connection Status -->
+            <div class="connection-status">
+                <div class="status-indicator">
+                    <div class="status-dot" id="wsStatusDot"></div>
+                    <div class="status-text">
+                        <span class="status-label">WebSocket:</span>
+                        <span class="status-value" id="wsStatus">Disconnected</span>
+                    </div>
+                </div>
+
+                <div class="status-indicator">
+                    <div class="status-dot" id="gpsStatusDot"></div>
+                    <div class="status-text">
+                        <span class="status-label">GPS:</span>
+                        <span class="status-value" id="gpsStatus">No Signal</span>
+                    </div>
+                </div>
+
+                <div class="status-indicator">
+                    <div class="status-dot" id="tripStatusDot"></div>
+                    <div class="status-text">
+                        <span class="status-label">Trip:</span>
+                        <span class="status-value" id="tripStatus">Inactive</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Cards -->
+            <div class="status-cards">
+                <div class="status-card">
+                    <div class="status-icon speed">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <div class="status-info">
+                        <h3>Speed</h3>
+                        <div class="status-value" id="speedValue">0</div>
+                        <div class="status-unit">km/h</div>
+                        <div class="status-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Steady</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-icon acceleration">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="status-info">
+                        <h3>Acceleration</h3>
+                        <div class="status-value" id="accelValue">0.0</div>
+                        <div class="status-unit">m/s²</div>
+                        <div class="status-change negative">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>Normal</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-icon safety">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="status-info">
+                        <h3>Safety Score</h3>
+                        <div class="status-value" id="safetyScore">1000</div>
+                        <div class="status-unit">points</div>
+                        <div class="status-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+5 today</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-icon distance">
+                        <i class="fas fa-road"></i>
+                    </div>
+                    <div class="status-info">
+                        <h3>Distance</h3>
+                        <div class="status-value" id="distanceTraveled">0.0</div>
+                        <div class="status-unit">km</div>
+                        <div class="status-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>This trip</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Left Column -->
+                <div class="left-column">
+                    <!-- Location Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-map-marker-alt text-primary"></i>
+                                Current Location
+                            </h2>
+                            <div class="card-actions">
+                                <button class="card-action-btn">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="map-container">
+                            <div class="map-placeholder">
+                                <i class="fas fa-map"></i>
+                                <p>Live map would appear here</p>
+                            </div>
+                        </div>
+
+                        <div class="location-info">
+                            <div class="location-item">
+                                <div class="location-label">Latitude</div>
+                                <div class="location-value" id="latitude">0.000000</div>
+                            </div>
+                            <div class="location-item">
+                                <div class="location-label">Longitude</div>
+                                <div class="location-value" id="longitude">0.000000</div>
+                            </div>
+                            <div class="location-item">
+                                <div class="location-label">Accuracy</div>
+                                <div class="location-value" id="accuracy">N/A</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Events Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-history text-primary"></i>
+                                Recent Events
+                            </h2>
+                            <div class="card-actions">
+                                <button class="card-action-btn">
+                                    <i class="fas fa-filter"></i>
+                                </button>
+                                <button class="card-action-btn">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="events-list" id="eventsList">
+                            <div class="event-item success">
+                                <div class="event-icon">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="event-info">
+                                    <div class="event-time">Just now</div>
+                                    <div class="event-message">Connected to Smart Drive Manager</div>
+                                </div>
+                            </div>
+
+                            <div class="event-item warning">
+                                <div class="event-icon">
+                                    <i class="fas fa-exclamation"></i>
+                                </div>
+                                <div class="event-info">
+                                    <div class="event-time">5 min ago</div>
+                                    <div class="event-message">Moderate acceleration detected</div>
+                                </div>
+                            </div>
+
+                            <div class="event-item danger">
+                                <div class="event-icon">
+                                    <i class="fas fa-times"></i>
+                                </div>
+                                <div class="event-info">
+                                    <div class="event-time">1 hour ago</div>
+                                    <div class="event-message">Hard braking detected - Safety score impacted</div>
+                                </div>
+                            </div>
+
+                            <div class="event-item success">
+                                <div class="event-icon">
+                                    <i class="fas fa-car"></i>
+                                </div>
+                                <div class="event-info">
+                                    <div class="event-time">2 hours ago</div>
+                                    <div class="event-message">Trip completed - 15.3 km distance</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="right-column">
+                    <!-- Trip Control Card -->
+                    <div class="card trip-control-card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-play-circle text-primary"></i>
+                                Trip Control
+                            </h2>
+                        </div>
+
+                        <div class="vehicle-select-container">
+                            <select class="vehicle-select" id="vehicleSelect">
+                                <option value="">Loading vehicles...</option>
+                            </select>
+                        </div>
+
+                        <div class="trip-info">
+                            <div class="trip-info-item">
+                                <div class="trip-info-label">Trip ID</div>
+                                <div class="trip-info-value" id="currentTripId">None</div>
+                            </div>
+                            <div class="trip-info-item">
+                                <div class="trip-info-label">Duration</div>
+                                <div class="trip-info-value" id="tripDuration">00:00:00</div>
+                            </div>
+                            <div class="trip-info-item">
+                                <div class="trip-info-label">Distance</div>
+                                <div class="trip-info-value" id="tripDistance">0.0 km</div>
+                            </div>
+                        </div>
+
+                        <div class="trip-controls">
+                            <button class="btn btn-success" id="startTripBtn" onclick="startTrip()">
+                                <i class="fas fa-play"></i>
+                                Start Trip
+                            </button>
+                            <button class="btn btn-danger" id="stopTripBtn" onclick="stopTrip()" disabled>
+                                <i class="fas fa-stop"></i>
+                                Stop Trip
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-chart-bar text-primary"></i>
+                                Statistics
+                            </h2>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value" id="hardBrakeCount">0</div>
+                                <div class="stat-label">Hard Brakes</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="rapidAccelCount">0</div>
+                                <div class="stat-label">Rapid Accel</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="impactCount">0</div>
+                                <div class="stat-label">Impacts</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="gpsUpdates">0</div>
+                                <div class="stat-label">GPS Updates</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        // ===== Configuration =====
+        const WS_URL = 'ws://localhost:8081';
+        const API_URL = 'http://43.204.211.180:8080';
+
+        // ===== State Variables =====
+        let ws = null;
+        let currentTripId = null;
+        let tripStartTime = null;
+        let tripDurationInterval = null;
+        let gpsUpdateCount = 0;
+        let lastLocation = { lat: 0, lon: 0 };
+        let totalDistance = 0;
+        let safetyScore = 1000;
+
+        // ===== Authentication Check =====
+        const sessionId = localStorage.getItem('session_id');
+        const driverId = localStorage.getItem('driver_id');
+        const driverName = localStorage.getItem('driver_name');
+
+        if (!sessionId || !driverId) {
+            window.location.href = 'login.html';
+        }
+
+        // ===== DOM Elements =====
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.querySelector('.sidebar');
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+
+        // ===== Initialize =====
+        document.addEventListener('DOMContentLoaded', function () {
+            // Set user info
+            if (driverName) {
+                userName.textContent = driverName;
+                userAvatar.textContent = driverName.charAt(0) + driverName.split(' ')[1]?.charAt(0) || driverName.charAt(1) || driverName.charAt(0);
+            }
+
+            // Mobile menu toggle
+            mobileMenuBtn.addEventListener('click', function () {
+                sidebar.classList.toggle('active');
+            });
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function (event) {
+                if (window.innerWidth <= 992) {
+                    if (!sidebar.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
+                        sidebar.classList.remove('active');
+                    }
+                }
+            });
+
+            // Initialize WebSocket connection
+            connectWebSocket();
+
+            // Load vehicles for dropdown
+            loadVehicles();
+
+            // Load initial data
+            loadInitialData();
+
+            // Check for active trip
+            checkActiveTrip();
+        });
+
+        // ===== Load Initial Data =====
+        async function loadInitialData() {
+            try {
+                // Load safety score
+                const score = await loadRealSafetyScore();
+                safetyScore = score;
+                document.getElementById('safetyScore').textContent = score;
+
+                // Load user stats
+                await loadUserStats();
+
+                // Initialize GPS if available
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            updateLocationDisplay(position.coords.latitude, position.coords.longitude, position.coords.accuracy);
+                        },
+                        (error) => {
+                            console.log('GPS not available:', error);
+                        }
+                    );
+                }
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+            }
+        }
+
+        // ===== WebSocket Connection =====
+        function connectWebSocket() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                return;
+            }
+
+            updateStatus('wsStatus', 'Connecting...', 'wsStatusDot', false);
+
+            try {
+                ws = new WebSocket(WS_URL);
+
+                ws.onopen = function () {
+                    console.log('WebSocket connected to bridge');
+                    updateStatus('wsStatus', 'Connected', 'wsStatusDot', true);
+                    addEvent('WebSocket connected to real-time data stream', 'success');
+
+                    // Send authentication to WebSocket bridge
+                    if (sessionId && driverId) {
+                        ws.send(JSON.stringify({
+                            type: 'auth',
+                            session_id: sessionId,
+                            driver_id: driverId
+                        }));
+                    }
+                };
+
+                ws.onmessage = function (event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        handleWebSocketMessage(data);
+                    } catch (error) {
+                        console.error('Error parsing WebSocket message:', error);
+                    }
+                };
+
+                ws.onerror = function (error) {
+                    console.error('WebSocket error:', error);
+                    updateStatus('wsStatus', 'Error', 'wsStatusDot', false);
+                    addEvent('WebSocket connection error', 'danger');
+                };
+
+                ws.onclose = function () {
+                    console.log('WebSocket disconnected');
+                    updateStatus('wsStatus', 'Disconnected', 'wsStatusDot', false);
+                    setTimeout(connectWebSocket, 3000);
+                };
+            } catch (error) {
+                console.error('Failed to create WebSocket:', error);
+                setTimeout(connectWebSocket, 5000);
+            }
+        }
+
+        // ===== WebSocket Message Handler =====
+        function handleWebSocketMessage(data) {
+            console.log('WebSocket message received:', data);
+
+            switch (data.type) {
+                case 'live_data':
+                    updateLiveData(data.data);
+                    break;
+
+                case 'warning':
+                    handleWarning(data.data);
+                    break;
+
+                case 'trip_started':
+                    handleTripStarted(data.data);
+                    break;
+
+                case 'trip_stopped':
+                    handleTripStopped(data.data);
+                    break;
+
+                case 'safety_score_update':
+                    if (data.data && data.data.safety_score) {
+                        safetyScore = parseInt(data.data.safety_score);
+                        document.getElementById('safetyScore').textContent = safetyScore;
+                        console.log('Safety score updated via WebSocket:', safetyScore);
+                    }
+                    break;
+
+                case 'event':
+                    if (data.data && data.data.message) {
+                        addEvent(data.data.message, data.data.severity || 'info');
+                    }
+                    break;
+            }
+        }
+
+        // ===== Update Live Data =====
+        function updateLiveData(data) {
+            console.log('Updating live data:', data);
+
+            // Update GPS status
+            if (data.latitude && data.longitude) {
+                updateStatus('gpsStatus', 'Active', 'gpsStatusDot', true);
+                gpsUpdateCount++;
+                document.getElementById('gpsUpdates').textContent = gpsUpdateCount;
+
+                // Update location display
+                const currentLat = parseFloat(data.latitude);
+                const currentLon = parseFloat(data.longitude);
+
+                updateLocationDisplay(currentLat, currentLon, data.accuracy);
+
+                // Calculate distance if trip is active
+                if (currentTripId && lastLocation.lat !== 0) {
+                    const distance = calculateDistance(
+                        lastLocation.lat, lastLocation.lon,
+                        currentLat, currentLon
+                    );
+                    totalDistance += distance;
+
+                    // Update displays
+                    document.getElementById('tripDistance').textContent = totalDistance.toFixed(2) + ' km';
+                    document.getElementById('distanceTraveled').textContent = totalDistance.toFixed(2);
+
+                    // Log GPS point to backend
+                    logGPSPoint(currentLat, currentLon, data.speed || 0, data.acceleration || 0);
+                }
+
+                lastLocation = { lat: currentLat, lon: currentLon };
+            }
+
+            // Update speed and acceleration
+            if (data.speed !== undefined) {
+                document.getElementById('speedValue').textContent = Math.round(data.speed);
+            }
+            if (data.acceleration !== undefined) {
+                document.getElementById('accelValue').textContent = parseFloat(data.acceleration).toFixed(1);
+            }
+
+            // Update event counts if provided
+            if (data.hard_brake_count !== undefined) {
+                document.getElementById('hardBrakeCount').textContent = data.hard_brake_count;
+            }
+            if (data.rapid_accel_count !== undefined) {
+                document.getElementById('rapidAccelCount').textContent = data.rapid_accel_count;
+            }
+            if (data.impact_count !== undefined) {
+                document.getElementById('impactCount').textContent = data.impact_count;
+            }
+
+            // Update trip status if active
+            if (data.trip_active) {
+                updateStatus('tripStatus', 'Active', 'tripStatusDot', true);
+            }
+        }
+
+        // ===== Update Location Display =====
+        function updateLocationDisplay(lat, lon, accuracy) {
+            document.getElementById('latitude').textContent = lat.toFixed(6);
+            document.getElementById('longitude').textContent = lon.toFixed(6);
+
+            if (accuracy && !isNaN(accuracy)) {
+                document.getElementById('accuracy').textContent = `${Math.round(accuracy)}m`;
+            } else {
+                document.getElementById('accuracy').textContent = 'N/A';
+            }
+        }
+
+        // ===== Handle Warning Events =====
+        function handleWarning(data) {
+            let message = '';
+            let severity = 'warning';
+            let pointDeduction = 0;
+
+            switch (data.warning_type) {
+                case 'hard_braking':
+                    pointDeduction = 10;
+                    message = `Hard braking detected: ${parseFloat(data.value).toFixed(2)} m/s² | Score: -${pointDeduction} points`;
+                    severity = 'danger';
+                    break;
+                case 'rapid_acceleration':
+                    pointDeduction = 5;
+                    message = `Rapid acceleration: ${parseFloat(data.value).toFixed(2)} m/s² | Score: -${pointDeduction} points`;
+                    severity = 'warning';
+                    break;
+                case 'impact':
+                    pointDeduction = 50;
+                    message = `IMPACT DETECTED: ${parseFloat(data.value).toFixed(2)} m/s² | Score: -${pointDeduction} points | Incident reported`;
+                    severity = 'danger';
+                    break;
+                default:
+                    message = `Warning: ${data.warning_type}`;
+            }
+
+            // Update safety score
+            if (pointDeduction > 0) {
+                safetyScore = Math.max(0, safetyScore - pointDeduction);
+                document.getElementById('safetyScore').textContent = safetyScore;
+
+                // Report event to backend
+                reportEvent(data.warning_type, message, pointDeduction);
+            }
+
+            addEvent(message, severity);
+        }
+
+        // ===== Report Event to Backend =====
+        async function reportEvent(eventType, description, pointDeduction) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'driver_report_event',
+                        session_id: sessionId,
+                        event_type: eventType,
+                        description: description,
+                        point_deduction: pointDeduction,
+                        trip_id: currentTripId || 0
+                    })
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    console.log('Event reported to backend:', eventType);
+                }
+            } catch (error) {
+                console.error('Error reporting event:', error);
+            }
+        }
+
+        // ===== Calculate Distance Between Coordinates =====
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        // ===== Log GPS Point to Backend =====
+        async function logGPSPoint(lat, lon, speed, acceleration = 0) {
+            if (!currentTripId) return;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'trip_log_gps',
+                        session_id: sessionId,
+                        trip_id: currentTripId,
+                        latitude: lat,
+                        longitude: lon,
+                        speed: speed,
+                        acceleration: acceleration,
+                        timestamp: Math.floor(Date.now() / 1000)
+                    })
+                });
+
+                const data = await response.json();
+                if (data.status !== 'success') {
+                    console.error('Failed to log GPS point:', data.message);
+                }
+            } catch (error) {
+                console.error('Error logging GPS point:', error);
+            }
+        }
+
+        // ===== Trip Started Handler =====
+        function handleTripStarted(data) {
+            currentTripId = data.trip_id;
+            document.getElementById('currentTripId').textContent = currentTripId;
+            tripStartTime = Date.now();
+            totalDistance = 0;
+            gpsUpdateCount = 0;
+
+            // Reset distance display
+            document.getElementById('tripDistance').textContent = '0.0 km';
+            document.getElementById('distanceTraveled').textContent = '0.0';
+
+            // Get current location for starting point
+            const currentLat = parseFloat(document.getElementById('latitude').textContent) || 31.5204;
+            const currentLon = parseFloat(document.getElementById('longitude').textContent) || 74.3587;
+            lastLocation = { lat: currentLat, lon: currentLon };
+
+            // Update UI
+            document.getElementById('startTripBtn').disabled = true;
+            document.getElementById('stopTripBtn').disabled = false;
+            updateStatus('tripStatus', 'Active', 'tripStatusDot', true);
+
+            addEvent(`Trip ${currentTripId} started`, 'success');
+
+            // Start trip duration timer
+            if (tripDurationInterval) clearInterval(tripDurationInterval);
+            tripDurationInterval = setInterval(updateTripDuration, 1000);
+        }
+
+        // ===== Trip Stopped Handler =====
+        function handleTripStopped(data) {
+            document.getElementById('startTripBtn').disabled = false;
+            document.getElementById('stopTripBtn').disabled = true;
+            updateStatus('tripStatus', 'Inactive', 'tripStatusDot', false);
+
+            addEvent(`Trip ${currentTripId} completed - Distance: ${totalDistance.toFixed(2)} km`, 'success');
+
+            // Reset trip variables
+            const completedTripId = currentTripId;
+            currentTripId = null;
+            totalDistance = 0;
+            document.getElementById('currentTripId').textContent = 'None';
+            document.getElementById('tripDuration').textContent = '00:00:00';
+            document.getElementById('tripDistance').textContent = '0.0 km';
+            document.getElementById('distanceTraveled').textContent = '0.0';
+            document.getElementById('gpsUpdates').textContent = '0';
+
+            // Clear interval
+            if (tripDurationInterval) {
+                clearInterval(tripDurationInterval);
+                tripDurationInterval = null;
+            }
+
+            // Refresh stats after trip completion
+            loadRealSafetyScore();
+            loadUserStats();
+        }
+
+        // ===== Update Trip Duration =====
+        function updateTripDuration() {
+            if (!tripStartTime) return;
+
+            const elapsed = Math.floor((Date.now() - tripStartTime) / 1000);
+            const hours = Math.floor(elapsed / 3600);
+            const minutes = Math.floor((elapsed % 3600) / 60);
+            const seconds = elapsed % 60;
+
+            document.getElementById('tripDuration').textContent =
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // ===== Load Vehicles for Dropdown =====
+        async function loadVehicles() {
+            console.log('=== Loading Vehicles ===');
+            console.log('Session ID:', sessionId);
+
+            if (!sessionId) {
+                console.error('No session ID found! Redirecting to login...');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                console.log('Fetching vehicles from:', API_URL);
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'vehicle_get_list',
+                        session_id: sessionId
+                    })
+                });
+
+                console.log('Vehicle response status:', response.status);
+                const data = await response.json();
+                console.log('Vehicle response data:', JSON.stringify(data));
+
+                if (data.status === 'success' && data.data && data.data.vehicles) {
+                    const select = document.getElementById('vehicleSelect');
+                    select.innerHTML = '<option value="">Select Vehicle...</option>';
+
+                    if (data.data.vehicles.length === 0) {
+                        console.warn('No vehicles found for this user!');
+                        select.innerHTML += '<option value="" disabled>No vehicles - Please add one first</option>';
+                        addEvent('No vehicles found. Please add a vehicle first.', 'warning');
+                    } else {
+                        data.data.vehicles.forEach(vehicle => {
+                            console.log('Adding vehicle:', vehicle);
+                            const option = document.createElement('option');
+                            option.value = vehicle.vehicle_id;
+                            option.textContent = `${vehicle.make} ${vehicle.model} (${vehicle.license_plate})`;
+                            select.appendChild(option);
+                        });
+                        console.log(`Loaded ${data.data.vehicles.length} vehicles`);
+                        addEvent(`Loaded ${data.data.vehicles.length} vehicle(s)`, 'success');
+                    }
+                } else {
+                    console.error('Failed to load vehicles:', data.message || 'Unknown error');
+                    addEvent('Failed to load vehicles: ' + (data.message || 'Unknown error'), 'danger');
+
+                    // Check if session expired
+                    if (data.code === 'UNAUTHORIZED' || data.message?.includes('session')) {
+                        console.error('Session expired! Redirecting to login...');
+                        localStorage.clear();
+                        window.location.href = 'login.html';
+                    }
+                }
+            } catch (error) {
+                console.error('Network error loading vehicles:', error);
+                addEvent('Network error: Cannot connect to server. Is the server running?', 'danger');
+
+                // Add a retry button
+                const select = document.getElementById('vehicleSelect');
+                select.innerHTML = '<option value="">Server Error - Click to Retry</option>';
+                select.onclick = () => {
+                    select.onclick = null;
+                    loadVehicles();
+                };
+            }
+        }
+
+        // ===== Start Trip Function =====
+        async function startTrip() {
+            console.log('=== START TRIP CLICKED ===');
+            console.log('Session ID:', sessionId);
+            console.log('Driver ID:', driverId);
+
+            // Validate session
+            if (!sessionId || !driverId) {
+                console.error('No session! Redirecting to login...');
+                alert('Session expired. Please login again.');
+                localStorage.clear();
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const vehicleSelect = document.getElementById('vehicleSelect');
+            const vehicleId = vehicleSelect.value;
+            console.log('Selected vehicle ID:', vehicleId);
+
+            if (!vehicleId) {
+                alert('Please select a vehicle first!');
+                addEvent('Please select a vehicle before starting a trip', 'warning');
+                return;
+            }
+
+            // Disable button immediately to prevent double-clicks
+            const startBtn = document.getElementById('startTripBtn');
+            startBtn.disabled = true;
+            startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
+            addEvent('Starting trip...', 'info');
+
+            try {
+                // Get current location
+                const latElement = document.getElementById('latitude');
+                const lonElement = document.getElementById('longitude');
+                const latitude = latElement ? (parseFloat(latElement.textContent) || 31.5204) : 31.5204;
+                const longitude = lonElement ? (parseFloat(lonElement.textContent) || 74.3587) : 74.3587;
+
+                console.log('Trip request:', {
+                    operation: 'trip_start',
+                    session_id: sessionId,
+                    driver_id: driverId,
+                    vehicle_id: vehicleId,
+                    latitude,
+                    longitude
+                });
+
+                const requestBody = {
+                    operation: 'trip_start',
+                    session_id: sessionId,
+                    driver_id: driverId,
+                    vehicle_id: vehicleId.toString(),
+                    latitude: latitude.toString(),
+                    longitude: longitude.toString(),
+                    address: 'Starting location'
+                };
+
+                console.log('Sending request to:', API_URL);
+                console.log('Request body:', JSON.stringify(requestBody));
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                console.log('Response status:', response.status);
+                const responseText = await response.text();
+                console.log('Raw response:', responseText);
+
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('Failed to parse response as JSON:', parseError);
+                    throw new Error('Server returned invalid JSON: ' + responseText.substring(0, 100));
+                }
+
+                console.log('Trip start response:', data);
+
+                if (data.status === 'success') {
+                    // Trip started successfully
+                    const tripId = data.data?.trip_id || data.trip_id || 'Unknown';
+                    console.log(`✓ Trip ${tripId} started successfully!`);
+
+                    // Update UI immediately
+                    currentTripId = tripId;
+                    document.getElementById('currentTripId').textContent = tripId;
+                    tripStartTime = Date.now();
+                    totalDistance = 0;
+
+                    // Reset displays
+                    document.getElementById('tripDistance').textContent = '0.0 km';
+                    document.getElementById('distanceTraveled').textContent = '0.0';
+                    lastLocation = { lat: latitude, lon: longitude };
+
+                    // Update buttons
+                    startBtn.disabled = true;
+                    startBtn.innerHTML = '<i class="fas fa-play"></i> Trip Active';
+                    document.getElementById('stopTripBtn').disabled = false;
+                    updateStatus('tripStatus', 'Active', 'tripStatusDot', true);
+
+                    addEvent(`✓ Trip #${tripId} started successfully!`, 'success');
+
+                    // Start duration timer
+                    if (tripDurationInterval) clearInterval(tripDurationInterval);
+                    tripDurationInterval = setInterval(updateTripDuration, 1000);
+
+                    // Notify WebSocket bridge
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({
+                            type: 'trip_started',
+                            data: {
+                                trip_id: tripId,
+                                vehicle_id: parseInt(vehicleId),
+                                start_time: tripStartTime
+                            }
+                        }));
+                    }
+                } else {
+                    // Trip start failed
+                    console.error('✗ Trip start failed:', data.message || data.code);
+                    const errorMsg = data.message || data.code || 'Unknown error';
+                    addEvent(`✗ Failed to start trip: ${errorMsg}`, 'danger');
+                    alert(`Failed to start trip: ${errorMsg}`);
+
+                    // Check if session expired
+                    if (data.code === 'UNAUTHORIZED' || errorMsg.includes('session')) {
+                        console.error('Session expired! Redirecting to login...');
+                        localStorage.clear();
+                        window.location.href = 'login.html';
+                        return;
+                    }
+
+                    // Re-enable button
+                    startBtn.disabled = false;
+                    startBtn.innerHTML = '<i class="fas fa-play"></i> Start Trip';
+                }
+            } catch (error) {
+                console.error('✗ Network/System error starting trip:', error);
+                addEvent(`✗ Error: ${error.message}`, 'danger');
+                alert(`Error starting trip: ${error.message}\n\nMake sure the server is running on ${API_URL}`);
+
+                // Re-enable button
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<i class="fas fa-play"></i> Start Trip';
+            }
+        }
+
+        // ===== Stop Trip Function =====
+        async function stopTrip() {
+            if (!currentTripId) {
+                alert('No active trip to stop');
+                return;
+            }
+
+            // Disable button immediately
+            const stopBtn = document.getElementById('stopTripBtn');
+            stopBtn.disabled = true;
+            stopBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Stopping...';
+            addEvent('Stopping trip...', 'info');
+
+            try {
+                const latitude = parseFloat(document.getElementById('latitude').textContent) || 31.5204;
+                const longitude = parseFloat(document.getElementById('longitude').textContent) || 74.3587;
+
+                console.log('Stopping trip:', { tripId: currentTripId, latitude, longitude, distance: totalDistance });
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'trip_end',
+                        session_id: sessionId,
+                        trip_id: currentTripId,
+                        latitude: latitude,
+                        longitude: longitude,
+                        distance: totalDistance,
+                        address: 'Ending location',
+                        duration: tripStartTime ? Math.floor((Date.now() - tripStartTime) / 1000) : 0
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Trip stop response:', data);
+
+                if (data.status === 'success') {
+                    console.log(`✓ Trip ${currentTripId} stopped successfully`);
+
+                    // Update UI
+                    const startBtn = document.getElementById('startTripBtn');
+                    startBtn.disabled = false;
+                    startBtn.innerHTML = '<i class="fas fa-play"></i> Start Trip';
+
+                    stopBtn.disabled = true;
+                    stopBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Trip';
+                    updateStatus('tripStatus', 'Inactive', 'tripStatusDot', false);
+
+                    addEvent(`✓ Trip #${currentTripId} completed - Distance: ${totalDistance.toFixed(2)} km`, 'success');
+
+                    // Notify WebSocket bridge
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({
+                            type: 'trip_stopped',
+                            data: {
+                                trip_id: currentTripId,
+                                distance: totalDistance,
+                                duration: tripStartTime ? Math.floor((Date.now() - tripStartTime) / 1000) : 0
+                            }
+                        }));
+                    }
+
+                    // Reset trip state
+                    const completedTripId = currentTripId;
+                    currentTripId = null;
+                    totalDistance = 0;
+                    document.getElementById('currentTripId').textContent = 'None';
+                    document.getElementById('tripDuration').textContent = '00:00:00';
+                    document.getElementById('tripDistance').textContent = '0.0 km';
+                    document.getElementById('distanceTraveled').textContent = '0.0';
+
+                    // Clear interval
+                    if (tripDurationInterval) {
+                        clearInterval(tripDurationInterval);
+                        tripDurationInterval = null;
+                    }
+
+                    // Refresh data
+                    loadRealSafetyScore();
+                    loadUserStats();
+                } else {
+                    console.error('✗ Trip stop failed:', data.message);
+                    const errorMsg = data.message || 'Unknown error';
+                    addEvent(`✗ Failed to stop trip: ${errorMsg}`, 'danger');
+                    alert(`Failed to stop trip: ${errorMsg}`);
+
+                    // Check if session expired
+                    if (data.code === 'UNAUTHORIZED' || errorMsg.includes('session')) {
+                        console.error('Session expired! Redirecting to login...');
+                        localStorage.clear();
+                        window.location.href = 'login.html';
+                        return;
+                    }
+
+                    stopBtn.disabled = false;
+                    stopBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Trip';
+                }
+            } catch (error) {
+                console.error('✗ Error stopping trip:', error);
+                addEvent(`✗ Error stopping trip: ${error.message}`, 'danger');
+                alert(`Network error stopping trip: ${error.message}`);
+
+                stopBtn.disabled = false;
+                stopBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Trip';
+            }
+        }
+
+        // ===== Update Status Indicator =====
+        function updateStatus(elementId, text, dotId, isConnected = true) {
+            const element = document.getElementById(elementId);
+            const dot = document.getElementById(dotId);
+
+            if (element) {
+                element.textContent = text;
+            }
+
+            if (dot) {
+                if (isConnected) {
+                    dot.classList.add('connected');
+                } else {
+                    dot.classList.remove('connected');
+                }
+            }
+        }
+
+        // ===== Add Event to Events List =====
+        function addEvent(message, type = 'info') {
+            const eventsList = document.getElementById('eventsList');
+            const eventItem = document.createElement('div');
+            eventItem.className = `event-item ${type}`;
+
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // Determine icon based on event type
+            let icon = 'fas fa-info-circle';
+            if (type === 'warning') icon = 'fas fa-exclamation';
+            if (type === 'danger') icon = 'fas fa-times';
+            if (type === 'success') icon = 'fas fa-check';
+
+            eventItem.innerHTML = `
+            <div class="event-icon">
+                <i class="${icon}"></i>
+            </div>
+            <div class="event-info">
+                <div class="event-time">${time}</div>
+                <div class="event-message">${message}</div>
+            </div>
+        `;
+
+            eventsList.insertBefore(eventItem, eventsList.firstChild);
+
+            // Limit to 10 events
+            while (eventsList.children.length > 10) {
+                eventsList.removeChild(eventsList.lastChild);
+            }
+        }
+
+        // ===== Load Real Safety Score =====
+        async function loadRealSafetyScore() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'driver_get_profile',
+                        session_id: sessionId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success' && data.data.safety_score) {
+                    safetyScore = parseInt(data.data.safety_score);
+                    document.getElementById('safetyScore').textContent = safetyScore;
+                    console.log(`Loaded safety score from backend: ${safetyScore}`);
+                    return safetyScore;
+                } else {
+                    console.error('Failed to load safety score:', data.message);
+                    return 1000;
+                }
+            } catch (error) {
+                console.error('Error loading safety score:', error);
+                return 1000;
+            }
+        }
+
+        // ===== Load User Statistics =====
+        async function loadUserStats() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'trip_get_statistics',
+                        session_id: sessionId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    // Update dashboard stats with REAL data
+                    document.getElementById('hardBrakeCount').textContent =
+                        data.data.hard_brake_count || 0;
+                    document.getElementById('rapidAccelCount').textContent =
+                        data.data.rapid_accel_count || 0;
+                    document.getElementById('impactCount').textContent =
+                        data.data.impact_count || 0;
+
+                    console.log('Loaded user stats from backend:', data.data);
+                }
+            } catch (error) {
+                console.error('Error loading user stats:', error);
+            }
+        }
+
+        async function checkActiveTrip() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'trip_get_active',
+                        session_id: sessionId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    // Handle both nested "trip" object and flat structure
+                    let trip = data.data.trip;
+                    if (!trip && data.data.trip_id) {
+                        trip = data.data;
+                    }
+
+                    if (trip && trip.trip_id) {
+                        const tripId = trip.trip_id;
+                        console.log('Found stuck active trip:', tripId, '. Auto-resetting...');
+                        addEvent(`Found unfinished trip #${tripId}. Auto-resetting...`, 'warning');
+
+                        // Automatically END the trip to clear backend state
+                        try {
+                            const endResponse = await fetch(API_URL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    operation: 'trip_end',
+                                    session_id: sessionId,
+                                    trip_id: tripId,
+                                    latitude: 0,
+                                    longitude: 0,
+                                    distance: 0,
+                                    address: 'System Auto-Reset',
+                                    duration: 0
+                                })
+                            });
+
+                            const endData = await endResponse.json();
+                            if (endData.status === 'success') {
+                                console.log('Successfully cleared stuck trip.');
+                                addEvent('System state restored. Ready to start new trip.', 'success');
+                            } else {
+                                console.error('Failed to clear stuck trip:', endData.message);
+                            }
+                        } catch (err) {
+                            console.error('Network error clearing trip:', err);
+                        }
+
+                        // Ensure UI is in READY state
+                        currentTripId = null;
+
+                        const startBtn = document.getElementById('startTripBtn');
+                        startBtn.disabled = false;
+                        startBtn.title = "";
+
+                        document.getElementById('stopTripBtn').disabled = true;
+                        updateStatus('tripStatus', 'Inactive', 'tripStatusDot', false);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking/resetting active trip:', error);
+            }
+        }
+
+        // ===== Logout =====
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Close WebSocket
+                if (ws) {
+                    ws.close();
+                }
+
+                // Stop any running intervals
+                if (tripDurationInterval) {
+                    clearInterval(tripDurationInterval);
+                }
+
+                // Send logout request to backend
+                fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'user_logout',
+                        session_id: sessionId
+                    })
+                }).finally(() => {
+                    // Clear all storage
+                    localStorage.clear();
+                    sessionStorage.clear();
+
+                    // Clear all cookies
+                    document.cookie.split(";").forEach(function (c) {
+                        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                    });
+
+                    // Redirect to login
+                    window.location.href = 'login.html';
+                });
+            }
+        }
+
+        // ===== Utility Functions =====
+        window.addEventListener('resize', function () {
+            if (window.innerWidth > 992) {
+                sidebar.classList.remove('active');
+            }
+        });
+
+        // ===== Periodically Sync Data =====
+        setInterval(() => {
+            if (sessionId) {
+                // Sync safety score every 30 seconds
+                loadRealSafetyScore();
+
+                // Sync user stats every minute
+                loadUserStats();
+            }
+        }, 30000);
+
+        // ===== Debug Functions =====
+        async function testServerConnection() {
+            console.log('=== TESTING SERVER CONNECTION ===');
+            console.log('API URL:', API_URL);
+            console.log('Session ID:', sessionId);
+            console.log('Driver ID:', driverId);
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'ping' })
+                });
+                console.log('Server response status:', response.status);
+                const text = await response.text();
+                console.log('Server response:', text);
+                addEvent('✓ Server is reachable', 'success');
+                return true;
+            } catch (error) {
+                console.error('✗ Server connection failed:', error);
+                addEvent('✗ Cannot reach server at ' + API_URL, 'danger');
+                return false;
+            }
+        }
+
+        // ===== Force Reset Function =====
+
+        // Run on page load - comprehensive diagnostics
+        console.log('=== DASHBOARD STARTUP DIAGNOSTICS ===');
+        console.log('Timestamp:', new Date().toISOString());
+        console.log('API_URL:', API_URL);
+        console.log('WS_URL:', WS_URL);
+        console.log('localStorage.session_id:', localStorage.getItem('session_id'));
+        console.log('localStorage.driver_id:', localStorage.getItem('driver_id'));
+        console.log('localStorage.driver_name:', localStorage.getItem('driver_name'));
+        console.log('sessionId variable:', sessionId);
+        console.log('driverId variable:', driverId);
+
+        // Expose debug functions globally
+        window.testServer = testServerConnection;
+        window.reloadVehicles = loadVehicles;
+        window.debugInfo = () => {
+            console.log('=== DEBUG INFO ===');
+            console.log('Session:', sessionId);
+            console.log('Driver:', driverId);
+            console.log('Current Trip:', currentTripId);
+            console.log('Trip Start Time:', tripStartTime);
+            console.log('WebSocket State:', ws ? ws.readyState : 'null');
+            console.log('Vehicle Select Value:', document.getElementById('vehicleSelect')?.value);
+        };
+
+        console.log('💡 Debug commands available: testServer(), reloadVehicles(), debugInfo()');
+    </script>
+
+</body>
+
+</html>

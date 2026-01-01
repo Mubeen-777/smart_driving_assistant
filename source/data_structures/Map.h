@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <utility>
 #include <algorithm>
+#include <initializer_list>
 #include <iostream>
 using namespace std;
 
@@ -54,7 +55,7 @@ private:
 public:
     class Iterator {
     private:
-        Map* map_;
+        const Map* map_;
         size_t bucket_idx_;
         MapNode* current_;
         
@@ -68,7 +69,7 @@ public:
         }
         
     public:
-        Iterator(Map* m, size_t idx, MapNode* node) 
+        Iterator(const Map* m, size_t idx, MapNode* node) 
             : map_(m), bucket_idx_(idx), current_(node) {
             if (current_ == nullptr && bucket_idx_ < map_->capacity_) {
                 advance_to_next_valid();
@@ -105,6 +106,15 @@ public:
     Map(size_t initial_capacity = 1024, float load_factor = 0.75f)
         : capacity_(initial_capacity), size_(0), load_factor_(load_factor) {
         buckets_.resize(capacity_, nullptr);
+    }
+    
+    Map(initializer_list<pair<K, V>> list, size_t initial_capacity = 1024, float load_factor = 0.75f)
+        : capacity_(initial_capacity), size_(0), load_factor_(load_factor) {
+        if (list.size() * 2 > capacity_) capacity_ = list.size() * 2;
+        buckets_.resize(capacity_, nullptr);
+        for (const auto& item : list) {
+            insert(item.first, item.second);
+        }
     }
     
     ~Map() {
@@ -245,7 +255,20 @@ public:
         return end();
     }
     
+    Iterator begin() const {
+        for (size_t i = 0; i < capacity_; i++) {
+            if (buckets_[i] != nullptr) {
+                return Iterator(this, i, buckets_[i]);
+            }
+        }
+        return end();
+    }
+    
     Iterator end() {
+        return Iterator(this, capacity_, nullptr);
+    }
+
+    Iterator end() const {
         return Iterator(this, capacity_, nullptr);
     }
     

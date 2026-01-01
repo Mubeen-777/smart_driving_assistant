@@ -11,6 +11,7 @@
 #include "../../source/core/DriverManager.h"
 #include "../../source/core/IncidentManager.h"
 #include "../../source/data_structures/MinHeap.h"
+#include "../../source/data_structures/Map.h"
 
 #include "ResponseBuilder.h"
 #include <string>
@@ -26,9 +27,9 @@ using namespace std;
 class SimpleJSON
 {
 public:
-    static map<string, string> parse(const string &json)
+    static Map<string, string> parse(const string &json)
     {
-        map<string, string> result;
+        Map<string, string> result;
 
         string cleaned = json;
         cleaned.erase(remove(cleaned.begin(), cleaned.end(), '{'), cleaned.end());
@@ -51,19 +52,23 @@ public:
                 value.erase(0, value.find_first_not_of(" \t\r\n"));
                 value.erase(value.find_last_not_of(" \t\r\n") + 1);
 
-                result[key] = value;
+                result.insert(key, value);
             }
         }
 
         return result;
     }
 
-    static string get_value(const map<string, string> &data,
+    static string get_value(const Map<string, string> &data,
                             const string &key,
                             const string &default_value = "")
     {
-        auto it = data.find(key);
-        return (it != data.end()) ? it->second : default_value;
+        string value;
+        if (data.get(key, value))
+        {
+            return value;
+        }
+        return default_value;
     }
 };
 
@@ -101,112 +106,112 @@ private:
         }
     }
 
-    map<string, string> trip_to_map(const TripRecord &trip)
+    Map<string, string> trip_to_map(const TripRecord &trip)
     {
-        map<string, string> result;
-        result["trip_id"] = to_string(trip.trip_id);
-        result["driver_id"] = to_string(trip.driver_id);
-        result["vehicle_id"] = to_string(trip.vehicle_id);
-        result["start_time"] = to_string(trip.start_time);
-        result["end_time"] = to_string(trip.end_time);
-        result["duration"] = to_string(trip.duration);
-        result["distance"] = to_string(trip.distance);
-        result["avg_speed"] = to_string(trip.avg_speed);
-        result["max_speed"] = to_string(trip.max_speed);
-        result["fuel_consumed"] = to_string(trip.fuel_consumed);
-        result["fuel_efficiency"] = to_string(trip.fuel_efficiency);
-        result["harsh_braking_count"] = to_string(trip.harsh_braking_count);
-        result["rapid_acceleration_count"] = to_string(trip.rapid_acceleration_count);
-        result["speeding_count"] = to_string(trip.speeding_count);
-        result["start_address"] = string(trip.start_address, strnlen(trip.start_address, sizeof(trip.start_address)));
-        result["end_address"] = string(trip.end_address, strnlen(trip.end_address, sizeof(trip.end_address)));
+        Map<string, string> result;
+        result.insert("trip_id", to_string(trip.trip_id));
+        result.insert("driver_id", to_string(trip.driver_id));
+        result.insert("vehicle_id", to_string(trip.vehicle_id));
+        result.insert("start_time", to_string(trip.start_time));
+        result.insert("end_time", to_string(trip.end_time));
+        result.insert("duration", to_string(trip.duration));
+        result.insert("distance", to_string(trip.distance));
+        result.insert("avg_speed", to_string(trip.avg_speed));
+        result.insert("max_speed", to_string(trip.max_speed));
+        result.insert("fuel_consumed", to_string(trip.fuel_consumed));
+        result.insert("fuel_efficiency", to_string(trip.fuel_efficiency));
+        result.insert("harsh_braking_count", to_string(trip.harsh_braking_count));
+        result.insert("rapid_acceleration_count", to_string(trip.rapid_acceleration_count));
+        result.insert("speeding_count", to_string(trip.speeding_count));
+        result.insert("start_address", string(trip.start_address, strnlen(trip.start_address, sizeof(trip.start_address))));
+        result.insert("end_address", string(trip.end_address, strnlen(trip.end_address, sizeof(trip.end_address))));
         return result;
     }
 
-    map<string, string> vehicle_to_map(const VehicleInfo &vehicle)
+    Map<string, string> vehicle_to_map(const VehicleInfo &vehicle)
     {
-        map<string, string> result;
-        result["vehicle_id"] = to_string(vehicle.vehicle_id);
-        result["owner_driver_id"] = to_string(vehicle.owner_driver_id);
-        result["license_plate"] = string(vehicle.license_plate, strnlen(vehicle.license_plate, sizeof(vehicle.license_plate)));
-        result["make"] = string(vehicle.make, strnlen(vehicle.make, sizeof(vehicle.make)));
-        result["model"] = string(vehicle.model, strnlen(vehicle.model, sizeof(vehicle.model)));
-        result["year"] = to_string(vehicle.year);
-        result["type"] = to_string(static_cast<int>(vehicle.type));
-        result["current_odometer"] = to_string(vehicle.current_odometer);
-        result["fuel_type"] = string(vehicle.fuel_type, strnlen(vehicle.fuel_type, sizeof(vehicle.fuel_type)));
-        result["vin"] = string(vehicle.vin, strnlen(vehicle.vin, sizeof(vehicle.vin)));
+        Map<string, string> result;
+        result.insert("vehicle_id", to_string(vehicle.vehicle_id));
+        result.insert("owner_driver_id", to_string(vehicle.owner_driver_id));
+        result.insert("license_plate", string(vehicle.license_plate, strnlen(vehicle.license_plate, sizeof(vehicle.license_plate))));
+        result.insert("make", string(vehicle.make, strnlen(vehicle.make, sizeof(vehicle.make))));
+        result.insert("model", string(vehicle.model, strnlen(vehicle.model, sizeof(vehicle.model))));
+        result.insert("year", to_string(vehicle.year));
+        result.insert("type", to_string(static_cast<int>(vehicle.type)));
+        result.insert("current_odometer", to_string(vehicle.current_odometer));
+        result.insert("fuel_type", string(vehicle.fuel_type, strnlen(vehicle.fuel_type, sizeof(vehicle.fuel_type))));
+        result.insert("vin", string(vehicle.vin, strnlen(vehicle.vin, sizeof(vehicle.vin))));
         return result;
     }
 
-    map<string, string> expense_to_map(const ExpenseRecord &expense)
+    Map<string, string> expense_to_map(const ExpenseRecord &expense)
     {
-        map<string, string> result;
-        result["expense_id"] = to_string(expense.expense_id);
-        result["driver_id"] = to_string(expense.driver_id);
-        result["vehicle_id"] = to_string(expense.vehicle_id);
-        result["trip_id"] = to_string(expense.trip_id);
-        result["category"] = to_string(static_cast<int>(expense.category));
-        result["expense_date"] = to_string(expense.expense_date);
-        result["amount"] = to_string(expense.amount);
-        result["currency"] = string(expense.currency, strnlen(expense.currency, sizeof(expense.currency)));
-        result["description"] = string(expense.description, strnlen(expense.description, sizeof(expense.description)));
-        result["fuel_quantity"] = to_string(expense.fuel_quantity);
-        result["fuel_price_per_unit"] = to_string(expense.fuel_price_per_unit);
-        result["fuel_station"] = string(expense.fuel_station, strnlen(expense.fuel_station, sizeof(expense.fuel_station)));
+        Map<string, string> result;
+        result.insert("expense_id", to_string(expense.expense_id));
+        result.insert("driver_id", to_string(expense.driver_id));
+        result.insert("vehicle_id", to_string(expense.vehicle_id));
+        result.insert("trip_id", to_string(expense.trip_id));
+        result.insert("category", to_string(static_cast<int>(expense.category)));
+        result.insert("expense_date", to_string(expense.expense_date));
+        result.insert("amount", to_string(expense.amount));
+        result.insert("currency", string(expense.currency, strnlen(expense.currency, sizeof(expense.currency))));
+        result.insert("description", string(expense.description, strnlen(expense.description, sizeof(expense.description))));
+        result.insert("fuel_quantity", to_string(expense.fuel_quantity));
+        result.insert("fuel_price_per_unit", to_string(expense.fuel_price_per_unit));
+        result.insert("fuel_station", string(expense.fuel_station, strnlen(expense.fuel_station, sizeof(expense.fuel_station))));
         return result;
     }
 
-    map<string, string> incident_to_map(const IncidentReport &incident)
+    Map<string, string> incident_to_map(const IncidentReport &incident)
     {
-        map<string, string> result;
-        result["incident_id"] = to_string(incident.incident_id);
-        result["driver_id"] = to_string(incident.driver_id);
-        result["vehicle_id"] = to_string(incident.vehicle_id);
-        result["trip_id"] = to_string(incident.trip_id);
-        result["type"] = to_string(static_cast<int>(incident.type));
-        result["incident_time"] = to_string(incident.incident_time);
-        result["latitude"] = to_string(incident.latitude);
-        result["longitude"] = to_string(incident.longitude);
-        result["location_address"] = string(incident.location_address, strnlen(incident.location_address, sizeof(incident.location_address)));
-        result["description"] = string(incident.description, strnlen(incident.description, sizeof(incident.description)));
-        result["is_resolved"] = to_string(incident.is_resolved);
+        Map<string, string> result;
+        result.insert("incident_id", to_string(incident.incident_id));
+        result.insert("driver_id", to_string(incident.driver_id));
+        result.insert("vehicle_id", to_string(incident.vehicle_id));
+        result.insert("trip_id", to_string(incident.trip_id));
+        result.insert("type", to_string(static_cast<int>(incident.type)));
+        result.insert("incident_time", to_string(incident.incident_time));
+        result.insert("latitude", to_string(incident.latitude));
+        result.insert("longitude", to_string(incident.longitude));
+        result.insert("location_address", string(incident.location_address, strnlen(incident.location_address, sizeof(incident.location_address))));
+        result.insert("description", string(incident.description, strnlen(incident.description, sizeof(incident.description))));
+        result.insert("is_resolved", to_string(incident.is_resolved));
         return result;
     }
 
-    map<string, string> budget_alert_to_map(const ExpenseManager::BudgetAlert &alert)
+    Map<string, string> budget_alert_to_map(const ExpenseManager::BudgetAlert &alert)
     {
-        map<string, string> result;
-        result["driver_id"] = to_string(alert.driver_id);
-        result["category"] = to_string(static_cast<int>(alert.category));
-        result["limit"] = to_string(alert.limit);
-        result["spent"] = to_string(alert.spent);
-        result["percentage_used"] = to_string(alert.percentage_used);
-        result["over_budget"] = alert.over_budget ? "1" : "0";
+        Map<string, string> result;
+        result.insert("driver_id", to_string(alert.driver_id));
+        result.insert("category", to_string(static_cast<int>(alert.category)));
+        result.insert("limit", to_string(alert.limit));
+        result.insert("spent", to_string(alert.spent));
+        result.insert("percentage_used", to_string(alert.percentage_used));
+        result.insert("over_budget", alert.over_budget ? "1" : "0");
         return result;
     }
 
-    map<string, string> driver_ranking_to_map(const DriverManager::DriverRanking &ranking)
+    Map<string, string> driver_ranking_to_map(const DriverManager::DriverRanking &ranking)
     {
-        map<string, string> result;
-        result["driver_id"] = to_string(ranking.driver_id);
-        result["driver_name"] = ranking.driver_name;
-        result["safety_score"] = to_string(ranking.safety_score);
-        result["total_distance"] = to_string(ranking.total_distance);
-        result["total_trips"] = to_string(ranking.total_trips);
-        result["avg_speed"] = to_string(ranking.avg_speed);
-        result["rank"] = to_string(ranking.rank);
-        result["percentile"] = to_string(ranking.percentile);
+        Map<string, string> result;
+        result.insert("driver_id", to_string(ranking.driver_id));
+        result.insert("driver_name", ranking.driver_name);
+        result.insert("safety_score", to_string(ranking.safety_score));
+        result.insert("total_distance", to_string(ranking.total_distance));
+        result.insert("total_trips", to_string(ranking.total_trips));
+        result.insert("avg_speed", to_string(ranking.avg_speed));
+        result.insert("rank", to_string(ranking.rank));
+        result.insert("percentile", to_string(ranking.percentile));
         return result;
     }
 
-    map<string, string> driver_recommendation_to_map(const DriverManager::DriverRecommendation &rec)
+    Map<string, string> driver_recommendation_to_map(const DriverManager::DriverRecommendation &rec)
     {
-        map<string, string> result;
-        result["category"] = rec.category;
-        result["recommendation"] = rec.recommendation;
-        result["priority"] = to_string(rec.priority);
-        result["potential_improvement"] = to_string(rec.potential_improvement);
+        Map<string, string> result;
+        result.insert("category", rec.category);
+        result.insert("recommendation", rec.recommendation);
+        result.insert("priority", to_string(rec.priority));
+        result.insert("potential_improvement", to_string(rec.potential_improvement));
         return result;
     }
 
@@ -294,7 +299,7 @@ public:
         }
     }
 
-    string handle_login(const map<string, string> &params)
+    string handle_login(const Map<string, string> &params)
     {
         string username = SimpleJSON::get_value(params, "username");
         string password = SimpleJSON::get_value(params, "password");
@@ -322,7 +327,7 @@ public:
         }
     }
 
-    string handle_register(const map<string, string> &params)
+    string handle_register(const Map<string, string> &params)
     {
         string username = SimpleJSON::get_value(params, "username");
         string password = SimpleJSON::get_value(params, "password");
@@ -347,7 +352,7 @@ public:
         }
     }
 
-    string handle_logout(const map<string, string> &params)
+    string handle_logout(const Map<string, string> &params)
     {
         string session_id = SimpleJSON::get_value(params, "session_id");
 
@@ -357,7 +362,7 @@ public:
     }
 
     string handle_trip_operation(const string &operation,
-                                 const map<string, string> &params,
+                                 const Map<string, string> &params,
                                  const string &session_id)
     {
         DriverProfile driver;
@@ -453,7 +458,7 @@ public:
             auto trips = trip_mgr_.search_trips(driver.driver_id, vehicle_id, status, 
                                               start_time, end_time, limit, offset);
 
-            vector<map<string, string>> trip_maps;
+            vector<Map<string, string>> trip_maps;
             for (const auto &trip : trips)
             {
                 trip_maps.push_back(trip_to_map(trip));
@@ -477,14 +482,14 @@ public:
 
             if (active_trip.trip_id > 0)
             {
-                map<string, string> trip_map;
+                Map<string, string> trip_map;
                 trip_map["trip_id"] = to_string(active_trip.trip_id);
                 trip_map["driver_id"] = to_string(active_trip.driver_id);
                 trip_map["vehicle_id"] = to_string(active_trip.vehicle_id);
                 trip_map["start_time"] = to_string(active_trip.start_time);
                 trip_map["start_address"] = string(active_trip.start_address, strnlen(active_trip.start_address, sizeof(active_trip.start_address)));
 
-                map<string, string> response_map;
+                Map<string, string> response_map;
                 
                 return response_builder_.success("ACTIVE_TRIP_FOUND", trip_map);
             }
@@ -499,7 +504,7 @@ public:
     }
 
     string handle_vehicle_operation(const string &operation,
-                                    const map<string, string> &params,
+                                    const Map<string, string> &params,
                                     const string &session_id)
     {
         DriverProfile driver;
@@ -536,7 +541,7 @@ public:
         {
             auto vehicles = vehicle_mgr_.get_driver_vehicles(driver.driver_id);
 
-            vector<map<string, string>> vehicle_maps;
+            vector<Map<string, string>> vehicle_maps;
             for (const auto &vehicle : vehicles)
             {
                 vehicle_maps.push_back(vehicle_to_map(vehicle));
@@ -587,10 +592,10 @@ public:
         {
             auto alerts = vehicle_mgr_.get_top_alerts(10);
 
-            vector<map<string, string>> alert_maps;
+            vector<Map<string, string>> alert_maps;
             for (const auto &alert : alerts)
             {
-                map<string, string> alert_map;
+                Map<string, string> alert_map;
                 alert_map["vehicle_id"] = to_string(alert.vehicle_id);
                 alert_map["alert_id"] = to_string(alert.alert_id);
                 alert_map["description"] = string(alert.description, strnlen(alert.description, sizeof(alert.description)));
@@ -613,10 +618,10 @@ public:
 
             auto maintenance = vehicle_mgr_.get_vehicle_maintenance_history(vehicle_id);
 
-            vector<map<string, string>> maintenance_maps;
+            vector<Map<string, string>> maintenance_maps;
             for (const auto &m : maintenance)
             {
-                map<string, string> m_map;
+                Map<string, string> m_map;
                 m_map["maintenance_id"] = to_string(m.maintenance_id);
                 m_map["vehicle_id"] = to_string(m.vehicle_id);
                 m_map["type"] = to_string(static_cast<int>(m.type));
@@ -637,7 +642,7 @@ public:
     }
 
     string handle_expense_operation(const string &operation,
-                                    const map<string, string> &params,
+                                    const Map<string, string> &params,
                                     const string &session_id)
     {
         DriverProfile driver;
@@ -716,7 +721,7 @@ public:
                                expenses.end());
             }
 
-            vector<map<string, string>> expense_maps;
+            vector<Map<string, string>> expense_maps;
             for (const auto &expense : expenses)
             {
                 expense_maps.push_back(expense_to_map(expense));
@@ -769,7 +774,7 @@ public:
         {
             auto alerts = expense_mgr_.get_budget_alerts(driver.driver_id);
 
-            vector<map<string, string>> alert_maps;
+            vector<Map<string, string>> alert_maps;
             for (const auto &alert : alerts)
             {
                 alert_maps.push_back(budget_alert_to_map(alert));
@@ -826,7 +831,7 @@ public:
     }
 
     string handle_driver_operation(const string &operation,
-                                   const map<string, string> &params,
+                                   const Map<string, string> &params,
                                    const string &session_id)
     {
         DriverProfile driver;
@@ -881,7 +886,7 @@ public:
 
             auto leaderboard = driver_mgr_.get_driver_leaderboard(limit, sort_by, time_period);
 
-            vector<map<string, string>> ranking_maps;
+            vector<Map<string, string>> ranking_maps;
             for (const auto &ranking : leaderboard)
             {
                 ranking_maps.push_back(driver_ranking_to_map(ranking));
@@ -893,7 +898,7 @@ public:
         {
             auto recommendations = driver_mgr_.get_improvement_recommendations(driver.driver_id);
 
-            vector<map<string, string>> rec_maps;
+            vector<Map<string, string>> rec_maps;
             for (const auto &rec : recommendations)
             {
                 rec_maps.push_back(driver_recommendation_to_map(rec));
@@ -923,7 +928,7 @@ public:
     }
 
     string handle_document_operation(const string &operation,
-                                     const map<string, string> &params,
+                                     const Map<string, string> &params,
                                      const string &session_id)
     {
 
@@ -931,7 +936,7 @@ public:
     }
 
     string handle_incident_operation(const string &operation,
-                                     const map<string, string> &params,
+                                     const Map<string, string> &params,
                                      const string &session_id)
     {
         DriverProfile driver;
@@ -1023,7 +1028,7 @@ public:
                 incidents.erase(it, incidents.end());
             }
 
-            vector<map<string, string>> incident_maps;
+            vector<Map<string, string>> incident_maps;
             for (const auto &incident : incidents)
             {
                 incident_maps.push_back(incident_to_map(incident));

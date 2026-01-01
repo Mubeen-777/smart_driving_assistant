@@ -7,6 +7,7 @@
 #include "../../source/core/IndexManager.h"
 #include "../../source/data_structures/CircularQueue.h"
 #include "../../source/data_structures/DoublyLinkedList.h"
+#include "../../source/data_structures/Map.h"
 #include <vector>
 #include <cmath>
 #include <algorithm>
@@ -32,7 +33,7 @@ private:
         bool vision_active;
     };
 
-    std::vector<ActiveTrip> active_trips_;
+    Map<uint64_t, ActiveTrip> active_trips_;
 
     static constexpr double EARTH_RADIUS_KM = 6371.0;
     static constexpr double HARSH_BRAKING_THRESHOLD = -3.0;     
@@ -60,14 +61,7 @@ private:
 
     ActiveTrip *find_active_trip(uint64_t driver_id)
     {
-        for (auto &active : active_trips_)
-        {
-            if (active.record.driver_id == driver_id)
-            {
-                return &active;
-            }
-        }
-        return nullptr;
+        return active_trips_.find(driver_id);
     }
 
 public:
@@ -89,7 +83,7 @@ public:
             active.record = trip;
             active.start_time = trip.start_time;
             active.vision_active = false; 
-            active_trips_.push_back(active);
+            active_trips_.insert(trip.driver_id, active);
         }
         if (!recovered_trips.empty()) {
             std::cout << "      Restored " << recovered_trips.size() << " active trips from database." << std::endl;
@@ -133,7 +127,7 @@ public:
         active.record = trip;
         active.start_time = trip.start_time;
         active.vision_active = false;
-        active_trips_.push_back(active);
+        active_trips_.insert(driver_id, active);
 
         cache_.invalidate_query_result("driver_trips_" + std::to_string(driver_id));
 
@@ -158,14 +152,13 @@ public:
             return false; 
         }
 
-        for (auto &active : active_trips_)
+        for (auto it = active_trips_.begin(); it != active_trips_.end(); ++it)
         {
+            ActiveTrip& active = it.value();
             if (active.trip_id == trip_id)
             {
                 active.waypoints.push_back(waypoint);
-
                 detect_driving_events(active, waypoint);
-
                 return true;
             }
         }
@@ -182,16 +175,25 @@ public:
     bool end_trip(uint64_t trip_id, double end_lat, double end_lon,
                   const std::string &end_address = "")
     {
-        auto it = std::find_if(active_trips_.begin(), active_trips_.end(),
-                               [trip_id](const ActiveTrip &t)
-                               { return t.trip_id == trip_id; });
+        ActiveTrip* active_ptr = nullptr;
+        uint64_t current_driver_id = 0;
 
-        if (it == active_trips_.end())
+        for (auto it = active_trips_.begin(); it != active_trips_.end(); ++it)
+        {
+            if (it.value().trip_id == trip_id)
+            {
+                active_ptr = &it.value();
+                current_driver_id = it.key();
+                break;
+            }
+        }
+
+        if (!active_ptr)
         {
             return false;
         }
 
-        ActiveTrip &active = *it;
+        ActiveTrip &active = *active_ptr;
 
         calculate_trip_metrics(active);
 
@@ -213,7 +215,7 @@ public:
 
         update_driver_stats(active.record);
 
-        active_trips_.erase(it);
+        active_trips_.erase(current_driver_id);
 
         cache_.invalidate_query_result("driver_trips_" + std::to_string(active.record.driver_id));
 

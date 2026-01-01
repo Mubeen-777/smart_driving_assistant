@@ -2,7 +2,7 @@
 #define RESPONSEBUILDER_H
 
 #include <string>
-#include <map>
+#include "../../source/data_structures/Map.h"
 #include <vector>
 #include <sstream>
 #include <iostream>
@@ -12,7 +12,7 @@ using namespace std;
 class ResponseBuilder {
 public:
     
-    string success(const string& status, const map<string, string>& data = {}) {
+    string success(const string& status, const Map<string, string>& data = {}) {
         ostringstream json;
         
         json << "{";
@@ -23,9 +23,9 @@ public:
             json << ",\"data\":{";
             
             bool first = true;
-            for (const auto& pair : data) {
+            for (auto it = data.begin(); it != data.end(); ++it) {
                 if (!first) json << ",";
-                json << "\"" << pair.first << "\":\"" << pair.second << "\"";
+                json << "\"" << it.key() << "\":\"" << it.value() << "\"";
                 first = false;
             }
             
@@ -69,7 +69,7 @@ public:
 
     string success_with_array(const string& status,
                               const string& array_key,
-                              const vector<map<string, string>>& items) {
+                              const vector<Map<string, string>>& items) {
         ostringstream json;
         
         json << "{";
@@ -84,9 +84,9 @@ public:
             json << "{";
             
             bool first_field = true;
-            for (const auto& field : item) {
+            for (auto it = item.begin(); it != item.end(); ++it) {
                 if (!first_field) json << ",";
-                json << "\"" << field.first << "\":\"" << escape_json(field.second) << "\"";
+                json << "\"" << it.key() << "\":\"" << escape_json(it.value()) << "\"";
                 first_field = false;
             }
             

@@ -107,7 +107,6 @@ public:
         
         incident.is_resolved = 0;
 
-        // Save to database
         if (!db_.create_incident(incident))
         {
             return 0;
@@ -127,7 +126,6 @@ public:
         uint64_t incident_id = report_incident(driver_id, vehicle_id,
                                                IncidentType::ACCIDENT, latitude, longitude, "", description);
 
-        // Update with additional accident details
         IncidentReport incident = get_incident_by_id(incident_id);
         if (incident.incident_id > 0)
         {
@@ -135,7 +133,6 @@ public:
                     sizeof(incident.other_party_info) - 1);
             incident.estimated_damage = estimated_damage;
 
-            // Save updated incident
             if (!db_.update_incident(incident))
             {
                 return 0;
@@ -161,7 +158,6 @@ public:
         uint64_t incident_id = report_incident(driver_id, vehicle_id,
                                                IncidentType::THEFT, latitude, longitude, "", description);
 
-        // Update with police report number
         IncidentReport incident = get_incident_by_id(incident_id);
         if (incident.incident_id > 0)
         {
@@ -208,8 +204,6 @@ public:
         return db_.update_incident(incident);
     }
 
-    // NEW METHODS ADDED FOR REQUEST HANDLER COMPATIBILITY
-
     bool resolve_incident(uint64_t incident_id, bool resolved, const string &resolution_notes = "")
     {
         IncidentReport incident = get_incident_by_id(incident_id);
@@ -241,7 +235,7 @@ public:
         {
             return incident;
         }
-        return IncidentReport(); // Return empty incident if not found
+        return IncidentReport(); 
     }
 
     vector<IncidentReport> get_driver_incidents(uint64_t driver_id, int limit = 100)
@@ -251,7 +245,7 @@ public:
 
     vector<IncidentReport> get_incidents_by_vehicle(uint64_t driver_id, uint64_t vehicle_id)
     {
-        // Filter incidents by driver and vehicle
+        
         vector<IncidentReport> incidents = get_driver_incidents(driver_id, 1000);
         vector<IncidentReport> result;
 
@@ -268,7 +262,7 @@ public:
 
     vector<IncidentReport> get_incidents_by_type(uint64_t driver_id, IncidentType type)
     {
-        // Filter incidents by driver and type
+        
         vector<IncidentReport> incidents = get_driver_incidents(driver_id, 1000);
         vector<IncidentReport> result;
 
@@ -304,7 +298,6 @@ public:
         return db_.get_incidents_by_vehicle(vehicle_id);
     }
 
-    // NEW: Get incident statistics as used in RequestHandler
     struct IncidentStats
     {
         uint64_t driver_id;
@@ -344,7 +337,7 @@ public:
                 stats.total_thefts++;
                 break;
             case IncidentType::VANDALISM:
-                // Count as incident but not specific category
+                
                 break;
             case IncidentType::TRAFFIC_VIOLATION:
                 stats.total_violations++;

@@ -37,7 +37,6 @@ public:
         return json.str();
     }
     
-    
     string error(const string& code, const string& message) {
         ostringstream json;
         
@@ -49,7 +48,6 @@ public:
         
         return json.str();
     }
-    
     
     string list(const string& status, int count, 
                     const string& message = "") {

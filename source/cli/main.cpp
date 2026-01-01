@@ -1,4 +1,3 @@
-
 #include "MenuSystem.h"
 #include "../../include/sdm_config.hpp"
 
@@ -29,8 +28,8 @@ void signal_handler(int signal)
 
 int main(int argc, char *argv[])
 {
-    // Default config file path - try multiple locations
-    string config_file = "../../include/sdm.conf";  // Primary location
+    
+    string config_file = "../../include/sdm.conf";  
     bool server_mode = true;
 
     for (int i = 1; i < argc; i++)
@@ -62,9 +61,8 @@ int main(int argc, char *argv[])
     SDMConfig config;
     cout << "Loading config from: " << config_file << endl;
 
-    // Try multiple config file locations (relative and absolute)
     string project_root = "";
-    // Try to find project root by looking for include/sdm.conf
+    
     ifstream test_file("../../include/sdm.conf");
     if (test_file.good()) {
         project_root = "../../";
@@ -78,13 +76,13 @@ int main(int argc, char *argv[])
     }
     
     vector<string> config_paths = {
-        config_file,  // User-specified or default
-        project_root + "include/sdm.conf",  // Primary location
-        "../../include/sdm.conf",  // Fallback
-        "../include/sdm.conf",    // Alternative location
-        "include/sdm.conf",       // If running from root
-        "../../config/default.sdmconf",  // Legacy location
-        "../config/default.sdmconf"     // Legacy alternative
+        config_file,  
+        project_root + "include/sdm.conf",  
+        "../../include/sdm.conf",  
+        "../include/sdm.conf",    
+        "include/sdm.conf",       
+        "../../config/default.sdmconf",  
+        "../config/default.sdmconf"     
     };
 
     bool config_loaded = false;
@@ -124,7 +122,6 @@ int main(int argc, char *argv[])
         signal(SIGINT, signal_handler);
         signal(SIGTERM, signal_handler);
 
-        // Create and initialize server
         SDMServer server(config);
         g_server = &server;
 

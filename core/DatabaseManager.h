@@ -83,7 +83,6 @@ public:
 
         cout << "      Creating database: " << filename_ << endl;
 
-        
         size_t last_slash = filename_.find_last_of('/');
         if (last_slash != string::npos) {
             string directory = filename_.substr(0, last_slash);
@@ -104,7 +103,6 @@ public:
             return false;
         }
 
-        
         header_ = SDMHeader();
         header_.created_time = get_current_timestamp();
         header_.last_modified = header_.created_time;
@@ -114,7 +112,6 @@ public:
 
         calculate_offsets();
 
-        
         file_.write(reinterpret_cast<const char *>(&header_), sizeof(SDMHeader));
 
         cout << "      Initializing " << header_.max_drivers << " driver slots..." << flush;
@@ -224,7 +221,6 @@ public:
         }
     }
 
-    
     bool create_driver(const DriverProfile &driver)
     {
         if (!is_open_) return false;
@@ -339,7 +335,6 @@ public:
         return drivers;
     }
 
-    
     bool create_vehicle(const VehicleInfo &vehicle)
     {
         if (!is_open_) return false;
@@ -454,7 +449,6 @@ public:
         return vehicles;
     }
 
-    
     bool create_trip(const TripRecord &trip)
     {
         if (!is_open_) return false;

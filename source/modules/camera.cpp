@@ -1,4 +1,3 @@
-// camera.cpp - FIXED: Stable DroidCam USB with proper device detection
 #include "camera.h"
 #include <iostream>
 #include <chrono>
@@ -62,7 +61,6 @@ bool CameraManager::initializePhoneCamera(PhoneCameraMode mode, int width, int h
     config.fps = fps;
     config.type = CAMERA_ANDROID_USB;
 
-    // Auto-detect DroidCam device
     config.source = findDroidCamDevice();
 
     return initializeImpl();
@@ -71,7 +69,6 @@ string CameraManager::findDroidCamDevice()
 {
     cout << "Searching for DroidCam device..." << endl;
 
-    // PRIORITY 1: Check /dev/video0 first (DroidCam default)
     string preferred_device = "/dev/video0";
     int fd = open(preferred_device.c_str(), O_RDWR | O_NONBLOCK);
     if (fd >= 0)
@@ -83,14 +80,12 @@ string CameraManager::findDroidCamDevice()
             cout << "  Found " << preferred_device << ": " << card << endl;
             close(fd);
 
-            // Accept /dev/video0 regardless of name
             cout << "  ✓ Using: " << preferred_device << " (DroidCam expected location)" << endl;
             return preferred_device;
         }
         close(fd);
     }
 
-    // PRIORITY 2: Scan other devices only if video0 failed
     for (int i = 1; i < 5; i++)
     {
         string device = "/dev/video" + to_string(i);
@@ -118,15 +113,14 @@ string CameraManager::findDroidCamDevice()
 }
 bool CameraManager::initializeImpl()
 {
-    // Special handling for phone cameras
+    
     if (config.source == "/dev/video4" || config.source.find("phone") != string::npos)
     {
-        // Re-detect the actual DroidCam device
+        
         config.source = findDroidCamDevice();
     }
 
-    // Regular camera detection
-    if (config.source.find("http://") == 0 || config.source.find("rtsp://") == 0)
+    if (config.source.find("http:
     {
         config.type = CAMERA_GSTREAMER;
     }
@@ -179,7 +173,6 @@ bool CameraManager::initializeV4L2()
 {
     cout << "Initializing V4L2 device: " << config.source << endl;
 
-    // Open device with non-blocking flag
     v4l2_fd = open(config.source.c_str(), O_RDWR | O_NONBLOCK, 0);
     if (v4l2_fd < 0)
     {
@@ -187,7 +180,6 @@ bool CameraManager::initializeV4L2()
         return false;
     }
 
-    // Check capabilities
     struct v4l2_capability cap;
     if (ioctl(v4l2_fd, VIDIOC_QUERYCAP, &cap) < 0)
     {
@@ -207,7 +199,6 @@ bool CameraManager::initializeV4L2()
 
     cout << "  Device: " << cap.card << " (" << cap.driver << ")" << endl;
 
-    // FIXED: Better format negotiation
     if (!setupV4L2Format())
     {
         cerr << "  ✗ Failed to setup format" << endl;
@@ -216,8 +207,7 @@ bool CameraManager::initializeV4L2()
         return false;
     }
 
-    // FIXED: Smaller buffer size for lower latency
-    config.buffer_size = 2; // Minimum buffers for stability
+    config.buffer_size = 2; 
 
     if (!setupV4L2Buffers())
     {
@@ -235,7 +225,6 @@ bool CameraManager::initializeV4L2()
         return false;
     }
 
-    // Apply optimizations
     if (config.low_latency)
     {
         optimizeForLowLatency();
@@ -251,16 +240,11 @@ bool CameraManager::optimizeForLowLatency()
 {
     cout << "  Applying low-latency optimizations..." << endl;
 
-    // FIXED: More conservative settings to avoid overwhelming USB
-
-    // Set manual exposure for consistent timing
     setV4L2Control(V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL);
     setV4L2Control(V4L2_CID_EXPOSURE_ABSOLUTE, 150);
 
-    // Disable auto white balance
     setV4L2Control(V4L2_CID_AUTO_WHITE_BALANCE, 0);
 
-    // Set power line frequency
     setV4L2Control(V4L2_CID_POWER_LINE_FREQUENCY, V4L2_CID_POWER_LINE_FREQUENCY_50HZ);
 
     cout << "  ✓ Low-latency optimizations applied" << endl;
@@ -282,12 +266,10 @@ bool CameraManager::setupV4L2Format()
 
     v4l2_pixel_format = format.fmt.pix.pixelformat;
 
-    // FIXED: Try formats in order of preference for DroidCam
     format.fmt.pix.width = config.width;
     format.fmt.pix.height = config.height;
     format.fmt.pix.field = V4L2_FIELD_NONE;
 
-    // Try MJPEG first (best for bandwidth)
     format.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
     if (ioctl(v4l2_fd, VIDIOC_S_FMT, &format) >= 0)
     {
@@ -297,7 +279,6 @@ bool CameraManager::setupV4L2Format()
         goto format_success;
     }
 
-    // Try YUYV (good compatibility)
     cout << "  ! MJPEG not supported, trying YUYV..." << endl;
     format.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
     if (ioctl(v4l2_fd, VIDIOC_S_FMT, &format) >= 0)
@@ -308,7 +289,6 @@ bool CameraManager::setupV4L2Format()
         goto format_success;
     }
 
-    // Try YUV420/YU12 (last resort)
     cout << "  ! YUYV not supported, trying YUV420..." << endl;
     format.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420;
     if (ioctl(v4l2_fd, VIDIOC_S_FMT, &format) >= 0)
@@ -323,7 +303,7 @@ bool CameraManager::setupV4L2Format()
     return false;
 
 format_success:
-    // Update actual resolution
+    
     config.width = format.fmt.pix.width;
     config.height = format.fmt.pix.height;
 
@@ -331,7 +311,6 @@ format_success:
     memcpy(fourcc, &v4l2_pixel_format, 4);
     cout << "  Resolution: " << config.width << "x" << config.height << " (" << fourcc << ")" << endl;
 
-    // Set FPS
     struct v4l2_streamparm parm = {};
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
@@ -351,7 +330,7 @@ format_success:
 
 bool CameraManager::setupV4L2Buffers()
 {
-    // Request minimal buffers
+    
     struct v4l2_requestbuffers req = {};
     req.count = config.buffer_size;
     req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -369,7 +348,6 @@ bool CameraManager::setupV4L2Buffers()
         return false;
     }
 
-    // Map buffers
     v4l2_buffers.resize(req.count);
 
     for (unsigned int i = 0; i < req.count; ++i)
@@ -398,7 +376,6 @@ bool CameraManager::setupV4L2Buffers()
 
         v4l2_buffers[i].queued = true;
 
-        // Queue the buffer
         if (ioctl(v4l2_fd, VIDIOC_QBUF, &buf) < 0)
         {
             cerr << "  ✗ Failed to queue buffer " << i << endl;
@@ -447,12 +424,11 @@ Mat CameraManager::readV4L2Frame(bool blocking)
         return Mat();
     }
 
-    // FIXED: Use poll instead of select for better reliability
     struct pollfd pfd;
     pfd.fd = v4l2_fd;
     pfd.events = POLLIN;
 
-    int timeout_ms = blocking ? 1000 : 100; // Increased timeout
+    int timeout_ms = blocking ? 1000 : 100; 
     int ret = poll(&pfd, 1, timeout_ms);
 
     if (ret < 0)
@@ -466,7 +442,7 @@ Mat CameraManager::readV4L2Frame(bool blocking)
 
     if (ret == 0)
     {
-        // Timeout - normal for non-blocking
+        
         return Mat();
     }
 
@@ -485,23 +461,22 @@ Mat CameraManager::readV4L2Frame(bool blocking)
 
     Mat frame;
 
-    // FIXED: Better format handling
     if (v4l2_pixel_format == V4L2_PIX_FMT_MJPEG)
     {
-        // Decode MJPEG
+        
         vector<uchar> data((uchar *)v4l2_buffers[buf.index].start,
                            (uchar *)v4l2_buffers[buf.index].start + buf.bytesused);
         frame = imdecode(data, IMREAD_COLOR);
     }
     else if (v4l2_pixel_format == V4L2_PIX_FMT_YUYV)
     {
-        // Convert YUYV to BGR
+        
         Mat yuyv(config.height, config.width, CV_8UC2, v4l2_buffers[buf.index].start);
         cvtColor(yuyv, frame, COLOR_YUV2BGR_YUYV);
     }
     else if (v4l2_pixel_format == V4L2_PIX_FMT_YUV420)
     {
-        // YUV420 conversion
+        
         int y_size = config.width * config.height;
         Mat yuv_frame(config.height + config.height / 2, config.width, CV_8UC1,
                       v4l2_buffers[buf.index].start);
@@ -517,7 +492,6 @@ Mat CameraManager::readV4L2Frame(bool blocking)
         }
     }
 
-    // Re-queue buffer immediately
     if (ioctl(v4l2_fd, VIDIOC_QBUF, &buf) < 0)
     {
         cerr << "V4L2 requeue error: " << strerror(errno) << endl;
@@ -586,7 +560,7 @@ bool CameraManager::initializeAndroidIP()
 {
     cout << "Initializing Android phone camera via IP..." << endl;
 
-    string pipeline = "souphttpsrc location=http://" + config.phone_ip +
+    string pipeline = "souphttpsrc location=http:
                       ":" + to_string(config.phone_port) + "/video is-live=true ! "
                                                            "jpegdec ! videoconvert ! appsink drop=true max-buffers=1";
 
@@ -602,7 +576,7 @@ bool CameraManager::initializeGStreamer()
 
     string pipeline;
 
-    if (config.source.find("rtsp://") == 0)
+    if (config.source.find("rtsp:
     {
         pipeline = "rtspsrc location=" + config.source + " latency=0 ! "
                                                          "rtph264depay ! h264parse ! avdec_h264 ! "
@@ -610,7 +584,7 @@ bool CameraManager::initializeGStreamer()
                    to_string(config.width) + ",height=" +
                    to_string(config.height) + " ! appsink drop=true max-buffers=1";
     }
-    else if (config.source.find("http://") == 0)
+    else if (config.source.find("http:
     {
         pipeline = "souphttpsrc location=" + config.source + " is-live=true ! "
                                                              "jpegdec ! videoconvert ! videoscale ! video/x-raw,width=" +
@@ -665,7 +639,6 @@ bool CameraManager::initializeOpenCV()
     return true;
 }
 
-// FIXED: Much more conservative frame grabbing
 bool CameraManager::grabFrame(Mat &frame)
 {
     if (!camera_opened)
@@ -704,7 +677,6 @@ bool CameraManager::grabFrame(Mat &frame)
     {
         consecutive_empty++;
 
-        // Check if we've been getting empty frames for too long
         auto now = steady_clock::now();
         auto since_success = duration_cast<seconds>(now - last_success).count();
 
@@ -714,7 +686,6 @@ bool CameraManager::grabFrame(Mat &frame)
                  << since_success << "s since last success)" << endl;
         }
 
-        // If no success for 5 seconds, try to reconnect
         if (since_success > 5 && consecutive_empty > 20)
         {
             cerr << "Camera appears stuck, attempting recovery..." << endl;
@@ -729,13 +700,11 @@ bool CameraManager::grabFrame(Mat &frame)
         return false;
     }
 
-    // Success!
     consecutive_empty = 0;
     last_success = steady_clock::now();
 
     frame = captured_frame;
 
-    // Update FPS
     frame_counter++;
     auto current_time = steady_clock::now();
     auto elapsed = duration_cast<milliseconds>(current_time - fps_start_time).count();
@@ -863,7 +832,6 @@ bool CameraManager::recover()
 {
     cout << "Attempting camera recovery [Type: " << config.type << "]..." << endl;
     
-    // Stop current state
     camera_opened = false;
     
 #ifdef __linux__
@@ -885,10 +853,8 @@ bool CameraManager::recover()
 
     if (cap.isOpened()) cap.release();
     
-    // Wait a bit for device to settle
     this_thread::sleep_for(chrono::milliseconds(500));
     
-    // Re-initialize
     return initializeImpl();
 }
 

@@ -1,6 +1,3 @@
-// classical_lane_detector.cpp - Simple, reliable lane detection without neural networks
-// Drop-in replacement for your UltraFastLaneDetector class
-
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <cmath>
@@ -33,22 +30,18 @@ private:
     bool model_loaded;
     bool debug_mode;
 
-    // ROI parameters
-    float roi_top_ratio = 0.4f;    // Start ROI at 40% from top
-    float roi_bottom_ratio = 1.0f; // End at bottom
+    float roi_top_ratio = 0.4f;    
+    float roi_bottom_ratio = 1.0f; 
 
-    // Edge detection
     int canny_low = 50;
     int canny_high = 150;
 
-    // Hough transform
     int hough_threshold = 50;
     int min_line_length = 50;
     int max_line_gap = 50;
 
-    // Lane filtering
-    float min_slope = 0.3f; // Minimum absolute slope for valid lane
-    float max_slope = 3.0f; // Maximum absolute slope
+    float min_slope = 0.3f; 
+    float max_slope = 3.0f; 
 
 public:
     UltraFastLaneDetector() : model_loaded(false), debug_mode(false) {}
@@ -72,38 +65,32 @@ public:
         if (frame.empty())
             return result;
 
-        // 1. Define ROI (ignore sky and hood)
         int roi_top = frame.rows * roi_top_ratio;
         int roi_height = frame.rows * (roi_bottom_ratio - roi_top_ratio);
         Rect roi(0, roi_top, frame.cols, roi_height);
         Mat roi_frame = frame(roi);
 
-        // 2. Convert to grayscale
         Mat gray;
         cvtColor(roi_frame, gray, COLOR_BGR2GRAY);
 
-        // 3. Apply Gaussian blur to reduce noise
         Mat blurred;
         GaussianBlur(gray, blurred, Size(5, 5), 0);
 
-        // 4. Edge detection
         Mat edges;
         Canny(blurred, edges, canny_low, canny_high);
 
-        // 5. Mask to focus on lane areas (trapezoidal region)
         Mat mask = Mat::zeros(edges.size(), edges.type());
         Point pts[4] = {
-            Point(edges.cols * 0.1, edges.rows),       // Bottom left
-            Point(edges.cols * 0.4, edges.rows * 0.3), // Top left
-            Point(edges.cols * 0.6, edges.rows * 0.3), // Top right
-            Point(edges.cols * 0.9, edges.rows)        // Bottom right
+            Point(edges.cols * 0.1, edges.rows),       
+            Point(edges.cols * 0.4, edges.rows * 0.3), 
+            Point(edges.cols * 0.6, edges.rows * 0.3), 
+            Point(edges.cols * 0.9, edges.rows)        
         };
         fillConvexPoly(mask, pts, 4, Scalar(255));
 
         Mat masked_edges;
         bitwise_and(edges, mask, masked_edges);
 
-        // 6. Detect lines using Hough transform
         vector<Vec4i> lines;
         HoughLinesP(masked_edges, lines, 1, CV_PI / 180,
                     hough_threshold, min_line_length, max_line_gap);
@@ -113,7 +100,6 @@ public:
             cout << "Detected " << lines.size() << " raw lines" << endl;
         }
 
-        // 7. Separate left and right lanes based on slope
         vector<Vec4i> left_lines, right_lines;
         int center_x = frame.cols / 2;
 
@@ -122,14 +108,11 @@ public:
             int x1 = line[0], y1 = line[1];
             int x2 = line[2], y2 = line[3];
 
-            // Calculate slope
             float slope = (y2 - y1) / (float)(x2 - x1 + 1e-6);
 
-            // Filter by slope
             if (abs(slope) < min_slope || abs(slope) > max_slope)
                 continue;
 
-            // Separate by position and slope
             int mid_x = (x1 + x2) / 2;
             if (slope < 0 && mid_x < center_x)
             {
@@ -141,7 +124,6 @@ public:
             }
         }
 
-        // 8. Average lines to get lane lines
         result.lanes.clear();
 
         if (!left_lines.empty())
@@ -227,7 +209,6 @@ public:
 
         deviation = (center_x - lane_center) / lane_width;
 
-        // ✅ use std::abs
         if (std::abs(deviation) < 0.15)
         {
             direction = "CENTERED";
@@ -257,10 +238,10 @@ public:
         }
 
         vector<Scalar> colors = {
-            Scalar(0, 255, 0),   // Green for left
-            Scalar(0, 0, 255),   // Red for right
-            Scalar(255, 255, 0), // Cyan
-            Scalar(255, 0, 255)  // Magenta
+            Scalar(0, 255, 0),   
+            Scalar(0, 0, 255),   
+            Scalar(255, 255, 0), 
+            Scalar(255, 0, 255)  
         };
 
         for (size_t i = 0; i < result.lanes.size(); i++)
@@ -271,13 +252,11 @@ public:
 
             Scalar color = colors[i % colors.size()];
 
-            // Draw thick lane line
             for (size_t j = 0; j < lane.points.size() - 1; j++)
             {
                 line(frame, lane.points[j], lane.points[j + 1], color, 8, LINE_AA);
             }
 
-            // Draw confidence
             if (show_details && !lane.points.empty())
             {
                 string label = "Lane " + to_string(i) +
@@ -287,7 +266,6 @@ public:
             }
         }
 
-        // Draw center line
         int center_x = frame.cols / 2;
         line(frame, Point(center_x, frame.rows),
              Point(center_x, frame.rows * 2 / 3),
@@ -334,7 +312,6 @@ private:
         if (lines.empty())
             return lane;
 
-        // Collect all points
         vector<Point> all_points;
         for (const auto &line : lines)
         {
@@ -342,7 +319,6 @@ private:
             all_points.push_back(Point(line[2], line[3]));
         }
 
-        // Fit line using least squares
         Vec4f fitted_line;
         fitLine(all_points, fitted_line, DIST_L2, 0, 0.01, 0.01);
 
@@ -351,7 +327,6 @@ private:
         float x0 = fitted_line[2];
         float y0 = fitted_line[3];
 
-        // Generate points along the line
         int y_start = 0;
         int y_end = roi.height;
         int num_points = 20;
@@ -362,7 +337,6 @@ private:
             float t = (y - y0) / (vy + 1e-6);
             float x = x0 + vx * t;
 
-            // Convert back to full frame coordinates
             int full_x = (int)x;
             int full_y = (int)y + roi_offset;
 
@@ -375,4 +349,3 @@ private:
         return lane;
     }
 };
-

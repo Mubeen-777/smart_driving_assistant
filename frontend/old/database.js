@@ -1,11 +1,8 @@
-// database.js - Database API Integration (Fixed for operation-based API)
 class DatabaseAPI {
     constructor(app) {
         this.app = app;
-        // FIX (AGENT-1): Use environment variable or full URL
-        // Development: http://localhost:8080/api
-        // Production: https://api.yourdomain.com/api
-        this.API_BASE = window.__API_BASE__ || 'http://localhost:8080/api';
+        
+        this.API_BASE = window.__API_BASE__ || 'http:
     }
 
     async sendRequest(operation, data = {}) {
@@ -26,7 +23,7 @@ class DatabaseAPI {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(data),
-                signal: AbortSignal.timeout(10000) // 10 second timeout
+                signal: AbortSignal.timeout(10000) 
             });
 
             if (!response.ok) {
@@ -38,14 +35,13 @@ class DatabaseAPI {
                 }
                 console.error('HTTP Error Response:', response.status, errorText);
 
-                // Try to parse as JSON for better error messages
                 try {
                     const errorJson = JSON.parse(errorText);
                     if (errorJson.message) {
                         throw new Error(errorJson.message);
                     }
                 } catch (e) {
-                    // Not JSON, use status text
+                    
                 }
 
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -63,7 +59,6 @@ class DatabaseAPI {
             console.error('Operation:', operation);
             console.error('Data:', data);
 
-            // Handle network errors
             if (error.message.includes('Failed to fetch') || error.name === 'TypeError' || error.name === 'AbortError') {
                 const networkError = new Error('Cannot connect to backend server. Make sure it is running on port 8080.');
                 networkError.name = 'NetworkError';
@@ -90,7 +85,6 @@ class DatabaseAPI {
         }
     }
 
-    // Authentication
     async login(username, password) {
         const response = await this.sendRequest('user_login', {
             username: username,
@@ -160,7 +154,7 @@ class DatabaseAPI {
         }
     }
     async startTrip(vehicleId, startLat, startLon, address = '') {
-        // Validate inputs first
+        
         if (!vehicleId || vehicleId === 0) {
             throw new Error('Invalid vehicle_id');
         }
@@ -192,7 +186,7 @@ class DatabaseAPI {
             console.log('✅ Trip started with backend ID:', backendTripId);
 
             return {
-                trip_id: backendTripId,  // ✅ Use backend-assigned ID
+                trip_id: backendTripId,  
                 start_time: response.data.start_time || new Date().toISOString()
             };
         }
@@ -201,7 +195,7 @@ class DatabaseAPI {
     }
     async endTrip(tripId, endLat, endLon, address = '') {
         try {
-            // ✅ FIX 1: Validate inputs BEFORE sending
+            
             if (!tripId || tripId === 0 || isNaN(tripId)) {
                 console.error('❌ Invalid trip_id:', tripId);
                 throw new Error('Invalid trip_id: trip ID must be a positive number');
@@ -212,7 +206,6 @@ class DatabaseAPI {
                 throw new Error('Invalid coordinates: latitude and longitude must be valid numbers');
             }
 
-            // ✅ FIX 2: Check if trip exists before trying to end it
             console.log('🔍 Checking if trip exists:', tripId);
             const tripExists = await this.checkTripExists(tripId);
             if (!tripExists) {
@@ -246,11 +239,10 @@ class DatabaseAPI {
             console.error('Failed trip_id:', tripId);
             console.error('Coordinates:', { endLat, endLon });
 
-            // ✅ FIX 3: Better error messages
             if (error.message.includes('not found')) {
                 throw new Error(`Trip ${tripId} was not found. It may have already been stopped or never started.`);
             } else if (error.message.includes('Invalid')) {
-                throw error; // Pass through validation errors
+                throw error; 
             } else if (error.name === 'NetworkError') {
                 throw new Error('Cannot connect to backend. Ensure C++ server is running on port 8080.');
             } else {
@@ -259,13 +251,12 @@ class DatabaseAPI {
         }
     }
     async logGPSPoint(tripId, latitude, longitude, speed) {
-        // Validate trip is active
+        
         if (!tripId || tripId === 0) {
             console.warn('⚠️ Cannot log GPS: No active trip');
             return false;
         }
 
-        // Validate coordinates
         if (isNaN(latitude) || isNaN(longitude) || isNaN(speed)) {
             console.warn('⚠️ Invalid GPS data:', { latitude, longitude, speed });
             return false;
@@ -319,7 +310,6 @@ class DatabaseAPI {
         return null;
     }
 
-    // Vehicle Operations
     async getVehicles() {
         const response = await this.sendRequest('vehicle_get_list', {});
 
@@ -413,7 +403,6 @@ class DatabaseAPI {
         return [];
     }
 
-    // Expense Operations
     async addExpense(vehicleId, category, amount, description, tripId = null) {
         const data = {
             vehicle_id: vehicleId.toString(),
@@ -519,11 +508,11 @@ class DatabaseAPI {
             return trips.some(trip => parseInt(trip.trip_id) === parseInt(tripId));
         } catch (error) {
             console.warn('⚠️ Could not verify trip existence:', error);
-            // If we can't check, assume it exists (let backend handle validation)
+            
             return true;
         }
     }
-    // Driver Operations
+    
     async getDriverProfile() {
         const response = await this.sendRequest('driver_get_profile', {});
 
@@ -610,7 +599,6 @@ class DatabaseAPI {
         return [];
     }
 
-    // Incident Operations
     async reportIncident(vehicleId, type, latitude, longitude, description) {
         const response = await this.sendRequest('incident_report', {
             vehicle_id: vehicleId.toString(),
@@ -661,7 +649,6 @@ class DatabaseAPI {
         return null;
     }
 
-    // Helper Methods
     async getVehicleOptions() {
         const vehicles = await this.getVehicles();
         return vehicles.map(v => ({
@@ -702,5 +689,3 @@ class DatabaseAPI {
         ];
     }
 }
-
-// Database API will be initialized by app.js after app is created

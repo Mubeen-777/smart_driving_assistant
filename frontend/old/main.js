@@ -1,8 +1,6 @@
-// main.js - Main Initialization File (UPDATED)
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📱 Smart Drive Web App Loading...');
     
-    // First check authentication
     const sessionId = localStorage.getItem('session_id');
     const userData = localStorage.getItem('user_data');
     
@@ -12,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     
-    // Wait for all classes to be defined
     if (typeof SmartDriveWebApp === 'undefined') {
         console.error('❌ SmartDriveWebApp class not found. Check script loading order.');
         setTimeout(() => {
@@ -30,13 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initializeApp() {
     try {
-        // Initialize main application
+        
         window.app = new SmartDriveWebApp();
         
         console.log('✅ Smart Drive Web App initialized');
         console.log('✅ App instance:', window.app);
         
-        // Set up global functions after app is initialized
         setupGlobalFunctions();
     } catch (error) {
         console.error('❌ Failed to initialize app:', error);
@@ -46,7 +42,7 @@ function initializeApp() {
 }
 
 function setupGlobalFunctions() {
-    // Make button functions globally available
+    
     window.startTrip = () => {
         if (window.app) {
             window.app.startTrip();
@@ -79,7 +75,6 @@ function setupGlobalFunctions() {
         }
     };
     
-    // Global functions for onclick handlers
     window.showNewTripModal = async () => {
         if (window.modals) {
             await window.modals.populateVehicleSelect('tripVehicle');
@@ -307,7 +302,6 @@ function setupGlobalFunctions() {
         }
     };
 
-    // Form submission handlers
     window.submitAddVehicle = async () => {
         const plate = document.getElementById('vehiclePlate')?.value;
         const make = document.getElementById('vehicleMake')?.value;
@@ -499,7 +493,7 @@ function setupGlobalFunctions() {
                         window.app.activeTripId = tripResult.trip_id;
                         window.app.liveData.trip_id = tripResult.trip_id;
                         window.app.liveData.trip_active = true;
-                        // Start trip tracker if available
+                        
                         if (window.app.tripTracker) {
                             window.app.tripTracker.startTrip(
                                 tripResult.trip_id,
@@ -519,7 +513,6 @@ function setupGlobalFunctions() {
         }
     };
 
-    // Vision processing functions
     window.startVisionProcessing = () => {
         if (window.cameraManager) {
             window.cameraManager.startVisionProcessing();

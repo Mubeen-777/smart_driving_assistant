@@ -1,6 +1,3 @@
-// trip-tracker.js - AGENT-3: Trip Distance & Duration Tracking
-// Tracks active trip: distance accumulation, duration counter, waypoints
-
 class TripTracker {
     constructor(app) {
         this.app = app;
@@ -12,7 +9,6 @@ class TripTracker {
         this.recordingInterval = null;
     }
 
-    // Start trip tracking (called when trip starts)
     startTrip(tripId, startLat, startLon) {
         console.log('🚗 AGENT-3: Trip tracking started:', tripId);
         
@@ -33,17 +29,14 @@ class TripTracker {
         this.tripStartPosition = {lat: startLat, lon: startLon};
         this.tripDistance = 0;
 
-        // Start timer for duration
         this.startDurationTimer();
 
-        // Start recording waypoints
         this.startWaypointRecording();
 
         console.log('✅ Trip tracker initialized');
         return true;
     }
 
-    // Update trip with new GPS position
     recordPosition(latitude, longitude, speed) {
         if (!this.activeTrip) {
             console.warn('⚠️ recordPosition called but no active trip');
@@ -53,15 +46,12 @@ class TripTracker {
         const currentTime = Date.now();
         const lastWaypoint = this.activeTrip.waypoints[this.activeTrip.waypoints.length - 1];
 
-        // Calculate distance from last waypoint using Haversine formula (returns km)
         const distance = this.calculateDistance(
             lastWaypoint.lat, lastWaypoint.lon,
             latitude, longitude
         );
 
-        // AGENT-3 FIX: Lowered threshold from 5m (0.005km) to 1m (0.001km) for better precision
-        // Only record if moved more than 1 meter (avoid noise but capture more points)
-        if (distance > 0.001) {  // 1 meter threshold
+        if (distance > 0.001) {  
             this.activeTrip.waypoints.push({
                 lat: latitude,
                 lon: longitude,
@@ -69,13 +59,11 @@ class TripTracker {
                 speed: speed
             });
 
-            // Accumulate distance in kilometers
             this.activeTrip.totalDistance += distance;
             this.tripDistance = this.activeTrip.totalDistance;
             
             console.log(`📍 Distance recorded: ${distance.toFixed(6)} km, Total: ${this.activeTrip.totalDistance.toFixed(4)} km, Speed: ${speed.toFixed(1)} km/h`);
 
-            // Track speed
             if (speed > 0) {
                 this.activeTrip.speeds.push(speed);
                 if (speed > this.activeTrip.maxSpeed) {
@@ -83,14 +71,12 @@ class TripTracker {
                 }
             }
 
-            // Update UI immediately
             this.updateTripUI();
         } else if (distance > 0) {
             console.log(`⚠️ Movement too small (${(distance * 1000).toFixed(1)}m), skipping...`);
         }
     }
 
-    // Timer for duration (updates every second)
     startDurationTimer() {
         console.log('⏱️ Starting duration timer for trip:', this.activeTrip?.id);
         
@@ -105,21 +91,18 @@ class TripTracker {
             console.log(`⏱️ Trip duration: ${seconds}s (${(seconds/60).toFixed(1)} min)`);
             
             this.updateDurationUI(duration);
-        }, 1000);  // Update every second
+        }, 1000);  
     }
 
-    // Record waypoints to backend periodically
     startWaypointRecording() {
         this.recordingInterval = setInterval(() => {
             if (!this.activeTrip || this.activeTrip.waypoints.length < 2) return;
 
-            // Send last 10 waypoints to backend for saving
             const waypointsToSend = this.activeTrip.waypoints.slice(-10);
             this.syncWaypointsToBackend(this.activeTrip.id, waypointsToSend);
-        }, 30000);  // Every 30 seconds
+        }, 30000);  
     }
 
-    // End trip and save data
     async stopTrip() {
         if (!this.activeTrip) {
             console.warn('⚠️ stopTrip called but no active trip');
@@ -131,20 +114,17 @@ class TripTracker {
 
         this.activeTrip.endTime = Date.now();
 
-        // Calculate statistics
         const duration = this.activeTrip.endTime - this.activeTrip.startTime;
         const distance = this.activeTrip.totalDistance;
         const avgSpeed = this.activeTrip.speeds.length > 0
             ? (this.activeTrip.speeds.reduce((a, b) => a + b, 0) / this.activeTrip.speeds.length)
             : 0;
 
-        // Stop timers immediately
         clearInterval(this.timerInterval);
         clearInterval(this.recordingInterval);
         this.timerInterval = null;
         this.recordingInterval = null;
 
-        // Store trip data before clearing (for summary)
         const tripData = {
             trip_id: tripId,
             duration: duration,
@@ -152,10 +132,9 @@ class TripTracker {
             waypoints: this.activeTrip.waypoints,
             max_speed: this.activeTrip.maxSpeed,
             avg_speed: avgSpeed,
-            total_events: 0  // TODO: Count safety events
+            total_events: 0  
         };
 
-        // Store in app for summary
         if (this.app) {
             this.app.lastTripData = {
                 distance: distance,
@@ -166,30 +145,26 @@ class TripTracker {
             };
         }
 
-        // Clear active trip state (but keep tripStartPosition for fallback)
         const savedStartPosition = this.tripStartPosition;
         this.activeTrip = null;
         this.tripStartTime = null;
         this.tripDistance = 0;
 
-        // Save complete trip to backend (await to ensure it completes)
         try {
             await this.saveTripToBackend(tripData);
             console.log('✅ Trip data saved successfully');
             return true;
         } catch (error) {
             console.error('❌ Failed to save trip data:', error);
-            // Restore trip state if save failed (optional - might want to keep it cleared)
-            // For now, we'll just log the error and return false
+            
             return false;
         }
     }
 
-    // Calculate distance between two points (Haversine formula)
     calculateDistance(lat1, lon1, lat2, lon2) {
         if (lat1 === lat2 && lon1 === lon2) return 0;
 
-        const R = 6371;  // Earth radius in km
+        const R = 6371;  
         const φ1 = lat1 * Math.PI / 180;
         const φ2 = lat2 * Math.PI / 180;
         const Δφ = (lat2 - lat1) * Math.PI / 180;
@@ -200,10 +175,9 @@ class TripTracker {
                   Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-        return R * c;  // Return in km
+        return R * c;  
     }
 
-    // Update UI with distance
     updateTripUI() {
         const distanceEl = document.getElementById('tripDistance');
         const speedEl = document.getElementById('currentSpeed');
@@ -219,7 +193,6 @@ class TripTracker {
         }
     }
 
-    // Update UI with duration (every second)
     updateDurationUI(durationMs) {
         const durationEl = document.getElementById('tripDuration');
         
@@ -236,13 +209,11 @@ class TripTracker {
         const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         durationEl.textContent = timeString;
         
-        // Debug logging every 5 seconds
         if (totalSeconds % 5 === 0) {
             console.log(`📊 Trip duration updated: ${timeString}`);
         }
     }
 
-    // Sync waypoints to backend
     async syncWaypointsToBackend(tripId, waypoints) {
         try {
             if (!window.db) {
@@ -250,8 +221,6 @@ class TripTracker {
                 return;
             }
 
-            // AGENT-3 FIX: Use DatabaseAPI instead of raw fetch
-            // Send latest waypoint with GPS data
             if (waypoints.length > 0) {
                 const lastWaypoint = waypoints[waypoints.length - 1];
                 const result = await window.db.logGPSPoint(
@@ -267,11 +236,10 @@ class TripTracker {
             }
         } catch (error) {
             console.error('⚠️ Failed to sync waypoints:', error);
-            // Don't retry here - will be saved when trip ends
+            
         }
     }
 
-    // Save complete trip to backend
     async saveTripToBackend(tripData) {
         if (!window.db) {
             const error = new Error('Database API not available');
@@ -282,26 +250,24 @@ class TripTracker {
             throw error;
         }
 
-        // Validate trip data
         if (!tripData || !tripData.trip_id) {
             const error = new Error('Invalid trip data: missing trip_id');
             console.error('❌', error.message);
             throw error;
         }
 
-        // Get end coordinates from waypoints, or fallback to start position
         let endLat, endLon;
         if (tripData.waypoints && Array.isArray(tripData.waypoints) && tripData.waypoints.length > 0) {
             const lastWaypoint = tripData.waypoints[tripData.waypoints.length - 1];
             endLat = lastWaypoint.lat;
             endLon = lastWaypoint.lon;
         } else if (this.tripStartPosition) {
-            // Fallback to start position if no waypoints recorded
+            
             console.warn('⚠️ No waypoints recorded, using start position as end position');
             endLat = this.tripStartPosition.lat;
             endLon = this.tripStartPosition.lon;
         } else if (this.app && this.app.liveData) {
-            // Fallback to current GPS position
+            
             endLat = this.app.liveData.latitude;
             endLon = this.app.liveData.longitude;
         } else {
@@ -310,7 +276,6 @@ class TripTracker {
             throw error;
         }
 
-        // Validate coordinates
         if (!endLat || !endLon || isNaN(endLat) || isNaN(endLon)) {
             const error = new Error('Invalid coordinates for trip end');
             console.error('❌', error.message, { endLat, endLon });
@@ -318,7 +283,7 @@ class TripTracker {
         }
 
         try {
-            // Check if we have a session (required for API calls)
+            
             if (this.app && !this.app.sessionId) {
                 throw new Error('No active session. Please login again.');
             }
@@ -330,12 +295,11 @@ class TripTracker {
                 hasSession: !!(this.app && this.app.sessionId)
             });
             
-            // AGENT-3 FIX: Use proper DatabaseAPI method instead of raw fetch
             const result = await window.db.endTrip(
                 tripData.trip_id,
                 endLat,
                 endLon,
-                ''  // address (optional)
+                ''  
             );
 
             if (result) {
@@ -358,7 +322,6 @@ class TripTracker {
                 errorName: error.name
             });
             
-            // Provide more helpful error messages
             let userMessage = error.message;
             if (error.message.includes('trip may not exist')) {
                 userMessage = 'Trip not found in database. It may not have been properly started.';
@@ -371,12 +334,11 @@ class TripTracker {
             if (this.app && this.app.showToast) {
                 this.app.showToast('Failed to save trip data: ' + userMessage, 'error');
             }
-            // Re-throw to allow caller to handle
+            
             throw error;
         }
     }
 
-    // Get active trip info
     getActiveTripInfo() {
         if (!this.activeTrip) return null;
 
@@ -390,7 +352,6 @@ class TripTracker {
         };
     }
 
-    // Check if trip is active
     isActive() {
         return this.activeTrip !== null;
     }

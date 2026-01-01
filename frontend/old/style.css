@@ -1,23 +1,13 @@
-/* ============================================
-   Smart Drive Manager - Modern Dashboard CSS
-   Beautiful, Clean, Professional Design
-   ============================================ */
-
-/* ============================================
-   1. CSS VARIABLES
-   ============================================ */
 :root {
-    /* Primary Colors - Modern Blue/Purple Gradient */
+    
     --primary-color: #6366f1;
     --primary-dark: #4f46e5;
     --primary-light: #818cf8;
     --primary-bg: rgba(99, 102, 241, 0.1);
     
-    /* Secondary Colors */
     --secondary-color: #8b5cf6;
     --accent-color: #06b6d4;
     
-    /* Status Colors */
     --success-color: #10b981;
     --success-bg: rgba(16, 185, 129, 0.1);
     --danger-color: #ef4444;
@@ -27,7 +17,6 @@
     --info-color: #3b82f6;
     --info-bg: rgba(59, 130, 246, 0.1);
     
-    /* Neutral Colors */
     --bg-primary: #f8fafc;
     --bg-secondary: #f1f5f9;
     --bg-card: #ffffff;
@@ -37,7 +26,6 @@
     --border-color: #e2e8f0;
     --border-light: #f1f5f9;
     
-    /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -45,14 +33,12 @@
     --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
     --shadow-hover: 0 10px 40px -10px rgba(99, 102, 241, 0.3);
     
-    /* Border Radius */
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 16px;
     --radius-xl: 24px;
     --radius-full: 9999px;
     
-    /* Spacing */
     --spacing-xs: 4px;
     --spacing-sm: 8px;
     --spacing-md: 16px;
@@ -60,19 +46,14 @@
     --spacing-xl: 32px;
     --spacing-2xl: 48px;
     
-    /* Transitions */
     --transition-fast: 150ms ease;
     --transition-base: 200ms ease;
     --transition-slow: 300ms ease;
     
-    /* Sidebar */
     --sidebar-width: 280px;
     --sidebar-collapsed: 80px;
 }
 
-/* ============================================
-   2. RESET & BASE STYLES
-   ============================================ */
 *, *::before, *::after {
     margin: 0;
     padding: 0;
@@ -93,9 +74,6 @@ body {
     min-height: 100vh;
 }
 
-/* ============================================
-   3. LAYOUT - APP CONTAINER
-   ============================================ */
 .app-container {
     display: grid;
     grid-template-columns: var(--sidebar-width) 1fr;
@@ -117,7 +95,6 @@ body {
     padding-right: calc(var(--spacing-lg) + 10px);
 }
 
-/* Custom Scrollbar */
 .content-area::-webkit-scrollbar {
     width: 6px;
 }
@@ -135,9 +112,6 @@ body {
     background: var(--text-muted);
 }
 
-/* ============================================
-   4. SIDEBAR
-   ============================================ */
 .sidebar {
     background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%);
     display: flex;
@@ -154,7 +128,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http:
     pointer-events: none;
 }
 
@@ -205,7 +179,6 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* User Profile */
 .user-profile {
     display: flex;
     align-items: center;
@@ -255,7 +228,6 @@ body {
     margin: 0;
 }
 
-/* Navigation Menu */
 .nav-menu {
     list-style: none;
     flex: 1;
@@ -297,7 +269,6 @@ body {
     flex-shrink: 0;
 }
 
-/* Sidebar Footer */
 .sidebar-footer {
     padding: var(--spacing-lg);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -333,7 +304,6 @@ body {
     50% { opacity: 0.5; }
 }
 
-/* Logout Button */
 .btn-logout {
     width: 100%;
     padding: var(--spacing-md);
@@ -358,9 +328,6 @@ body {
     transform: translateY(-1px);
 }
 
-/* ============================================
-   5. TOP BAR
-   ============================================ */
 .top-bar {
     display: flex;
     justify-content: space-between;
@@ -430,9 +397,6 @@ body {
     color: var(--success-color);
 }
 
-/* ============================================
-   6. CARDS
-   ============================================ */
 .card {
     background: var(--bg-card);
     border-radius: var(--radius-lg);
@@ -485,9 +449,6 @@ body {
     padding: var(--spacing-lg);
 }
 
-/* ============================================
-   7. BUTTONS
-   ============================================ */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -593,9 +554,6 @@ body {
     transform: none !important;
 }
 
-/* ============================================
-   8. FORMS
-   ============================================ */
 .form-group {
     margin-bottom: var(--spacing-md);
 }
@@ -649,9 +607,6 @@ body {
     font-size: 0.8rem;
 }
 
-/* ============================================
-   9. DASHBOARD GRIDS
-   ============================================ */
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -689,9 +644,6 @@ body {
     gap: var(--spacing-lg);
 }
 
-/* ============================================
-   10. STAT CARDS
-   ============================================ */
 .stat-card {
     display: flex;
     align-items: center;
@@ -736,9 +688,6 @@ body {
     margin: 4px 0 0 0;
 }
 
-/* ============================================
-   11. VIDEO & CAMERA FEED
-   ============================================ */
 .video-container,
 .vision-container {
     position: relative;
@@ -829,9 +778,6 @@ body {
     z-index: 10;
 }
 
-/* ============================================
-   12. STATUS BADGES
-   ============================================ */
 .status-badge {
     display: inline-flex;
     align-items: center;
@@ -890,9 +836,6 @@ body {
     color: var(--primary-color);
 }
 
-/* ============================================
-   13. TABLES
-   ============================================ */
 .table-responsive {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -933,9 +876,6 @@ body {
     background: var(--primary-bg);
 }
 
-/* ============================================
-   14. SPEEDOMETER
-   ============================================ */
 .speedometer-container {
     position: relative;
     display: flex;
@@ -1002,9 +942,6 @@ body {
     color: var(--primary-color);
 }
 
-/* ============================================
-   15. GPS DISPLAY
-   ============================================ */
 .gps-display {
     display: flex;
     flex-direction: column;
@@ -1060,9 +997,6 @@ body {
     opacity: 0.4;
 }
 
-/* ============================================
-   16. SAFETY EVENTS
-   ============================================ */
 .safety-events {
     display: flex;
     flex-direction: column;
@@ -1116,9 +1050,6 @@ body {
     color: var(--primary-color);
 }
 
-/* ============================================
-   17. TRIP CONTROLS
-   ============================================ */
 .trip-controls {
     display: flex;
     flex-direction: column;
@@ -1173,9 +1104,6 @@ body {
     color: var(--text-primary);
 }
 
-/* ============================================
-   18. TOASTS
-   ============================================ */
 .toast-container {
     position: fixed;
     top: var(--spacing-lg);
@@ -1240,9 +1168,6 @@ body {
     to { transform: translateX(0); opacity: 1; }
 }
 
-/* ============================================
-   19. MODALS
-   ============================================ */
 .modal {
     display: none;
     position: fixed;
@@ -1324,9 +1249,6 @@ body {
     color: var(--danger-color);
 }
 
-/* ============================================
-   20. LOADING SPINNER
-   ============================================ */
 .loading-spinner {
     position: fixed;
     top: 0;
@@ -1366,20 +1288,15 @@ body {
     to { transform: rotate(360deg); }
 }
 
-/* Spinner for loading states */
 .fa-spin {
     animation: spin 1s linear infinite;
 }
 
-/* Video feed placeholder improvements */
 .video-feed[src=""],
 .vision-feed[src=""] {
     background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
 }
 
-/* ============================================
-   21. ALERTS PANEL
-   ============================================ */
 .alerts-panel {
     position: fixed;
     right: -380px;
@@ -1496,9 +1413,6 @@ body {
     white-space: nowrap;
 }
 
-/* ============================================
-   22. EMPTY STATE
-   ============================================ */
 .empty-state {
     text-align: center;
     padding: var(--spacing-2xl);
@@ -1523,9 +1437,6 @@ body {
     margin-bottom: var(--spacing-lg);
 }
 
-/* ============================================
-   23. METRIC CARDS
-   ============================================ */
 .metric-card {
     background: var(--bg-secondary);
     border-radius: var(--radius-md);
@@ -1571,9 +1482,6 @@ body {
     font-weight: 600;
 }
 
-/* ============================================
-   24. INFO ITEMS
-   ============================================ */
 .info-item {
     display: flex;
     justify-content: space-between;
@@ -1599,9 +1507,6 @@ body {
     color: var(--success-color);
 }
 
-/* ============================================
-   25. RESPONSIVE DESIGN
-   ============================================ */
 @media (max-width: 1024px) {
     .app-container {
         grid-template-columns: 1fr;
@@ -1677,9 +1582,6 @@ body {
     }
 }
 
-/* ============================================
-   26. SWITCH TOGGLE
-   ============================================ */
 .switch {
     position: relative;
     display: inline-block;
@@ -1726,9 +1628,6 @@ body {
     transform: translateX(24px);
 }
 
-/* ============================================
-   27. PAGE HEADER
-   ============================================ */
 .page-header {
     margin-bottom: var(--spacing-xl);
 }
@@ -1752,9 +1651,6 @@ body {
     font-size: 0.95rem;
 }
 
-/* ============================================
-   28. SETTINGS GRID
-   ============================================ */
 .settings-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -1784,9 +1680,6 @@ body {
     margin: 0;
 }
 
-/* ============================================
-   29. REPORT OPTIONS
-   ============================================ */
 .report-options {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1820,9 +1713,6 @@ body {
     margin: 0 0 var(--spacing-md) 0;
 }
 
-/* ============================================
-   30. VEHICLE CARD
-   ============================================ */
 .vehicle-card {
     background: var(--bg-card);
     border-radius: var(--radius-lg);
@@ -1869,9 +1759,6 @@ body {
     border-top: 1px solid var(--border-light);
 }
 
-/* ============================================
-   31. SYSTEM INFO GRID
-   ============================================ */
 .system-info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1885,9 +1772,6 @@ body {
     margin-top: var(--spacing-lg);
 }
 
-/* ============================================
-   32. HELP LINKS
-   ============================================ */
 .help-links {
     display: flex;
     flex-direction: column;
@@ -1957,9 +1841,6 @@ body {
     margin: 4px 0;
 }
 
-/* ============================================
-   33. TRIPS CONTROLS
-   ============================================ */
 .trips-controls {
     display: flex;
     justify-content: space-between;
@@ -1975,9 +1856,6 @@ body {
     flex-wrap: wrap;
 }
 
-/* ============================================
-   34. REPORTS CONTROLS
-   ============================================ */
 .reports-controls {
     display: flex;
     flex-wrap: wrap;
@@ -2003,9 +1881,6 @@ body {
     font-size: 0.85rem;
 }
 
-/* ============================================
-   35. CHART STATS
-   ============================================ */
 .chart-stats {
     display: flex;
     justify-content: space-around;
@@ -2040,9 +1915,6 @@ body {
     color: var(--danger-color);
 }
 
-/* ============================================
-   36. DETECTION LOG
-   ============================================ */
 .detection-log {
     max-height: 350px;
     overflow-y: auto;
@@ -2099,11 +1971,6 @@ body {
     color: var(--text-primary);
 }
 
-/* ============================================
-   37. ADDITIONAL PAGE STYLES
-   ============================================ */
-
-/* Trip Map Placeholder */
 .trip-map-placeholder {
     height: 250px;
     background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--border-light) 100%);
@@ -2127,7 +1994,6 @@ body {
     opacity: 0.6;
 }
 
-/* Vehicles Controls */
 .vehicles-controls {
     display: flex;
     gap: var(--spacing-md);
@@ -2141,7 +2007,6 @@ body {
     gap: var(--spacing-md);
 }
 
-/* Expense Summary */
 .expense-summary {
     display: flex;
     flex-direction: column;
@@ -2203,7 +2068,6 @@ body {
     flex-wrap: wrap;
 }
 
-/* Budget Status */
 .budget-status {
     display: flex;
     flex-direction: column;
@@ -2234,7 +2098,6 @@ body {
     margin: 2px 0;
 }
 
-/* Drivers Controls */
 .drivers-controls {
     display: flex;
     gap: var(--spacing-md);
@@ -2242,7 +2105,6 @@ body {
     flex-wrap: wrap;
 }
 
-/* Behavior Stats */
 .behavior-stats {
     display: flex;
     flex-direction: column;
@@ -2267,7 +2129,6 @@ body {
     color: var(--primary-color);
 }
 
-/* Recommendations */
 .recommendations {
     display: flex;
     flex-direction: column;
@@ -2307,7 +2168,6 @@ body {
 .priority-2 { background: var(--warning-bg); color: var(--warning-color); }
 .priority-3 { background: var(--info-bg); color: var(--info-color); }
 
-/* Incidents Controls */
 .incidents-controls {
     display: flex;
     gap: var(--spacing-md);
@@ -2315,7 +2175,6 @@ body {
     flex-wrap: wrap;
 }
 
-/* Incident Stats */
 .incident-stats {
     display: flex;
     flex-direction: column;
@@ -2330,7 +2189,6 @@ body {
     border-radius: var(--radius-md);
 }
 
-/* Quick Report */
 .quick-report {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -2368,7 +2226,6 @@ body {
     font-size: 0.9rem;
 }
 
-/* Camera Controls */
 .camera-controls {
     display: flex;
     flex-wrap: wrap;
@@ -2381,7 +2238,6 @@ body {
     box-shadow: var(--shadow-card);
 }
 
-/* Vision Controls - same as camera controls */
 .vision-controls {
     display: flex;
     flex-wrap: wrap;
@@ -2417,7 +2273,6 @@ body {
     font-size: 0.9rem;
 }
 
-/* Vision Grid */
 .vision-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -2425,7 +2280,6 @@ body {
     margin-bottom: var(--spacing-lg);
 }
 
-/* Analytics Stats */
 .analytics-stats {
     display: flex;
     flex-direction: column;
@@ -2459,7 +2313,6 @@ body {
     border-radius: var(--radius-md);
 }
 
-/* Vision Settings */
 .vision-settings {
     display: flex;
     flex-direction: column;
@@ -2478,7 +2331,6 @@ body {
     color: var(--text-primary);
 }
 
-/* Row layout for tables */
 .row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -2495,7 +2347,6 @@ body {
     flex: 1;
 }
 
-/* Resolution Display */
 .resolution-display {
     font-size: 0.75rem;
     color: var(--text-muted);
@@ -2504,14 +2355,12 @@ body {
     border-radius: var(--radius-sm);
 }
 
-/* Form Row */
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--spacing-md);
 }
 
-/* Profile Section */
 .profile-section {
     padding: var(--spacing-lg);
     background: linear-gradient(135deg, var(--primary-bg) 0%, rgba(139, 92, 246, 0.1) 100%);
@@ -2536,7 +2385,6 @@ body {
     color: var(--text-primary);
 }
 
-/* Stats List */
 .stats-list {
     display: flex;
     flex-direction: column;
@@ -2551,7 +2399,6 @@ body {
     border-radius: var(--radius-md);
 }
 
-/* Form text muted */
 .form-text {
     font-size: 0.8rem;
     color: var(--text-muted);
@@ -2562,7 +2409,6 @@ body {
     color: var(--text-muted);
 }
 
-/* Input wrapper for icons */
 .input-wrapper {
     position: relative;
 }
@@ -2600,7 +2446,6 @@ body {
     background: var(--primary-bg);
 }
 
-/* Custom control switch */
 .custom-control {
     display: flex;
     align-items: center;
@@ -2616,7 +2461,6 @@ body {
     color: var(--text-primary);
 }
 
-/* Form check */
 .form-check {
     display: flex;
     align-items: center;
@@ -2633,7 +2477,6 @@ body {
     color: var(--text-primary);
 }
 
-/* Notification Settings */
 .notification-settings {
     display: flex;
     flex-direction: column;
@@ -2653,7 +2496,6 @@ body {
     margin: 0 0 var(--spacing-md) 0;
 }
 
-/* Performance legend */
 .performance-legend {
     display: flex;
     justify-content: center;
@@ -2681,7 +2523,6 @@ body {
 .legend-color.consistency { background: var(--warning-color); }
 .legend-color.compliance { background: var(--info-color); }
 
-/* Chart Container */
 .chart-container {
     position: relative;
     width: 100%;
@@ -2692,14 +2533,12 @@ body {
     max-width: 100%;
 }
 
-/* Performance Radar */
 .performance-radar {
     display: flex;
     justify-content: center;
     padding: var(--spacing-md) 0;
 }
 
-/* Lane visualization */
 .lane-center, .lane-left, .lane-right {
     position: absolute;
     height: 2px;
@@ -2724,7 +2563,6 @@ body {
     background: rgba(245, 158, 11, 0.6);
 }
 
-/* Object detection boxes */
 .object-box {
     position: absolute;
     border: 2px solid;
@@ -2745,7 +2583,6 @@ body {
     white-space: nowrap;
 }
 
-/* Print styles */
 @media print {
     .sidebar, .alerts-panel, .toast-container {
         display: none !important;

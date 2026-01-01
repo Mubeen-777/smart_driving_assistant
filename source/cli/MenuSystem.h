@@ -1,6 +1,3 @@
-// File Location: source/cli/MenuSystem.h
-// Smart Drive Manager - Interactive CLI Menu System
-
 #ifndef MENUSYSTEM_H
 #define MENUSYSTEM_H
 
@@ -18,21 +15,19 @@ class MenuSystem
 {
 private:
     SDMConfig config_;
-    // Core components (local mode)
+    
     DatabaseManager *db_manager_;
     CacheManager *cache_manager_;
     IndexManager *index_manager_;
     SecurityManager *security_manager_;
     SessionManager *session_manager_;
 
-    // Feature modules
     TripManager *trip_manager_;
     VehicleManager *vehicle_manager_;
     ExpenseManager *expense_manager_;
     DriverManager *driver_manager_;
     IncidentManager *incident_manager_;
 
-    // Current session
     string current_session_id_;
     DriverProfile current_driver_;
     bool logged_in_;
@@ -65,8 +60,6 @@ public:
         cleanup();
     }
 
-    // Replace the entire initialize() method in MenuSystem.h with this:
-
     bool initialize()
     {
         clear_screen();
@@ -75,15 +68,12 @@ public:
         cout << "Initializing Smart Drive Manager..." << endl;
         cout << endl;
 
-        // [0/8] Create all required directories FIRST
         cout << "[0/8] Creating directories..." << flush;
 
-        // Create compiled directory and subdirectories
         system("mkdir -p compiled");
         system("mkdir -p compiled/indexes");
         system("mkdir -p compiled/detections");
 
-        // Verify directories were created
         struct stat st;
         if (stat("compiled", &st) != 0 || stat("compiled/indexes", &st) != 0)
         {
@@ -97,7 +87,6 @@ public:
 
         cout << " ✓" << endl;
 
-        // [1/8] Initialize database
         cout << "[1/8] Database..." << flush;
         db_manager_ = new DatabaseManager(config_.database_path);
         if (!db_manager_->open())
@@ -116,12 +105,10 @@ public:
         }
         cout << " ✓" << endl;
 
-        // [2/8] Initialize cache
         cout << "[2/8] Cache..." << flush;
         cache_manager_ = new CacheManager(256, 256, 512, 1024);
         cout << " ✓" << endl;
 
-        // [3/8] Initialize indexes
         cout << "[3/8] Indexes..." << flush;
         index_manager_ = new IndexManager(config_.index_path);
         if (!index_manager_->open_indexes())
@@ -135,18 +122,15 @@ public:
         }
         cout << " ✓" << endl;
 
-        // [4/8] Initialize security
         cout << "[4/8] Security..." << flush;
         security_manager_ = new SecurityManager();
         cout << " ✓" << endl;
 
-        // [5/8] Initialize session manager
         cout << "[5/8] Sessions..." << flush;
         session_manager_ = new SessionManager(
             *security_manager_, *cache_manager_, *db_manager_, config_.session_timeout);
         cout << " ✓" << endl;
 
-        // [6/8] Initialize feature modules
         cout << "[6/8] Feature Modules..." << flush;
 
         trip_manager_ = new TripManager(*db_manager_, *cache_manager_,
@@ -162,7 +146,6 @@ public:
 
         cout << " ✓" << endl;
 
-        // [8/8] Create admin account
         cout << "[8/8] Admin Account..." << flush;
         bool admin_created = session_manager_->register_user(
             config_.admin_username, config_.admin_password,
@@ -171,7 +154,7 @@ public:
 
         if (!admin_created)
         {
-            // Admin already exists, that's okay
+            
             cout << " (already exists) ✓" << endl;
         }
         else
@@ -198,7 +181,7 @@ public:
             {
                 if (!show_login_menu())
                 {
-                    break; // Exit requested
+                    break; 
                 }
             }
             else
@@ -210,10 +193,6 @@ public:
         cout << endl;
         cout << "Thank you for using Smart Drive Manager!" << endl;
     }
-
-    // ========================================================================
-    // LOGIN MENU
-    // ========================================================================
 
     bool show_login_menu()
     {
@@ -239,7 +218,7 @@ public:
             do_register();
             return true;
         case 3:
-            return false; // Exit
+            return false; 
         default:
             cout << "Invalid choice!" << endl;
             pause();
@@ -268,7 +247,6 @@ public:
         {
             logged_in_ = true;
 
-            // Initialize maintenance alerts on login
             vehicle_manager_->refresh_all_alerts();
             auto vehicles = vehicle_manager_->get_driver_vehicles(current_driver_.driver_id);
             for (const auto &vehicle : vehicles)
@@ -317,10 +295,6 @@ public:
 
         pause();
     }
-
-    // ========================================================================
-    // MAIN MENU
-    // ========================================================================
 
     void show_main_menu()
     {
@@ -393,10 +367,6 @@ public:
         cout << "✓ Logged out successfully!" << endl;
         pause();
     }
-
-    // ========================================================================
-    // TRIP MENU
-    // ========================================================================
 
     void show_trip_menu()
     {
@@ -493,7 +463,6 @@ public:
         cout << "=== SIMULATE TRIP ===" << endl;
         cout << endl;
 
-        // Get vehicle
         auto vehicles = vehicle_manager_->get_driver_vehicles(current_driver_.driver_id);
 
         if (vehicles.empty())
@@ -521,13 +490,12 @@ public:
 
         uint64_t vehicle_id = vehicles[vehicle_choice].vehicle_id;
 
-        // Start trip
         cout << endl;
         cout << "Starting simulated trip..." << endl;
 
         uint64_t trip_id = trip_manager_->start_trip(
             current_driver_.driver_id, vehicle_id,
-            31.5204, 74.3587, // Lahore coordinates
+            31.5204, 74.3587, 
             "Lahore, Pakistan");
 
         if (trip_id == 0)
@@ -540,7 +508,6 @@ public:
         cout << "Trip started (ID: " << trip_id << ")" << endl;
         cout << "Simulating 10 GPS points..." << endl;
 
-        // Simulate GPS points
         for (int i = 0; i < 10; i++)
         {
             double lat = 31.5204 + (i * 0.001);
@@ -555,17 +522,12 @@ public:
         cout << endl;
         cout << "Ending trip..." << endl;
 
-        // End trip
         trip_manager_->end_trip(trip_id, 31.5304, 74.3687, "Lahore, Pakistan");
 
         cout << "✓ Trip completed successfully!" << endl;
         cout << endl;
         pause();
     }
-
-    // ========================================================================
-    // VEHICLE MENU
-    // ========================================================================
 
     void show_vehicle_menu()
     {
@@ -730,7 +692,7 @@ public:
 
     void add_maintenance_record()
     {
-        // Similar implementation...
+        
         cout << "Add Maintenance Record - Implementation complete" << endl;
         pause();
     }
@@ -784,10 +746,7 @@ public:
             show_maintenance_alerts();
         }
     }
-    // ========================================================================
-    // EXPENSE MENU
-    // ========================================================================
-
+    
     void show_expense_menu()
     {
         clear_screen();
@@ -893,7 +852,7 @@ public:
         cout << endl;
 
         uint64_t end_date = get_current_timestamp();
-        uint64_t start_date = end_date - (30ULL * 86400ULL * 1000000000ULL); // Last 30 days
+        uint64_t start_date = end_date - (30ULL * 86400ULL * 1000000000ULL); 
 
         auto summary = expense_manager_->get_expense_summary(
             current_driver_.driver_id, start_date, end_date);
@@ -919,7 +878,7 @@ public:
 
     void set_budget_limit()
     {
-        // Implementation...
+        
         cout << "Set Budget Limit - Implementation complete" << endl;
         pause();
     }
@@ -956,10 +915,6 @@ public:
         cout << endl;
         pause();
     }
-
-    // ========================================================================
-    // DRIVER MENU
-    // ========================================================================
 
     void show_driver_menu()
     {
@@ -1255,10 +1210,6 @@ public:
         pause();
     }
 
-    // ========================================================================
-    // SYSTEM STATISTICS
-    // ========================================================================
-
     void show_system_stats()
     {
         clear_screen();
@@ -1371,4 +1322,4 @@ public:
     }
 };
 
-#endif // MENUSYSTEM_H
+#endif 

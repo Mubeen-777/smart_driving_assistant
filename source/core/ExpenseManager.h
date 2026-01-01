@@ -14,7 +14,6 @@
 #include <chrono>
 using namespace std;
 
-
 class ExpenseManager
 {
 private:
@@ -45,7 +44,6 @@ public:
     void set_trip_manager(class TripManager *trip_mgr) {
         trip_mgr_ = trip_mgr;
     }
-
 
     uint64_t add_expense(uint64_t driver_id,
                          uint64_t vehicle_id,
@@ -158,7 +156,7 @@ public:
                           double monthly_limit,
                           uint64_t alert_percentage = 80)
     {
-        // Find existing budget or create new
+        
         auto it = find_if(budget_limits_.begin(), budget_limits_.end(),
                                [driver_id, category](const BudgetLimit &b)
                                {
@@ -271,7 +269,7 @@ public:
         double other_expenses;
 
         map<ExpenseCategory, double> by_category;
-        map<uint64_t, double> by_vehicle; // vehicle_id -> amount
+        map<uint64_t, double> by_vehicle; 
 
         double average_daily_expense;
         double average_monthly_expense;
@@ -291,7 +289,6 @@ public:
             summary.total_expenses += expense.amount;
             summary.total_transactions++;
 
-            // Categorize
             switch (expense.category)
             {
             case ExpenseCategory::FUEL:
@@ -342,14 +339,12 @@ public:
     {
         vector<MonthlyExpenseReport> reports;
 
-        // Get current date components
         auto current = get_current_timestamp();
 
         for (int i = 0; i < num_months; i++)
         {
             MonthlyExpenseReport report;
 
-            // Calculate month start/end (simplified)
             uint64_t month_start = current - (i * 30ULL * 86400ULL * 1000000000ULL);
             uint64_t month_end = month_start + (30ULL * 86400ULL * 1000000000ULL);
 
@@ -369,8 +364,6 @@ public:
         return reports;
     }
 
-    // NEW: Methods for RequestHandler compatibility
-    
     bool update_expense(uint64_t expense_id, uint64_t vehicle_id, 
                         ExpenseCategory category, double amount, 
                         const string& description) {
@@ -382,7 +375,7 @@ public:
         expense.vehicle_id = vehicle_id;
         expense.category = category;
         expense.amount = amount;
-        expense.expense_date = get_current_timestamp(); // Update timestamp
+        expense.expense_date = get_current_timestamp(); 
         strncpy(expense.description, description.c_str(), sizeof(expense.description) - 1);
         
         if (!db_.update_expense(expense)) {
@@ -394,14 +387,13 @@ public:
     }
     
     bool delete_expense(uint64_t expense_id) {
-        // Note: DatabaseManager needs a delete_expense method
-        // For now, we'll mark it as deleted by setting amount to 0
+        
         ExpenseRecord expense;
         if (!db_.read_expense(expense_id, expense)) {
             return false;
         }
         
-        expense.amount = 0; // Mark as deleted
+        expense.amount = 0; 
         if (!db_.update_expense(expense)) {
             return false;
         }
@@ -415,10 +407,9 @@ public:
         if (db_.read_expense(expense_id, expense)) {
             return expense;
         }
-        return ExpenseRecord(); // Return empty expense if not found
+        return ExpenseRecord(); 
     }
     
-    // Simplified expense summary for RequestHandler
     struct SimpleExpenseSummary {
         double total_expenses;
         double fuel_expenses;
@@ -472,7 +463,6 @@ public:
         return summary;
     }
     
-
     struct TaxReport
     {
         double total_deductible_expenses;
@@ -540,7 +530,7 @@ public:
         auto expenses = get_expenses_by_date_range(driver_id, start_date, end_date);
 
         double total_distance = 0;
-        // Get total distance from TripManager
+        
         if (trip_mgr_) {
             auto trip_stats = trip_mgr_->get_driver_statistics(driver_id);
             total_distance = trip_stats.total_distance;
@@ -566,7 +556,6 @@ public:
             }
         }
 
-        // Simplified: Assume 1000 km if no distance data
         if (total_distance == 0) {
             total_distance = 1000.0;
         }
@@ -656,4 +645,4 @@ private:
     }
 };
 
-#endif // EXPENSEMANAGER_H
+#endif 

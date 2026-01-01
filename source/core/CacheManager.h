@@ -1,4 +1,3 @@
-
 #ifndef CACHEMANAGER_H
 #define CACHEMANAGER_H
 
@@ -136,7 +135,6 @@ public:
         trip_cache_.remove(trip_id);
     }
     
-    
     bool get_session(const string& session_id, SessionInfo& session) {
         lock_guard<mutex> lock(cache_mutex_);
         if (session_cache_.get(session_id, session)) {
@@ -169,7 +167,6 @@ public:
         session_cache_.remove(session_id);
     }
     
-    
     bool get_query_result(const string& query_key, vector<uint64_t>& results) {
         lock_guard<mutex> lock(cache_mutex_);
         return query_result_cache_.get(query_key, results);
@@ -189,7 +186,6 @@ public:
         lock_guard<mutex> lock(cache_mutex_);
         query_result_cache_.clear();
     }
-    
     
     struct CacheStats {
         uint64_t driver_hits;
@@ -259,7 +255,6 @@ public:
         session_hits_ = 0;
         session_misses_ = 0;
     }
-    
     
     void clear_all() {
         lock_guard<mutex> lock(cache_mutex_);

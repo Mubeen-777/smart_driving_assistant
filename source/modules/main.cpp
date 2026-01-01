@@ -1,4 +1,3 @@
-// main.cpp - FIXED: Stable capture with proper error handling
 #include "camera.h"
 #include "lane_detector.h"
 
@@ -18,7 +17,6 @@ using namespace cv;
 using namespace std;
 using namespace chrono;
 
-// Global flag for signal handling
 atomic<bool> g_should_exit(false);
 
 void signalHandler(int signum)
@@ -27,7 +25,6 @@ void signalHandler(int signum)
     g_should_exit = true;
 }
 
-// Enhanced FPS counter with smoothing
 class FPSCounter
 {
 private:
@@ -96,7 +93,7 @@ struct SystemConfig
 
     CameraMode camera_mode = CAMERA_AUTO_DETECT;
     string camera_source = "auto";
-    int camera_width = 640; // REDUCED for stability
+    int camera_width = 640; 
     int camera_height = 480;
     int target_fps = 30;
 
@@ -109,7 +106,7 @@ struct SystemConfig
 
     bool use_gpu = false;
     int processing_interval = 1;
-    int detection_interval = 1; // INCREASED to reduce load
+    int detection_interval = 1; 
 
     string phone_ip = "192.168.18.76";
     int phone_port = 4747;
@@ -120,7 +117,7 @@ struct SystemConfig
 
     bool use_v4l2 = true;
     bool use_mjpeg = true;
-    int v4l2_buffer_size = 30; // Minimal buffers
+    int v4l2_buffer_size = 30; 
 
     bool enable_usb_gps = true;
     int gps_usb_port = 5555;
@@ -211,7 +208,6 @@ private:
     unique_ptr<CameraManager> camera;
     unique_ptr<UltraFastLaneDetector> lane_detector;
 
-
     atomic<bool> running;
     atomic<bool> processing_active;
 
@@ -290,59 +286,8 @@ public:
             return false;
         }
 
-        // Wait for camera to stabilize
         cout << "Waiting for camera to stabilize..." << endl;
         this_thread::sleep_for(chrono::seconds(2));
-
-        /*
-            if (config.enable_object_detection)
-        {
-            cout << "[1/5] Initializing object detection..." << endl;
-            yolo_detector = make_unique<YOLOv8>();
-
-            ifstream model_file(config.yolo_model_path);
-            if (!model_file.good())
-            {
-                cerr << "  ✗ Model file not found: " << config.yolo_model_path << endl;
-                config.enable_object_detection = false;
-                cout << "  ⚠ Continuing without object detection" << endl;
-            }
-            else if (!yolo_detector->initialize(config.yolo_model_path, config.use_gpu))
-            {
-                cerr << "  ✗ Failed to initialize YOLOv8" << endl;
-                config.enable_object_detection = false;
-                cout << "  ⚠ Continuing without object detection" << endl;
-            }
-            else
-            {
-                cout << "  ✓ YOLOv8 initialized" << endl;
-            }
-        }
-
-        if (config.enable_drowsiness_detection)
-        {
-            cout << "[2/5] Initializing drowsiness detection..." << endl;
-            drowsiness_detector = make_unique<DrowsinessDetector>();
-
-            ifstream model_file(config.landmarks_model_path);
-            if (!model_file.good())
-            {
-                cerr << "  ✗ Model file not found: " << config.landmarks_model_path << endl;
-                config.enable_drowsiness_detection = false;
-                cout << "  ⚠ Continuing without drowsiness detection" << endl;
-            }
-            else if (!drowsiness_detector->initialize(config.landmarks_model_path))
-            {
-                cerr << "  ✗ Failed to initialize drowsiness detector" << endl;
-                config.enable_drowsiness_detection = false;
-                cout << "  ⚠ Continuing without drowsiness detection" << endl;
-            }
-            else
-            {
-                cout << "  ✓ Drowsiness detector initialized" << endl;
-            }
-        }
-        */
 
         if (config.enable_lane_detection)
         {
@@ -384,45 +329,7 @@ public:
                 lane_detector->setDebugMode(true);
             }
         }
-        /*
-
-        cout << "[4/5] Initializing acceleration detector..." << endl;
-        accel_detector = make_unique<AccelerationDetector>();
-
-        accel_detector->initialize(
-            config.rapid_accel_threshold,
-            config.hard_brake_threshold,
-            config.aggressive_accel_threshold,
-            config.emergency_brake_threshold);
-        accel_detector->setMinimumSpeed(5.0);
-
-        gps_logger = make_unique<GPSLogger>("driving_log.csv");
-        gps_logger->enableLogging(true);
-
-        if (config.enable_usb_gps)
-        {
-            cout << "[5/5] Setting up USB GPS connection..." << endl;
-            if (accel_detector->connectToPhoneGPS_USB(config.gps_usb_port))
-            {
-                cout << "  ✓ USB GPS connected via same USB cable!" << endl;
-                simulation_running = false;
-            }
-            else
-            {
-                cout << "  ⚠ USB GPS failed, using simulation mode" << endl;
-                accel_detector->enableSimulation(true);
-                simulation_running = true;
-            }
-        }
-        else
-        {
-            cout << "  ⚠ GPS disabled, using simulation mode" << endl;
-            accel_detector->enableSimulation(true);
-            simulation_running = true;
-        }
-
-        cout << "  ✓ Acceleration detector initialized" << endl;*/
-
+        
         printSystemReady();
         return true;
     }
@@ -553,7 +460,7 @@ private:
         case SystemConfig::CAMERA_PHONE_WIFI:
             cout << "  Mode: Phone Camera (WiFi)" << endl;
             phone_camera_used = true;
-            camera_source = "http://" + config.phone_ip +
+            camera_source = "http:
                             ":" + to_string(config.phone_port) + "/video";
             camera_type = CameraManager::CAMERA_GSTREAMER;
             break;
@@ -605,12 +512,11 @@ private:
         return false;
     }
 
-    // FIXED: Much more conservative capture loop
     void captureLoop()
     {
         Mat frame;
         int consecutive_failures = 0;
-        const int max_failures = 50; // Increased tolerance
+        const int max_failures = 50; 
 
         cout << "Capture thread started" << endl;
 
@@ -629,7 +535,6 @@ private:
                     break;
                 }
 
-                // FIXED: Progressive backoff
                 if (consecutive_failures < 10)
                 {
                     this_thread::sleep_for(chrono::milliseconds(50));
@@ -703,7 +608,6 @@ private:
 
                 auto result = lane_detector->detectLanes(processed_frame);
 
-                // ALWAYS draw lanes, even if empty (for debugging)
                 lane_detector->drawLanes(processed_frame, result, true);
 
                 string direction;
@@ -840,7 +744,7 @@ private:
             }
             else
             {
-                // Wait a bit if no frame available
+                
                 this_thread::sleep_for(chrono::milliseconds(10));
             }
 
@@ -894,7 +798,7 @@ private:
             
             break;
 
-        case 27: // ESC
+        case 27: 
             cout << "Exiting..." << endl;
             running = false;
             g_should_exit = true;
@@ -1037,7 +941,6 @@ int main(int argc, char **argv)
 
     SystemConfig config;
 
-    // Parse command line arguments
     for (int i = 1; i < argc; i++)
     {
         string arg = argv[i];
@@ -1077,7 +980,7 @@ int main(int argc, char **argv)
             if (i + 1 < argc)
                 config.target_fps = stoi(argv[++i]);
         }
-        // In the argument parsing section, add:
+        
         else if (arg == "--lane-model" || arg == "-lm")
         {
             if (i + 1 < argc)

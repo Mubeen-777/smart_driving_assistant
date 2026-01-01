@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cmath>
 
-
 struct SegmentStats {
     double total_distance;      
     double total_fuel;          
@@ -24,7 +23,6 @@ struct SegmentStats {
                      min_speed(999999), harsh_braking_events(0),
                      speeding_violations(0), days_covered(0) {}
     
-    
     static SegmentStats merge(const SegmentStats& left, const SegmentStats& right) {
         SegmentStats result;
         
@@ -35,7 +33,6 @@ struct SegmentStats {
         result.harsh_braking_events = left.harsh_braking_events + right.harsh_braking_events;
         result.speeding_violations = left.speeding_violations + right.speeding_violations;
         result.days_covered = left.days_covered + right.days_covered;
-        
         
         if (result.trip_count > 0) {
             result.avg_speed = (left.avg_speed * left.trip_count + 
@@ -83,7 +80,6 @@ private:
             tree_[node_idx].left_child = build(daily_stats, start, mid);
             tree_[node_idx].right_child = build(daily_stats, mid + 1, end);
             
-            
             tree_[node_idx].stats = SegmentStats::merge(
                 tree_[tree_[node_idx].left_child].stats,
                 tree_[tree_[node_idx].right_child].stats
@@ -93,29 +89,24 @@ private:
         return node_idx;
     }
     
-    
     SegmentStats query_recursive(int node_idx, int query_start, int query_end) {
         if (node_idx == -1) return SegmentStats();
         
         SegmentTreeNode& node = tree_[node_idx];
         
-        
         if (node.end_day < query_start || node.start_day > query_end) {
             return SegmentStats();
         }
         
-        
         if (query_start <= node.start_day && node.end_day <= query_end) {
             return node.stats;
         }
-        
         
         SegmentStats left_stats = query_recursive(node.left_child, query_start, query_end);
         SegmentStats right_stats = query_recursive(node.right_child, query_start, query_end);
         
         return SegmentStats::merge(left_stats, right_stats);
     }
-    
     
     void update_recursive(int node_idx, int day, const SegmentStats& new_stats) {
         if (node_idx == -1) return;
@@ -136,7 +127,6 @@ private:
             update_recursive(node.right_child, day, new_stats);
         }
         
-        
         node.stats = SegmentStats::merge(
             tree_[node.left_child].stats,
             tree_[node.right_child].stats
@@ -149,13 +139,11 @@ public:
         tree_.reserve(4 * num_days); 
     }
     
-    
     void build(const std::vector<SegmentStats>& daily_stats) {
         tree_.clear();
         num_days_ = daily_stats.size();
         build(daily_stats, 0, num_days_ - 1);
     }
-    
     
     SegmentStats query_range(int start_day, int end_day) {
         if (start_day < 0) start_day = 0;
@@ -164,7 +152,6 @@ public:
         
         return query_recursive(0, start_day, end_day);
     }
-    
     
     SegmentStats query_by_timestamp(uint64_t start_ts, uint64_t end_ts) {
         const uint64_t SECONDS_PER_DAY = 86400;
@@ -175,12 +162,10 @@ public:
         return query_range(start_day, end_day);
     }
     
-    
     void update_day(int day, const SegmentStats& stats) {
         if (day < 0 || day >= num_days_) return;
         update_recursive(0, day, stats);
     }
-    
     
     void update_by_timestamp(uint64_t timestamp, const SegmentStats& stats) {
         const uint64_t SECONDS_PER_DAY = 86400;
@@ -188,11 +173,9 @@ public:
         update_day(day, stats);
     }
     
-    
     SegmentStats get_all_stats() {
         return tree_.empty() ? SegmentStats() : tree_[0].stats;
     }
-    
     
     SegmentStats get_monthly_stats(int year, int month) {
         int days_per_month = 30;

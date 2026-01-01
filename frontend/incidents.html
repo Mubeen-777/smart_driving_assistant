@@ -1109,7 +1109,7 @@
 
 <body>
     <div class="app-container">
-        <!-- Sidebar Navigation -->
+        
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
@@ -1187,9 +1187,8 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
+            
             <header class="main-header">
                 <div class="page-title">
                     <h1>Incident Reports</h1>
@@ -1208,7 +1207,6 @@
                 </div>
             </header>
 
-            <!-- Report Incident Button -->
             <div style="text-align: right; margin-bottom: 30px;">
                 <button class="btn btn-danger" onclick="showReportModal()">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -1216,7 +1214,6 @@
                 </button>
             </div>
 
-            <!-- Stats Overview -->
             <div class="stats-overview">
                 <div class="stat-card">
                     <div class="stat-icon">
@@ -1251,7 +1248,6 @@
                 </div>
             </div>
 
-            <!-- Filter Bar -->
             <div class="filter-bar">
                 <div class="filter-controls">
                     <div class="filter-group">
@@ -1303,15 +1299,13 @@
                 </div>
             </div>
 
-            <!-- Incidents List -->
             <div class="incidents-list" id="incidentsList">
-                <!-- Loading State -->
+                
                 <div class="loading-state" id="loadingState">
                     <div class="spinner"></div>
                     <div class="loading-text">Loading incidents...</div>
                 </div>
 
-                <!-- Empty State (Hidden by default) -->
                 <div class="empty-state" id="emptyState" style="display: none;">
                     <div class="empty-state-icon">
                         <i class="fas fa-exclamation-triangle"></i>
@@ -1322,12 +1316,10 @@
                     </p>
                 </div>
 
-                <!-- Incidents will be dynamically inserted here -->
             </div>
         </main>
     </div>
 
-    <!-- Report Incident Modal -->
     <div class="modal-overlay" id="reportModal">
         <div class="modal">
             <div class="modal-header">
@@ -1388,7 +1380,6 @@
         </div>
     </div>
 
-    <!-- Incident Details Modal -->
     <div class="modal-overlay" id="incidentDetailModal">
         <div class="modal">
             <div class="modal-header">
@@ -1399,7 +1390,7 @@
             </div>
             <div class="modal-body">
                 <div id="incidentDetailContent">
-                    <!-- Incident details will be inserted here -->
+                    
                 </div>
             </div>
         </div>

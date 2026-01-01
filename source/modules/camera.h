@@ -1,4 +1,3 @@
-// camera.h - COMPLETE FIXED VERSION WITH PHONE CAMERA SUPPORT
 #pragma once
 
 #include <opencv2/opencv.hpp>
@@ -26,44 +25,40 @@ using namespace std;
 class CameraManager {
 public:
     enum CameraType {
-        CAMERA_OPENCV,           // Standard OpenCV
-        CAMERA_V4L2,             // Direct V4L2 access
-        CAMERA_GSTREAMER,        // GStreamer pipeline
-        CAMERA_ANDROID_USB,      // Android phone via USB (DroidCam)
-        CAMERA_ANDROID_IP        // Android phone via IP
+        CAMERA_OPENCV,           
+        CAMERA_V4L2,             
+        CAMERA_GSTREAMER,        
+        CAMERA_ANDROID_USB,      
+        CAMERA_ANDROID_IP        
     };
 
     enum PhoneCameraMode {
-        PHONE_MODE_AUTO,         // Auto-detect connection
-        PHONE_MODE_USB_V4L2,     // USB via V4L2 (DroidCam)
-        PHONE_MODE_USB_ADB,      // USB via ADB forward
-        PHONE_MODE_WIFI_IP       // WiFi via IP
+        PHONE_MODE_AUTO,         
+        PHONE_MODE_USB_V4L2,     
+        PHONE_MODE_USB_ADB,      
+        PHONE_MODE_WIFI_IP       
     };
 
     struct CameraConfig {
         string source = "/dev/video4";
-        int width = 1280;                     // Higher for phone cameras
+        int width = 1280;                     
         int height = 720;
         int fps = 30;
-        int buffer_size = 20;                  // Reduced for lower latency
+        int buffer_size = 20;                  
         CameraType type = CAMERA_V4L2;
         PhoneCameraMode phone_mode = PHONE_MODE_AUTO;
         
-        // V4L2 specific
         bool use_mjpeg = true;
         string pixel_format = "MJPG";
         
-        // Phone specific
         string phone_ip = "192.168.18.76";
         int phone_port = 4747;
         string phone_model = "";
         
-        // Performance - OPTIMIZED FOR LOW LATENCY
         bool zero_copy = false;
         bool low_latency = true;
         int skip_frames = 0;
         
-        // Advanced
         float exposure = -1.0f;
         int brightness = -1;
         int contrast = -1;
@@ -118,7 +113,7 @@ private:
 #ifdef __linux__
     int v4l2_fd;
     bool is_streaming;
-    uint32_t v4l2_pixel_format;  // Store the current pixel format
+    uint32_t v4l2_pixel_format;  
     
     struct V4L2Buffer {
         void* start;

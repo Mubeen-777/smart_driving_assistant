@@ -8,23 +8,19 @@ const WebSocket = require('ws');
 
 const app = express();
 
-// Enable CORS for all routes
 app.use(cors());
 
-// Parse JSON bodies
 app.use(express.json());
 
-// Backend server configuration
 const BACKEND_HOST = process.env.BACKEND_HOST || 'localhost';
 const BACKEND_PORT = process.env.BACKEND_PORT || 8080;
 const WS_BRIDGE_PORT = process.env.WS_BRIDGE_PORT || 8081;
 
-// Session validation middleware - checks if request has valid session
 const validateSession = async (sessionId) => {
     if (!sessionId) return false;
     
     try {
-        // Validate session with backend
+        
         const postData = JSON.stringify({
             operation: 'session_validate',
             session_id: sessionId
@@ -51,24 +47,23 @@ const validateSession = async (sessionId) => {
                         const result = JSON.parse(data);
                         resolve(result.status === 'success');
                     } catch (e) {
-                        // If backend doesn't support session_validate, assume valid
+                        
                         resolve(true);
                     }
                 });
             });
 
-            req.on('error', () => resolve(true)); // If backend is down, let client-side handle
+            req.on('error', () => resolve(true)); 
             req.on('timeout', () => { req.destroy(); resolve(true); });
             
             req.write(postData);
             req.end();
         });
     } catch (error) {
-        return true; // Let client-side handle validation if server check fails
+        return true; 
     }
 };
 
-// API Proxy - Forward all POST requests to /api to the C++ backend
 app.post('/api', (req, res) => {
     const postData = JSON.stringify(req.body);
     
@@ -115,17 +110,15 @@ app.post('/api', (req, res) => {
     proxyReq.end();
 });
 
-// Authentication check endpoint
 app.get('/auth/check', (req, res) => {
     const sessionId = req.query.session_id;
     if (!sessionId) {
         return res.json({ authenticated: false });
     }
-    // For now, just check if session_id exists (client-side validation)
+    
     res.json({ authenticated: true });
 });
 
-// Serve login page - always accessible
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
 });
@@ -134,13 +127,10 @@ app.get('/login.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
 });
 
-// Root path - redirect to login
 app.get('/', (req, res) => {
     res.redirect('/login.html');
 });
 
-// Protected routes - serve index.html but the client-side JS will check auth
-// The index.html has built-in auth check that redirects to login if not authenticated
 app.get('/index.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -153,23 +143,20 @@ app.get('/trips', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Serve static files (CSS, JS, etc.) - these don't need auth
 app.use(express.static(__dirname, {
-    index: false, // Don't serve index.html as default
+    index: false, 
     extensions: ['html']
 }));
 
-// Catch-all route - redirect to login for security
 app.use((req, res, next) => {
-    // If it's a file request (has extension), let static serve it
+    
     if (path.extname(req.path)) {
         return res.status(404).send('Not found');
     }
-    // For all other routes, redirect to login
+    
     res.redirect('/login.html');
 });
 
-// WebSocket proxy for camera/live data
 let wsProxy = null;
 let backendWs = null;
 let clients = new Set();
@@ -181,11 +168,10 @@ function setupWebSocketProxy(server) {
         console.log('Client connected to WebSocket proxy');
         clients.add(clientWs);
         
-        // Connect to backend WebSocket if not connected
         connectToBackendWs();
         
         clientWs.on('message', (message) => {
-            // Forward message to backend
+            
             if (backendWs && backendWs.readyState === WebSocket.OPEN) {
                 backendWs.send(message);
             }
@@ -209,14 +195,14 @@ function connectToBackendWs() {
     }
     
     try {
-        backendWs = new WebSocket(`ws://${BACKEND_HOST}:${WS_BRIDGE_PORT}`);
+        backendWs = new WebSocket(`ws:
         
         backendWs.on('open', () => {
             console.log('Connected to backend WebSocket bridge');
         });
         
         backendWs.on('message', (data) => {
-            // Broadcast to all connected clients
+            
             clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(data);
@@ -227,7 +213,7 @@ function connectToBackendWs() {
         backendWs.on('close', () => {
             console.log('Backend WebSocket disconnected');
             backendWs = null;
-            // Try to reconnect after delay
+            
             setTimeout(connectToBackendWs, 5000);
         });
         
@@ -239,12 +225,11 @@ function connectToBackendWs() {
     }
 }
 
-// Start C++ WebSocket bridge process (optional)
 let bridgeProcess = null;
 
 function startBridge() {
     try {
-        // Try to find the WebSocket bridge in various locations
+        
         const possiblePaths = [
             path.join(__dirname, '../source/modules/websocket_bridge'),
             path.join(__dirname, 'websocket_bridge'),
@@ -261,7 +246,7 @@ function startBridge() {
         
         if (bridgePath) {
             console.log('Starting WebSocket bridge from:', bridgePath);
-            // Set working directory to the bridge's directory so it can find compiled/SDM.db
+            
             const bridgeDir = path.dirname(bridgePath);
             bridgeProcess = spawn(bridgePath, [], {
                 stdio: 'inherit',
@@ -286,7 +271,6 @@ function startBridge() {
     }
 }
 
-// Graceful shutdown
 function shutdown() {
     console.log('\nShutting down server...');
     
@@ -309,31 +293,27 @@ function shutdown() {
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
-// Start server
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
     console.log(`╔══════════════════════════════════════════════════════╗`);
     console.log(`║          SMART DRIVE MANAGER - FRONTEND              ║`);
     console.log(`╠══════════════════════════════════════════════════════╣`);
-    console.log(`║  Frontend Server:  http://localhost:${PORT}             ║`);
-    console.log(`║  Login Page:       http://localhost:${PORT}/login       ║`);
-    console.log(`║  Dashboard:        http://localhost:${PORT}/dashboard   ║`);
+    console.log(`║  Frontend Server:  http:
+    console.log(`║  Login Page:       http:
+    console.log(`║  Dashboard:        http:
     console.log(`╠══════════════════════════════════════════════════════╣`);
-    console.log(`║  Backend API:      http://localhost:${BACKEND_PORT}              ║`);
-    console.log(`║  WebSocket Bridge: ws://localhost:${WS_BRIDGE_PORT}               ║`);
+    console.log(`║  Backend API:      http:
+    console.log(`║  WebSocket Bridge: ws:
     console.log(`╠══════════════════════════════════════════════════════╣`);
     console.log(`║  SECURITY: All routes redirect to login              ║`);
     console.log(`║  NOTE: Make sure C++ backend is running on port 8080 ║`);
     console.log(`╚══════════════════════════════════════════════════════╝`);
     
-    // Setup WebSocket proxy
     setupWebSocketProxy(server);
     
-    // Try to start bridge
     startBridge();
 });
 
-// Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err);
 });

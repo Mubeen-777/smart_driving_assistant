@@ -9,7 +9,7 @@ class SmartDriveWebSocket {
     
     connect() {
         try {
-            this.socket = new WebSocket('ws://localhost:8081');
+            this.socket = new WebSocket('ws:
             
             this.socket.onopen = () => {
                 console.log('WebSocket connected');
@@ -25,24 +25,22 @@ class SmartDriveWebSocket {
                 try {
                     const data = JSON.parse(event.data);
                     
-                    // Handle live data
                     if (data.type === 'live_data' && this.onLiveData) {
                         this.onLiveData(data.data);
                     }
                     
-                    // Handle specific events
                     if (data.type === 'trip_started') {
                         this.emit('trip_started', data.data);
                     } else if (data.type === 'trip_stopped') {
                         this.emit('trip_stopped', data.data);
                     } else if (data.type === 'lane_warning') {
-                        // Create custom event for lane warnings
+                        
                         const laneEvent = new CustomEvent('smartdrive-lane-warning', {
                             detail: data.data
                         });
                         window.dispatchEvent(laneEvent);
                     } else if (data.type === 'warning') {
-                        // Create alert event
+                        
                         const alertEvent = new CustomEvent('smartdrive-alert', {
                             detail: {
                                 message: `${data.data.warning_type.toUpperCase()}: ${data.data.value}`,
@@ -72,7 +70,6 @@ class SmartDriveWebSocket {
                     this.onConnectionChange('disconnected');
                 }
                 
-                // Try to reconnect
                 if (this.reconnectAttempts < this.maxReconnectAttempts) {
                     this.reconnectAttempts++;
                     setTimeout(() => {
@@ -131,7 +128,6 @@ class SmartDriveWebSocket {
         return true;
     }
     
-    // Event emitter pattern
     on(event, callback) {
         if (!this.listeners[event]) {
             this.listeners[event] = [];
@@ -146,5 +142,4 @@ class SmartDriveWebSocket {
     }
 }
 
-// Create global instance
 window.smartDriveWS = new SmartDriveWebSocket();

@@ -433,7 +433,6 @@ public:
             uint64_t start_time = 0;
             uint64_t end_time = 0;
 
-            // Simple date parsing for YYYY-MM-DD
             if (start_date_str.length() >= 10) {
                 struct tm tm = {0};
                 if (strptime(start_date_str.c_str(), "%Y-%m-%d", &tm)) {
@@ -443,7 +442,7 @@ public:
             if (end_date_str.length() >= 10) {
                 struct tm tm = {0};
                 if (strptime(end_date_str.c_str(), "%Y-%m-%d", &tm)) {
-                    // Set to end of day
+                    
                     tm.tm_hour = 23;
                     tm.tm_min = 59;
                     tm.tm_sec = 59;
@@ -473,7 +472,7 @@ public:
         }
         else if (operation == "trip_get_active")
         {
-            // Get active trip for the driver
+            
             auto active_trip = trip_mgr_.get_active_trip(driver.driver_id);
 
             if (active_trip.trip_id > 0)
@@ -486,119 +485,6 @@ public:
                 trip_map["start_address"] = string(active_trip.start_address, strnlen(active_trip.start_address, sizeof(active_trip.start_address)));
 
                 map<string, string> response_map;
-                // Nest fields inside "trip" object as expected by frontend
-                // Since our simple JSON builder doesn't support nested objects easily in map<string,string>
-                // We will manually construct the JSON response by returning the map and handling it specially
-                // OR we just return the flat map and frontend needs to handle it.
-                // 
-                // LOOKING AT FRONTEND (dashboard.html):
-                // if (data.status === 'success' && data.data.trip) { ... }
-                // So it EXPECTS data.data.trip object.
-                
-                // ResponseBuilder::success takes a map and puts it in "data".
-                // So if we return map{"trip_id": "1"}, it becomes data: {"trip_id": "1"}
-                // But frontend wants data: {"trip": {"trip_id": "1"}}
-                
-                // We need to use success_with_object or similar if available, or just use success which wraps in data
-                // Wait, SimpleJSON wrapper in frontend might be flexible? No, JS code is specific.
-                
-                // Let's modify ResponseBuilder to support this or cheat by manually constructing the nested response.
-                // Actually ResponseBuilder isn't shown fully but usually success takes a single map.
-                // 
-                // Let's look at how other methods do it.
-                // expense_get_summary returns flat map.
-                
-                // If I change the return to use success_with_data or similar?
-                // Actually, let's look at `ResponseBuilder`.
-                
-                // Instead of complicating ResponseBuilder now, let's fix it by returning a JSON string for the value "trip"
-                // But SimpleJSON might treat it as a string.
-                
-                // Let's try to fix frontend or backend. Fixing backend is safer.
-                // I will use a different approach:
-                // Since I cannot easily nest with current ResponseBuilder signature seen so far,
-                // I will return flat fields but I will ALSO see if I can use success_with_nested_map if it existed.
-                
-                // Wait, let's look at the failure mode. Frontend checks data.data.trip.
-                // If I return response_builder_.success("ACTIVE_TRIP_FOUND", trip_map);
-                // The JSON will look like: 
-                // { "status": "success", "message": "ACTIVE_TRIP_FOUND", "data": { "trip_id": "1", ... } }
-                
-                // Frontend code: data.data.trip
-                // So my current return is data.data.trip_id
-                
-                // I MUST fix this.
-                // Since I can't easily change the return structure without changing ResponseBuilder,
-                // I will cheat by using a key "trip" with a JSON string value? No that breaks parsing.
-                
-                // I better verify ResponseBuilder capabilities.
-                // BUT, looking at `trip_get_active` earlier, it returned `response_builder_.success("NO_ACTIVE_TRIP", {{"trip", "null"}});`
-                
-                // I will add a method to ResponseBuilder or use `success_with_custom_data`.
-                // Or I can modify frontend.
-                
-                // Actually, looking at `response_builder_.success_with_array` it puts things in a key.
-                // Maybe `success` overload exists?
-                
-                // Let's validly assume I can't change ResponseBuilder easily.
-                // I will modify the Frontend code for `dashboard.html` to accept flat structure OR nesting.
-                // BUT my task is backend.
-                
-                // Wait! I can see `response_builder_.success("TRIP_STATISTICS", ...)` returns flat fields.
-                
-                // Let's check `RequestHandler.h` again. 
-                // Line 448: return response_builder_.success("NO_ACTIVE_TRIP", {{"trip", "null"}});
-                
-                // The previous code block for `trip_get_active` (lines 430-450) was:
-                /*
-                map<string, string> trip_map;
-                trip_map["trip_id"] = ...
-                return response_builder_.success("ACTIVE_TRIP_FOUND", trip_map);
-                */
-                
-                // This definitely returns flat data.
-                
-                // I will try to see if I can just use a nested map construction provided by nlohmann/json if used, but here we use SimpleJSON/ResponseBuilder.
-                
-                // Let's use `response_builder_.success` but with a map that contains "trip" key pointing to ... wait, map<string,string> values are strings.
-                
-                // REQUIRED FIX: Modify `ResponseBuilder` to support nested objects OR modify Frontend.
-                // Modifying Frontend is easier and safer given the C++ constraints.
-                // However, I see `response_builder_.success_with_array`. Maybe I can use that?
-                // No, "trip" is an object, not an array.
-                
-                // I will modify the frontend `dashboard.html` to look for `data.data` directly if `data.data.trip` is missing.
-                // NO, I must fix backend if possible.
-                
-                // Let's look at `ResponseBuilder.h` if possible? No time.
-                // I will assume the frontend modification is the path of least resistance.
-                
-                // WAIT, I can return:
-                // return response_builder_.success("ACTIVE_TRIP_FOUND", {{"trip_id", ...}});
-                // And Frontend checks `data.data.trip`.
-                
-                // I will fix the frontend `dashboard.html` to handle the flat response structure from `trip_get_active`.
-                // This is a "Frontend Hardening" task after all.
-                
-                // Wait, I am currently editing `RequestHandler.h`. I will revert the intent to change backend for this specific nesting issue and instead mark it for frontend fix.
-                // BUT, I can just fix the backend to return what looks like a single item array "trip"?
-                // No.
-                
-                // Let's look at line 444 in `RequestHandler.h`.
-                // return response_builder_.success("ACTIVE_TRIP_FOUND", trip_map);
-                
-                // I will leave this as is for now and fix dashboard.html.
-                // BUT I need to fix `trip_get_statistics` too?
-                // Trip stats: frontend `get_statistics` calls.
-                // Expenses: `data.data.total_expenses`. This is flat. RequestHandler returns flat. Matches!
-                
-                // So `dashboard.html` is the odd one out expecting nested `trip`.
-                // verification: `dashboard.html`: `if (data.status === 'success' && data.data.trip)`
-                
-                // Conclusion: I will Fix `dashboard.html` to read `data.data` (if trip_id present) or `data.data.trip`.
-                
-                // FOR NOW: I will just restore the file content I was viewing without changes, as I will fix the frontend.
-                // Actually, I can just comment out the "return trip_map directly" comment to clean it up.
                 
                 return response_builder_.success("ACTIVE_TRIP_FOUND", trip_map);
             }
@@ -849,7 +735,6 @@ public:
             if (start_str != "0" && !start_str.empty()) start_date = stoull(start_str);
             if (end_str != "0" && !end_str.empty()) end_date = stoull(end_str);
 
-            // Use the simple summary method
             auto summary = expense_mgr_.get_expense_summary_simple(driver.driver_id, start_date, end_date);
 
             return response_builder_.success("EXPENSE_SUMMARY", {
@@ -900,7 +785,6 @@ public:
             double amount = stod(SimpleJSON::get_value(params, "amount", "0"));
             string description = SimpleJSON::get_value(params, "description");
 
-            // First check if expense belongs to this driver
             auto existing_expense = expense_mgr_.get_expense_by_id(expense_id);
             if (existing_expense.driver_id != driver.driver_id)
             {
@@ -921,7 +805,6 @@ public:
         {
             uint64_t expense_id = stoull(SimpleJSON::get_value(params, "expense_id", "0"));
 
-            // First check if expense belongs to this driver
             auto existing_expense = expense_mgr_.get_expense_by_id(expense_id);
             if (existing_expense.driver_id != driver.driver_id)
             {
@@ -1104,7 +987,6 @@ public:
                 incidents = incident_mgr_.get_driver_incidents(driver.driver_id, limit);
             }
 
-            // Filter by status if needed
             if (status != "all")
             {
                 int status_code = 0;
@@ -1119,27 +1001,22 @@ public:
                                 incidents.end());
             }
 
-            // Filter by date range
             if (start_date > 0 || end_date > 0)
             {
                 auto it = remove_if(incidents.begin(), incidents.end(),
                                     [start_date, end_date](const IncidentReport &incident)
                                     {
-                                        // Return true to REMOVE incident
-
-                                        // Remove if before start_date
+                                        
                                         if (start_date > 0 && incident.incident_time < start_date)
                                         {
                                             return true;
                                         }
 
-                                        // Remove if after end_date
                                         if (end_date > 0 && incident.incident_time > end_date)
                                         {
                                             return true;
                                         }
 
-                                        // Keep this incident
                                         return false;
                                     });
 
@@ -1171,7 +1048,6 @@ public:
                             SimpleJSON::get_value(params, "resolved") == "1";
             string resolution_notes = SimpleJSON::get_value(params, "resolution_notes", "");
 
-            // Verify incident belongs to driver
             auto incident = incident_mgr_.get_incident_by_id(incident_id);
             if (incident.driver_id != driver.driver_id)
             {

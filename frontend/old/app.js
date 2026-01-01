@@ -1,8 +1,7 @@
-// app.js - FIXED VERSION WITH WORKING BUTTONS AND REAL-TIME DATA
 class SmartDriveWebApp {
     constructor() {
-        // AGENT-2 FIX: WebSocket configuration with exponential backoff
-        this.WS_URL = window.__WS_BASE__ || 'ws://localhost:8081';
+        
+        this.WS_URL = window.__WS_BASE__ || 'ws:
         this.sessionId = localStorage.getItem('session_id');
         this.userData = JSON.parse(localStorage.getItem('user_data') || '{}');
         this.ws = null;
@@ -12,24 +11,21 @@ class SmartDriveWebApp {
         this.isTripActive = false;
         this.currentPage = 'dashboard';
 
-        // AGENT-2: Exponential backoff configuration
-        this.maxReconnectAttempts = Infinity;  // Never give up!
+        this.maxReconnectAttempts = Infinity;  
         this.reconnectAttempts = 0;
-        this.reconnectDelay = 1000;  // Start at 1 second
-        this.maxReconnectDelay = 30000;  // Cap at 30 seconds
+        this.reconnectDelay = 1000;  
+        this.maxReconnectDelay = 30000;  
         this.keepAliveInterval = null;
-        this.messageQueue = [];  // Queue messages while offline
+        this.messageQueue = [];  
 
         this.dashboardRefreshInterval = null;
 
-        // AGENT-3: Trip Tracker initialization
         this.tripTracker = null;
         this.activeTripId = null;
         this.lastTripData = null;
-        this.tripIdCounter = 0;  // Session-based counter for unique trip IDs
-        this.sessionStartTime = Date.now();  // Session start timestamp
+        this.tripIdCounter = 0;  
+        this.sessionStartTime = Date.now();  
 
-        // Real-time data from WebSocket
         this.liveData = {
             speed: 0,
             acceleration: 0,
@@ -44,7 +40,6 @@ class SmartDriveWebApp {
             longitude: 74.3587
         };
 
-        // GPS monitoring
         this.gpsStatus = {
             lastUpdate: null,
             lastLat: null,
@@ -54,7 +49,6 @@ class SmartDriveWebApp {
             isStuck: false
         };
 
-        // FPS tracking
         this.frameCount = 0;
         this.lastFpsUpdate = Date.now();
         this.fpsCounter = 0;
@@ -74,11 +68,10 @@ class SmartDriveWebApp {
         this.setupEventListeners();
         this.updateUserUI();
 
-        // AGENT-3: Initialize Trip Tracker
         if (typeof TripTracker !== 'undefined') {
             try {
                 this.tripTracker = new TripTracker(this);
-                window.tripTracker = this.tripTracker;  // Make globally accessible
+                window.tripTracker = this.tripTracker;  
                 console.log('✅ Trip Tracker initialized');
             } catch (error) {
                 console.error('❌ Failed to initialize Trip Tracker:', error);
@@ -90,7 +83,7 @@ class SmartDriveWebApp {
 
         if (typeof GPSManager !== 'undefined') {
             this.gpsManager = new GPSManager(this);
-            this.gpsManager.startTracking(); // Now waits for UDP data
+            this.gpsManager.startTracking(); 
             console.log('✅ GPS Manager (UDP mode) initialized');
         } else {
             console.warn('⚠️ GPSManager class not found. GPS tracking will not work.');
@@ -99,34 +92,28 @@ class SmartDriveWebApp {
         this.loadPage('dashboard');
         this.connectWebSocket();
 
-        // Initialize database API
         if (!window.db) {
             window.db = new DatabaseAPI(this);
         }
 
-        // Initialize analytics manager
         if (!window.analytics) {
             window.analytics = new AnalyticsManager(this);
         }
 
-        // Initialize modal manager (if available)
         if (typeof ModalManager !== 'undefined' && !window.modals) {
             window.modals = new ModalManager(this);
         }
 
-        // Check backend connection
         this.checkBackendConnection();
 
-        // Auto-start camera after login (camera runs permanently)
         this.autoStartCamera();
 
         console.log('✅ App initialized');
         console.log('✅ window.app set:', window.app === this);
     }
 
-    // Auto-start camera - runs permanently after login
     autoStartCamera() {
-        // Wait for WebSocket to connect, then start camera
+        
         const startCameraWhenReady = () => {
             if (this.isConnected && this.ws && this.ws.readyState === WebSocket.OPEN) {
                 console.log('📹 Auto-starting camera...');
@@ -140,25 +127,24 @@ class SmartDriveWebApp {
                 this.prepareVideoFeeds();
                 this.showToast('Camera started automatically', 'success');
             } else {
-                // Retry in 500ms if not connected yet
+                
                 setTimeout(startCameraWhenReady, 500);
             }
         };
 
-        // Start checking after a brief delay to allow WebSocket connection
         setTimeout(startCameraWhenReady, 1000);
     }
 
     async checkBackendConnection() {
         try {
-            // Use proxy endpoint to check backend
+            
             const response = await fetch('/api', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ operation: 'user_login', username: 'test', password: 'test' })
             });
             const result = await response.json();
-            // Even if login fails, if we get a JSON response, backend is reachable
+            
             if (result.code === 'BACKEND_UNAVAILABLE') {
                 throw new Error('Backend unavailable');
             }
@@ -173,7 +159,6 @@ class SmartDriveWebApp {
         return this.sessionId && this.userData.driver_id;
     }
 
-    // ✅ NEW: Separate trip_started handler with validation
     handleTripStarted(tripData) {
         console.log('✅ Backend confirmed trip started:', tripData);
 
@@ -197,7 +182,6 @@ class SmartDriveWebApp {
             return;
         }
 
-        // ✅ Use backend-assigned trip_id
         this.isTripActive = true;
         this.activeTripId = backendTripId;
         this.liveData.trip_id = backendTripId;
@@ -205,7 +189,6 @@ class SmartDriveWebApp {
 
         console.log('✅ Using backend trip_id:', backendTripId);
 
-        // ✅ Update trip tracker with backend ID
         if (this.tripTracker) {
             if (this.tripTracker.isActive() && this.tripTracker.activeTrip) {
                 this.tripTracker.activeTrip.id = backendTripId;
@@ -224,7 +207,6 @@ class SmartDriveWebApp {
         this.showToast('✅ Trip started successfully!', 'success');
     }
 
-    // ✅ NEW: Separate trip_stopped handler
     handleTripStopped(tripData) {
         console.log('✅ Backend confirmed trip stopped:', tripData);
 
@@ -243,14 +225,12 @@ class SmartDriveWebApp {
         }
     }
 
-    // ✅ NEW: Separate error handler
     handleWebSocketError(errorData) {
         console.error('❌ WebSocket error received:', errorData);
 
         const errorMessage = errorData.message || errorData.data?.message || 'Unknown error';
         this.showToast('Error: ' + errorMessage, 'error');
 
-        // If trip-related error, clear trip state
         if (errorMessage.toLowerCase().includes('trip')) {
             console.warn('⚠️ Trip error detected, clearing trip state');
             this.isTripActive = false;
@@ -264,7 +244,6 @@ class SmartDriveWebApp {
         }
     }
 
-    // ✅ FIXED: Better WebSocket connection with error recovery
     connectWebSocket() {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             console.log('⚠️ WebSocket already connected');
@@ -286,7 +265,6 @@ class SmartDriveWebApp {
 
                 this.setupHeartbeat();
 
-                // Restart camera on reconnection
                 setTimeout(() => {
                     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
                         this.ws.send(JSON.stringify({
@@ -305,7 +283,7 @@ class SmartDriveWebApp {
 
             this.ws.onmessage = (event) => {
                 try {
-                    // ✅ FIX: Better JSON parsing with validation
+                    
                     const rawData = event.data;
 
                     if (!rawData || typeof rawData !== 'string') {
@@ -337,7 +315,6 @@ class SmartDriveWebApp {
                     clearInterval(this.keepAliveInterval);
                 }
 
-                // ✅ FIX: Don't reconnect if user logged out (code 1000)
                 if (event.code === 1000 && event.reason === 'User logout') {
                     console.log('🚪 WebSocket closed due to logout, not reconnecting');
                     return;
@@ -353,11 +330,9 @@ class SmartDriveWebApp {
         }
     }
 
-    // AGENT-2: Exponential backoff reconnection
     scheduleReconnect() {
         this.reconnectAttempts++;
 
-        // Calculate exponential backoff: 1s, 2s, 4s, 8s, 16s, 30s, 30s, ...
         const baseDelay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
         const delay = Math.min(baseDelay, this.maxReconnectDelay);
 
@@ -369,7 +344,6 @@ class SmartDriveWebApp {
         }, delay);
     }
 
-    // AGENT-2: Heartbeat to detect dead connections
     setupHeartbeat() {
         if (this.keepAliveInterval) {
             clearInterval(this.keepAliveInterval);
@@ -386,18 +360,16 @@ class SmartDriveWebApp {
                     console.warn('Failed to send ping:', error);
                 }
             }
-        }, 30000);  // Every 30 seconds
+        }, 30000);  
     }
 
-    // AGENT-2: Queue messages while offline
     queueMessage(message) {
-        if (this.messageQueue.length < 100) {  // Max 100 queued
+        if (this.messageQueue.length < 100) {  
             this.messageQueue.push(message);
             console.log(`📦 Queued message (${this.messageQueue.length} pending)`);
         }
     }
 
-    // AGENT-2: Flush queued messages when reconnected
     flushMessageQueue() {
         while (this.messageQueue.length > 0 && this.isConnected) {
             const message = this.messageQueue.shift();
@@ -405,7 +377,7 @@ class SmartDriveWebApp {
                 this.ws.send(JSON.stringify(message));
             } catch (error) {
                 console.error('Failed to send queued message:', error);
-                this.messageQueue.unshift(message);  // Put back if failed
+                this.messageQueue.unshift(message);  
                 break;
             }
         }
@@ -413,11 +385,9 @@ class SmartDriveWebApp {
             console.log(`✅ All queued messages flushed`);
         }
     }
-    // app_websocket_udp.js - WebSocket message handler for UDP data
-    // Add this to app.js's handleWebSocketMessage function
-
+    
     handleWebSocketMessage(data) {
-        // Validate message structure
+        
         if (!data || typeof data !== 'object') {
             console.error('❌ Invalid WebSocket message:', data);
             return;
@@ -432,7 +402,7 @@ class SmartDriveWebApp {
 
         switch (data.type) {
             case 'live_data':
-                // ✅ NEW: Handle UDP data from device
+                
                 if (data.data && typeof data.data === 'object') {
                     this.handleUDPData(data.data);
                 } else {
@@ -441,14 +411,14 @@ class SmartDriveWebApp {
                 break;
 
             case 'warning':
-                // ✅ NEW: Handle safety events from device
+                
                 if (data.data) {
                     this.handleUDPEvent(data.data);
                 }
                 break;
 
             case 'crash':
-                // ✅ NEW: Handle crash detection from device
+                
                 if (data.data) {
                     this.handleCrashEvent(data.data);
                 }
@@ -503,7 +473,6 @@ class SmartDriveWebApp {
         }
     }
 
-    // ✅ NEW: Handle UDP GPS/ADAS data from device
     handleUDPData(data) {
         if (!data) {
             console.warn('⚠️ handleUDPData called with null/undefined data');
@@ -517,7 +486,6 @@ class SmartDriveWebApp {
             accel: data.acceleration ? data.acceleration.toFixed(2) + ' m/s²' : 'N/A'
         });
 
-        // Update live data with device measurements
         if (data.speed !== undefined && !isNaN(data.speed)) {
             this.liveData.speed = Math.max(0, data.speed);
         }
@@ -531,49 +499,40 @@ class SmartDriveWebApp {
             this.liveData.longitude = data.longitude;
         }
 
-        // Pass to GPS manager for processing
         if (this.gpsManager) {
             this.gpsManager.processUDPData(data);
         }
 
-        // Store to database if trip is active
         if (this.isTripActive && this.activeTripId && window.db) {
             this.storeGPSDataToDatabase(data);
         }
 
-        // Update dashboard UI
         this.updateDashboard();
     }
 
-    // ✅ NEW: Handle safety events from device
     handleUDPEvent(eventData) {
         if (!eventData) return;
 
         console.log('🚨 Safety event from device:', eventData.warning_type);
 
-        // Pass to GPS manager for event handling
         if (this.gpsManager) {
             this.gpsManager.handleDeviceEvent(eventData);
         }
 
-        // Show alert
         const message = `⚠️ ${eventData.warning_type}: ${eventData.value?.toFixed(2) || 'N/A'}`;
         this.showToast(message, 'warning');
         this.playAlertSound();
 
-        // Log event to database
         if (window.db && this.activeTripId) {
             this.logSafetyEventToDatabase(eventData);
         }
     }
 
-    // ✅ NEW: Handle crash detection
     handleCrashEvent(eventData) {
         if (!eventData) return;
 
         console.log('🚨🚨🚨 CRASH DETECTED FROM DEVICE 🚨🚨🚨');
 
-        // Pass to GPS manager for crash sequence
         if (this.gpsManager) {
             this.gpsManager.triggerCrashSequence(
                 eventData.latitude,
@@ -582,21 +541,19 @@ class SmartDriveWebApp {
             );
         }
 
-        // Show critical alert
         this.showToast('🚨 CRASH DETECTED! Emergency services will be notified.', 'error');
         this.playAlertSound();
     }
 
-    // ✅ NEW: Store GPS data to database periodically
     async storeGPSDataToDatabase(data) {
-        // Rate limit: only store every 2 seconds
+        
         const now = Date.now();
         if (!this.lastDBStoreTime) {
             this.lastDBStoreTime = now;
         }
 
         if (now - this.lastDBStoreTime < 2000) {
-            return; // Too soon, skip
+            return; 
         }
 
         this.lastDBStoreTime = now;
@@ -619,17 +576,15 @@ class SmartDriveWebApp {
         }
     }
 
-    // ✅ NEW: Log safety event to database
     async logSafetyEventToDatabase(eventData) {
         try {
             if (!window.db || !this.activeTripId) return;
 
             const vehicleId = this.userData?.vehicle_id || 0;
 
-            // Determine incident type
-            let incidentType = 4; // Default: Traffic Violation
+            let incidentType = 4; 
             if (eventData.warning_type === 'CRASH' || eventData.warning_type === 'IMPACT') {
-                incidentType = 0; // Accident
+                incidentType = 0; 
             }
 
             await window.db.reportIncident(
@@ -646,7 +601,6 @@ class SmartDriveWebApp {
         }
     }
 
-    // Update existing updateLiveData to handle UDP data
     updateLiveData(data) {
         if (!data) {
             console.warn('⚠️ updateLiveData called with null/undefined data');
@@ -655,19 +609,16 @@ class SmartDriveWebApp {
 
         let dataChanged = false;
 
-        // Update speed
         if (data.speed !== undefined && !isNaN(data.speed)) {
             this.liveData.speed = Math.max(0, data.speed);
             dataChanged = true;
         }
 
-        // Update acceleration
         if (data.acceleration !== undefined && !isNaN(data.acceleration)) {
             this.liveData.acceleration = data.acceleration;
             dataChanged = true;
         }
 
-        // Update GPS coordinates
         if (data.latitude !== undefined && !isNaN(data.latitude)) {
             this.liveData.latitude = data.latitude;
             dataChanged = true;
@@ -677,7 +628,6 @@ class SmartDriveWebApp {
             dataChanged = true;
         }
 
-        // Update other fields
         if (data.safety_score !== undefined) this.liveData.safety_score = data.safety_score;
         if (data.lane_status !== undefined) this.liveData.lane_status = data.lane_status;
         if (data.rapid_accel_count !== undefined) this.liveData.rapid_accel_count = data.rapid_accel_count;
@@ -686,7 +636,6 @@ class SmartDriveWebApp {
         if (data.trip_active !== undefined) this.liveData.trip_active = data.trip_active;
         if (data.trip_id !== undefined) this.liveData.trip_id = data.trip_id;
 
-        // Update GPS manager's position
         if (this.gpsManager && data.latitude && data.longitude) {
             this.gpsManager.lastPosition = {
                 lat: data.latitude,
@@ -694,27 +643,23 @@ class SmartDriveWebApp {
             };
         }
 
-        // Only update dashboard if data actually changed
         if (dataChanged) {
             this.updateDashboard();
         }
     }
 
     updateLocationUI(lat, lon, accuracy) {
-        // Update location data immediately
+        
         this.liveData.latitude = lat;
         this.liveData.longitude = lon;
 
-        // Update GPS display elements directly for immediate feedback
         const gpsLat = document.getElementById('gpsLat');
         const gpsLon = document.getElementById('gpsLon');
         if (gpsLat) gpsLat.textContent = lat.toFixed(6) + '°';
         if (gpsLon) gpsLon.textContent = lon.toFixed(6) + '°';
 
-        // Note: updateLiveData will also update these, but this ensures immediate UI feedback
     }
 
-    // Monitor GPS status to detect if it's stuck
     monitorGPS(data) {
         if (!data.latitude || !data.longitude) {
             return;
@@ -724,21 +669,17 @@ class SmartDriveWebApp {
         const lat = parseFloat(data.latitude);
         const lon = parseFloat(data.longitude);
 
-        // Check if GPS coordinates changed
         if (this.gpsStatus.lastLat !== null && this.gpsStatus.lastLon !== null) {
             const latDiff = Math.abs(lat - this.gpsStatus.lastLat);
             const lonDiff = Math.abs(lon - this.gpsStatus.lastLon);
 
-            // If coordinates haven't changed significantly (less than 0.0001 degrees ≈ 11 meters)
             if (latDiff < 0.0001 && lonDiff < 0.0001) {
                 this.gpsStatus.stuckCount++;
 
-                // Check if stuck for more than 30 seconds (30 updates at 1Hz)
                 if (this.gpsStatus.stuckCount > 30) {
                     this.gpsStatus.isStuck = true;
                     const stuckSeconds = this.gpsStatus.stuckCount;
 
-                    // Log warning every 10 seconds
                     if (stuckSeconds % 10 === 0) {
                         console.warn(`⚠️ GPS STUCK: Coordinates unchanged for ${stuckSeconds} seconds!`, {
                             lat: lat.toFixed(6),
@@ -748,7 +689,7 @@ class SmartDriveWebApp {
                     }
                 }
             } else {
-                // Coordinates changed - reset stuck counter
+                
                 if (this.gpsStatus.isStuck) {
                     console.log('✅ GPS UNSTUCK: Coordinates are updating again');
                 }
@@ -757,13 +698,11 @@ class SmartDriveWebApp {
             }
         }
 
-        // Update GPS status
         this.gpsStatus.lastUpdate = now;
         this.gpsStatus.lastLat = lat;
         this.gpsStatus.lastLon = lon;
         this.gpsStatus.updateCount++;
 
-        // Log GPS status every 10 seconds
         if (this.gpsStatus.updateCount % 10 === 0) {
             const timeSinceUpdate = this.gpsStatus.lastUpdate
                 ? Math.floor((now - this.gpsStatus.lastUpdate) / 1000)
@@ -779,15 +718,14 @@ class SmartDriveWebApp {
             });
         }
 
-        // Update GPS status indicator in UI if element exists
         this.updateGPSStatusIndicator();
     }
 
     updateGPSStatusIndicator() {
-        // Try to find or create GPS status indicator
+        
         let statusEl = document.getElementById('gpsStatusIndicator');
         if (!statusEl) {
-            // Create status indicator if it doesn't exist
+            
             const dashboard = document.querySelector('.dashboard-stats, .stats-container, #dashboard');
             if (dashboard) {
                 statusEl = document.createElement('div');
@@ -795,7 +733,7 @@ class SmartDriveWebApp {
                 statusEl.style.cssText = 'position: fixed; top: 10px; right: 10px; padding: 8px 12px; background: rgba(0,0,0,0.7); color: white; border-radius: 4px; font-size: 12px; z-index: 10000;';
                 document.body.appendChild(statusEl);
             } else {
-                return; // Can't add indicator
+                return; 
             }
         }
 
@@ -822,7 +760,6 @@ class SmartDriveWebApp {
         statusEl.style.borderLeft = `4px solid ${statusColor}`;
     }
 
-    // GPS Status Checker - Call from browser console: window.app.checkGPSStatus()
     checkGPSStatus() {
         const now = Date.now();
         const timeSinceUpdate = this.gpsStatus.lastUpdate
@@ -858,15 +795,12 @@ class SmartDriveWebApp {
         return status;
     }
 
-    // In app.js, replace the displayVideoFrame function:
-
     displayVideoFrame(base64Data, timestamp) {
-        // Only display if camera is active
+        
         if (!this.isCameraActive) {
             return;
         }
 
-        // For dashboard
         const videoFeed = document.getElementById('videoFeed');
         const noVideo = document.getElementById('noVideo');
 
@@ -880,7 +814,6 @@ class SmartDriveWebApp {
             }
         }
 
-        // For vision page (camera template)
         const visionFeed = document.getElementById('visionFeed');
         const visionPlaceholder = document.getElementById('visionPlaceholder');
 
@@ -894,7 +827,6 @@ class SmartDriveWebApp {
             }
         }
 
-        // Update FPS
         this.frameCount++;
         this.fpsCounter++;
         const now = Date.now();
@@ -903,11 +835,9 @@ class SmartDriveWebApp {
         if (elapsed >= 1000) {
             const fps = Math.round(this.fpsCounter * 1000 / elapsed);
 
-            // Dashboard FPS
             const fpsDisplay = document.getElementById('fpsDisplay');
             if (fpsDisplay) fpsDisplay.textContent = `FPS: ${fps}`;
 
-            // Vision page FPS
             const visionFps = document.getElementById('visionFps');
             if (visionFps) visionFps.textContent = `FPS: ${fps}`;
 
@@ -936,19 +866,17 @@ class SmartDriveWebApp {
             return;
         }
 
-        // ✅ FIX: Let BACKEND generate the trip ID
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            // Send start_trip command WITHOUT local trip_id
+            
             this.ws.send(JSON.stringify({
                 command: 'start_trip',
                 driver_id: this.userData.driver_id || 1,
                 vehicle_id: parseInt(vehicleId)
-                // ❌ REMOVED: trip_id generation - backend will assign it
+                
             }));
 
             console.log('📤 Sent start_trip request to backend (backend will assign ID)');
 
-            // Wait for backend to respond with trip_started message
             this.showToast('⏳ Starting trip...', 'info');
             this.updateTripControls();
         } else {
@@ -958,7 +886,6 @@ class SmartDriveWebApp {
     async stopTrip() {
         console.log('🛑 Stopping trip...');
 
-        // ✅ Priority: Use backend-assigned trip_id
         let tripIdToStop = this.liveData?.trip_id || this.activeTripId;
 
         console.log('Trip state:', {
@@ -968,7 +895,6 @@ class SmartDriveWebApp {
             tripTrackerActive: this.tripTracker?.isActive()
         });
 
-        // Validate we have an active trip
         if (!tripIdToStop || tripIdToStop === 0) {
             console.warn('⚠️ No valid trip ID to stop');
             this.showToast('No active trip to stop', 'warning');
@@ -977,11 +903,10 @@ class SmartDriveWebApp {
 
         console.log('🛑 Stopping trip with backend ID:', tripIdToStop);
 
-        // ✅ Stop trip tracker first (if active)
         let tripTrackerStopped = false;
         if (this.tripTracker && this.tripTracker.isActive()) {
             try {
-                // Ensure trip tracker has correct backend ID
+                
                 if (this.tripTracker.activeTrip) {
                     this.tripTracker.activeTrip.id = tripIdToStop;
                 }
@@ -1001,7 +926,6 @@ class SmartDriveWebApp {
             }
         }
 
-        // ✅ Send stop command to backend
         try {
             if (this.ws && this.ws.readyState === WebSocket.OPEN) {
                 this.ws.send(JSON.stringify({
@@ -1010,7 +934,7 @@ class SmartDriveWebApp {
                 }));
                 console.log('📤 Sent stop_trip command via WebSocket');
             } else if (window.db) {
-                // Fallback: Use DatabaseAPI
+                
                 console.log('📤 Using DatabaseAPI to end trip (WebSocket unavailable)');
 
                 const endLat = this.liveData.latitude || 31.5204;
@@ -1027,7 +951,6 @@ class SmartDriveWebApp {
                 throw new Error('No connection method available');
             }
 
-            // ✅ Clear trip state
             this.isTripActive = false;
             this.activeTripId = null;
             this.liveData.trip_active = false;
@@ -1060,12 +983,11 @@ class SmartDriveWebApp {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const newState = !this.isCameraActive;
 
-            // If starting camera after it was stopped, send a reset command first
             if (newState && this.cameraWasStopped) {
                 this.ws.send(JSON.stringify({
                     command: 'reset_camera'
                 }));
-                // Small delay before starting
+                
                 setTimeout(() => {
                     this.ws.send(JSON.stringify({
                         command: 'toggle_camera',
@@ -1079,19 +1001,16 @@ class SmartDriveWebApp {
                 }));
             }
 
-            // Track if camera was stopped for restart handling
             if (!newState) {
                 this.cameraWasStopped = true;
             } else {
                 this.cameraWasStopped = false;
             }
 
-            // Reset video feed elements when stopping
             if (!newState) {
                 this.resetVideoFeeds();
             }
 
-            // Optimistically update UI immediately
             this.isCameraActive = newState;
             this.updateCameraStatus(newState);
 
@@ -1102,7 +1021,7 @@ class SmartDriveWebApp {
     }
 
     resetVideoFeeds() {
-        // Reset dashboard video feed
+        
         const videoFeed = document.getElementById('videoFeed');
         const noVideo = document.getElementById('noVideo');
         if (videoFeed) {
@@ -1113,7 +1032,6 @@ class SmartDriveWebApp {
             noVideo.style.display = 'flex';
         }
 
-        // Reset vision page feed
         const visionFeed = document.getElementById('visionFeed');
         const visionPlaceholder = document.getElementById('visionPlaceholder');
         if (visionFeed) {
@@ -1124,7 +1042,6 @@ class SmartDriveWebApp {
             visionPlaceholder.style.display = 'flex';
         }
 
-        // Reset FPS counters
         this.frameCount = 0;
         this.fpsCounter = 0;
         const fpsDisplay = document.getElementById('fpsDisplay');
@@ -1134,7 +1051,7 @@ class SmartDriveWebApp {
     }
 
     prepareVideoFeeds() {
-        // Prepare dashboard video feed for receiving frames
+        
         const videoFeed = document.getElementById('videoFeed');
         const noVideo = document.getElementById('noVideo');
         if (videoFeed) {
@@ -1145,7 +1062,6 @@ class SmartDriveWebApp {
             noVideo.style.display = 'none';
         }
 
-        // Prepare vision page feed
         const visionFeed = document.getElementById('visionFeed');
         const visionPlaceholder = document.getElementById('visionPlaceholder');
         if (visionFeed) {
@@ -1156,33 +1072,27 @@ class SmartDriveWebApp {
             visionPlaceholder.style.display = 'none';
         }
 
-        // Reset FPS counter for new stream
         this.frameCount = 0;
         this.fpsCounter = 0;
         this.lastFpsUpdate = Date.now();
     }
 
-    // UI UPDATE FUNCTIONS
     updateDashboard() {
-        // Update speed
+        
         const speedValue = document.getElementById('speedValue');
         if (speedValue) speedValue.textContent = Math.round(this.liveData.speed);
 
-        // Update acceleration
         const accelValue = document.getElementById('accelValue');
         if (accelValue) accelValue.textContent = this.liveData.acceleration.toFixed(2);
 
-        // Update safety score
         const safetyScore = document.getElementById('safetyScore');
         if (safetyScore) safetyScore.textContent = this.liveData.safety_score;
 
-        // Update GPS
         const gpsLat = document.getElementById('gpsLat');
         const gpsLon = document.getElementById('gpsLon');
         if (gpsLat) gpsLat.textContent = this.liveData.latitude.toFixed(6) + '°';
         if (gpsLon) gpsLon.textContent = this.liveData.longitude.toFixed(6) + '°';
 
-        // Update event counters
         const harshBrakeCount = document.getElementById('harshBrakeCount');
         if (harshBrakeCount) harshBrakeCount.textContent = this.liveData.hard_brake_count;
 
@@ -1192,7 +1102,6 @@ class SmartDriveWebApp {
         const laneDepartureCount = document.getElementById('laneDepartureCount');
         if (laneDepartureCount) laneDepartureCount.textContent = this.liveData.lane_departures;
 
-        // Update top bar stats
         const liveSpeed = document.getElementById('liveSpeed');
         const liveAccel = document.getElementById('liveAccel');
         const liveSafety = document.getElementById('liveSafety');
@@ -1201,7 +1110,6 @@ class SmartDriveWebApp {
         if (liveAccel) liveAccel.textContent = this.liveData.acceleration.toFixed(1);
         if (liveSafety) liveSafety.textContent = this.liveData.safety_score;
 
-        // Draw speedometer
         this.drawSpeedometer(this.liveData.speed);
     }
 
@@ -1212,11 +1120,10 @@ class SmartDriveWebApp {
             return;
         }
 
-        // Ensure speed is a valid number
         if (typeof speed !== 'number' || isNaN(speed)) {
             speed = 0;
         }
-        speed = Math.max(0, Math.min(speed, 300)); // Clamp between 0 and 300 km/h
+        speed = Math.max(0, Math.min(speed, 300)); 
 
         const ctx = canvas.getContext('2d');
         if (!ctx) {
@@ -1230,14 +1137,12 @@ class SmartDriveWebApp {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Outer circle
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
         ctx.strokeStyle = 'rgba(67, 97, 238, 0.2)';
         ctx.lineWidth = 15;
         ctx.stroke();
 
-        // Speed arc
         const maxSpeed = 200;
         const speedAngle = (Math.min(speed, maxSpeed) / maxSpeed) * 1.5 * Math.PI - 0.75 * Math.PI;
         const color = speed < 60 ? '#4cc9f0' : speed < 100 ? '#f8961e' : '#f72585';
@@ -1248,13 +1153,11 @@ class SmartDriveWebApp {
         ctx.lineWidth = 15;
         ctx.stroke();
 
-        // Center dot
         ctx.beginPath();
         ctx.arc(centerX, centerY, 10, 0, 2 * Math.PI);
         ctx.fillStyle = color;
         ctx.fill();
 
-        // Needle
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(speedAngle);
@@ -1266,7 +1169,6 @@ class SmartDriveWebApp {
         ctx.stroke();
         ctx.restore();
 
-        // Speed markers
         ctx.fillStyle = '#666';
         ctx.font = '12px Arial';
         ctx.textAlign = 'center';
@@ -1300,11 +1202,9 @@ class SmartDriveWebApp {
         }
     }
 
-    // Update camera status display (camera runs permanently - no toggle)
     updateCameraStatus(enabled) {
         this.isCameraActive = enabled;
 
-        // Update dashboard camera status badge
         const cameraStatusBadge = document.getElementById('cameraStatusBadge');
 
         if (cameraStatusBadge) {
@@ -1312,7 +1212,6 @@ class SmartDriveWebApp {
                 cameraStatusBadge.innerHTML = '<i class="fas fa-circle" style="font-size: 8px; animation: pulse-dot 2s infinite;"></i> Active';
                 cameraStatusBadge.className = 'status-badge success';
 
-                // Show video feed when camera is enabled
                 const videoFeed = document.getElementById('videoFeed');
                 const noVideo = document.getElementById('noVideo');
                 if (videoFeed && noVideo) {
@@ -1324,7 +1223,6 @@ class SmartDriveWebApp {
                 cameraStatusBadge.innerHTML = '<i class="fas fa-circle" style="font-size: 8px;"></i> Reconnecting...';
                 cameraStatusBadge.className = 'status-badge warning';
 
-                // Show loading placeholder
                 const videoFeed = document.getElementById('videoFeed');
                 const noVideo = document.getElementById('noVideo');
                 if (videoFeed && noVideo) {
@@ -1339,7 +1237,6 @@ class SmartDriveWebApp {
             }
         }
 
-        // Update vision page feed (also runs permanently)
         const visionFeed = document.getElementById('visionFeed');
         const visionPlaceholder = document.getElementById('visionPlaceholder');
         const visionStatusBadge = document.getElementById('visionStatusBadge');
@@ -1384,11 +1281,9 @@ class SmartDriveWebApp {
         }
     }
 
-    // PAGE NAVIGATION
     loadPage(pageName) {
         this.currentPage = pageName;
 
-        // Update active nav
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
             if (item.dataset.page === pageName) {
@@ -1396,7 +1291,6 @@ class SmartDriveWebApp {
             }
         });
 
-        // Update page title
         const titles = {
             dashboard: 'Dashboard',
             lane_detection: 'Lane Detection System',
@@ -1430,8 +1324,6 @@ class SmartDriveWebApp {
             subtitle.textContent = subtitles[pageName] || '';
         }
 
-        // Load page content
-        // Handle special case for camera page
         const templateId = pageName === 'camera' ? 'cameraTemplate' : pageName + 'Template';
         const template = document.getElementById(templateId);
         const contentArea = document.getElementById('contentArea');
@@ -1439,7 +1331,7 @@ class SmartDriveWebApp {
         if (template && contentArea) {
             contentArea.innerHTML = template.innerHTML;
             this.initPageComponents(pageName);
-            // Re-attach event listeners after content is loaded
+            
             this.attachPageListeners();
         } else {
             console.warn(`Template not found: ${templateId}`);
@@ -1479,13 +1371,12 @@ class SmartDriveWebApp {
     }
 
     initLaneDetection() {
-        // Initialize camera manager for vision system
+        
         if (typeof CameraManager !== 'undefined' && !window.cameraManager) {
             window.cameraManager = new CameraManager(this);
             window.cameraManager.initVisionSystem();
         }
 
-        // Update camera status if already active
         if (this.isCameraActive) {
             const visionFeed = document.getElementById('visionFeed');
             const visionPlaceholder = document.getElementById('visionPlaceholder');
@@ -1495,7 +1386,6 @@ class SmartDriveWebApp {
             }
         }
 
-        // Setup night vision toggle
         const nightModeToggle = document.getElementById('nightModeToggle');
         if (nightModeToggle) {
             nightModeToggle.addEventListener('change', () => {
@@ -2021,7 +1911,7 @@ class SmartDriveWebApp {
     }
 
     initDashboard() {
-        // Initialize speedometer with current speed (or 0)
+        
         const initialSpeed = this.liveData.speed || 0;
         this.drawSpeedometer(initialSpeed);
         console.log('📊 Speedometer initialized with speed:', initialSpeed, 'km/h');
@@ -2029,13 +1919,10 @@ class SmartDriveWebApp {
         this.updateDashboard();
         this.updateTripControls();
 
-        // Update camera button based on current status
         this.updateCameraStatus(this.isCameraActive);
 
-        // Load dashboard statistics
         this.loadDashboardStats();
 
-        // Check GPS status
         if (!this.gpsManager) {
             console.warn('⚠️ GPS Manager not initialized');
             this.showToast('GPS not available. Speed and location tracking may be limited.', 'warning');
@@ -2043,20 +1930,18 @@ class SmartDriveWebApp {
             console.warn('⚠️ Browser does not support geolocation');
             this.showToast('Your browser does not support GPS tracking', 'warning');
         } else {
-            // Ensure GPS is tracking
+            
             if (!this.gpsManager.watchId && !this.gpsManager.pollInterval) {
                 console.log('🔄 Restarting GPS tracking...');
                 this.gpsManager.startTracking();
             }
         }
 
-        // Set up periodic dashboard refresh to ensure UI stays updated
-        // This helps when GPS updates are slow
         if (this.dashboardRefreshInterval) {
             clearInterval(this.dashboardRefreshInterval);
         }
         this.dashboardRefreshInterval = setInterval(() => {
-            // Refresh dashboard every 500ms to ensure smooth updates
+            
             if (this.currentPage === 'dashboard') {
                 this.updateDashboard();
             }
@@ -2105,10 +1990,8 @@ class SmartDriveWebApp {
         }
     }
 
-
-    // EVENT LISTENERS
     setupEventListeners() {
-        // Use event delegation for navigation (works with dynamically loaded content)
+        
         const sidebar = document.querySelector('.sidebar');
         if (sidebar) {
             sidebar.addEventListener('click', (e) => {
@@ -2120,7 +2003,6 @@ class SmartDriveWebApp {
             });
         }
 
-        // Logout button
         document.addEventListener('click', (e) => {
             if (e.target.closest('.btn-logout')) {
                 e.preventDefault();
@@ -2128,7 +2010,6 @@ class SmartDriveWebApp {
             }
         });
 
-        // Menu toggle
         const menuToggle = document.getElementById('menuToggle');
         if (menuToggle) {
             menuToggle.addEventListener('click', () => {
@@ -2136,12 +2017,11 @@ class SmartDriveWebApp {
             });
         }
 
-        // Re-attach listeners after page load
         this.attachPageListeners();
     }
 
     attachPageListeners() {
-        // Dashboard buttons
+        
         const startTripBtn = document.getElementById('startTripBtn');
         if (startTripBtn) {
             startTripBtn.onclick = () => this.startTrip();
@@ -2157,7 +2037,6 @@ class SmartDriveWebApp {
             toggleCameraBtn.onclick = () => this.toggleCamera();
         }
 
-        // Camera toggle buttons (multiple instances)
         const cameraToggleBtns = document.querySelectorAll('#cameraToggleBtn, #visionCameraBtn');
         cameraToggleBtns.forEach(btn => {
             btn.onclick = () => this.toggleCamera();
@@ -2175,7 +2054,6 @@ class SmartDriveWebApp {
         }
     }
 
-    // UTILITIES
     showToast(message, type = 'info') {
         const container = document.getElementById('toastContainer') || this.createToastContainer();
 
@@ -2230,7 +2108,6 @@ class SmartDriveWebApp {
     logout() {
         console.log('🚪 Logging out...');
 
-        // Stop all active processes
         if (this.gpsManager) {
             this.gpsManager.stopTracking();
         }
@@ -2242,22 +2119,18 @@ class SmartDriveWebApp {
             });
         }
 
-        // Close WebSocket
         if (this.ws) {
             this.ws.close(1000, 'User logout');
             this.ws = null;
         }
 
-        // Clear intervals
         if (this.dashboardRefreshInterval) {
             clearInterval(this.dashboardRefreshInterval);
         }
 
-        // ✅ FIX: Clear ALL local storage
         localStorage.clear();
         sessionStorage.clear();
 
-        // ✅ FIX: Reset application state
         this.sessionId = null;
         this.userData = null;
         this.isTripActive = false;
@@ -2266,7 +2139,6 @@ class SmartDriveWebApp {
 
         console.log('✅ Logout complete, redirecting to login...');
 
-        // ✅ FIX: Use replace() to prevent back button issues
         window.location.replace('/login.html');
     }
 
@@ -2307,6 +2179,3 @@ class SmartDriveWebApp {
         }
     }
 }
-
-// Note: App initialization is handled by main.js
-// Global functions are set up by main.js after app initialization

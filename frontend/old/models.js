@@ -1,4 +1,3 @@
-// modals.js - Modal Management System
 class ModalManager {
     constructor(app) {
         this.app = app;
@@ -12,14 +11,13 @@ class ModalManager {
     }
 
     setupModalEvents() {
-        // Close modal on outside click
+        
         document.addEventListener('click', (e) => {
             if (this.currentModal && e.target.classList.contains('modal')) {
                 this.closeModal();
             }
         });
 
-        // Close modal on Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.currentModal) {
                 this.closeModal();
@@ -28,7 +26,7 @@ class ModalManager {
     }
 
     setupFormHandlers() {
-        // Account settings form
+        
         const accountForm = document.getElementById('accountSettingsForm');
         if (accountForm) {
             accountForm.addEventListener('submit', (e) => {
@@ -37,7 +35,6 @@ class ModalManager {
             });
         }
 
-        // Security settings form
         const securityForm = document.getElementById('securitySettingsForm');
         if (securityForm) {
             securityForm.addEventListener('submit', (e) => {
@@ -46,7 +43,6 @@ class ModalManager {
             });
         }
 
-        // New trip form
         const tripForm = document.getElementById('newTripForm');
         if (tripForm) {
             tripForm.addEventListener('submit', (e) => {
@@ -57,7 +53,7 @@ class ModalManager {
     }
 
     showModal(modalId, data = {}) {
-        // Close any existing modal first
+        
         if (this.currentModal && this.currentModal.id !== modalId) {
             this.closeModal();
         }
@@ -72,12 +68,10 @@ class ModalManager {
         modal.style.display = 'flex';
         modal.classList.add('active');
         
-        // Populate form data if provided
         if (data && Object.keys(data).length > 0) {
             this.populateForm(modalId, data);
         }
         
-        // Focus first input after a small delay
         setTimeout(() => {
             const firstInput = modal.querySelector('input, select, textarea');
             if (firstInput) firstInput.focus();
@@ -117,7 +111,6 @@ class ModalManager {
         });
     }
 
-    // Modal-specific handlers
     async saveAccountSettings() {
         const fullName = document.getElementById('userFullName').value;
         const email = document.getElementById('userEmail').value;
@@ -171,13 +164,12 @@ class ModalManager {
         this.app.showLoading();
         
         try {
-            // Use real backend API to change password
+            
             if (window.db) {
                 const success = await window.db.changePassword(currentPassword, newPassword);
                 if (success) {
                     this.app.showToast('Password updated successfully!', 'success');
                     
-                    // Clear form
                     document.getElementById('currentPassword').value = '';
                     document.getElementById('newPassword').value = '';
                     document.getElementById('confirmPassword').value = '';
@@ -218,7 +210,7 @@ class ModalManager {
                     this.app.liveData.trip_active = true;
                     this.app.liveData.trip_id = result.trip_id;
                     this.app.activeTripId = result.trip_id;
-                    // Start trip tracker if available
+                    
                     if (this.app.tripTracker) {
                         this.app.tripTracker.startTrip(
                             result.trip_id,
@@ -275,7 +267,6 @@ class ModalManager {
         this.showModal('emergencyModal');
     }
 
-    // Additional modal methods
     async submitAddVehicle() {
         const plate = document.getElementById('vehiclePlate').value;
         const make = document.getElementById('vehicleMake').value;
@@ -299,7 +290,6 @@ class ModalManager {
                     this.app.showToast('Vehicle added successfully!', 'success');
                     this.closeModal();
                     
-                    // Refresh vehicles list if on vehicles page
                     if (this.app.currentPage === 'vehicles') {
                         this.app.loadVehicles();
                     }
@@ -343,7 +333,6 @@ class ModalManager {
                     this.app.showToast('Expense added successfully!', 'success');
                     this.closeModal();
                     
-                    // Refresh expenses list if on expenses page
                     if (this.app.currentPage === 'expenses') {
                         this.app.loadExpenses();
                     }
@@ -388,7 +377,6 @@ class ModalManager {
                     this.app.showToast('Incident reported successfully!', 'success');
                     this.closeModal();
                     
-                    // Refresh incidents list if on incidents page
                     if (this.app.currentPage === 'incidents') {
                         this.app.loadIncidents();
                     }
@@ -405,7 +393,6 @@ class ModalManager {
         }
     }
 
-    // Helper methods
     async populateVehicleSelect(selectId, includeEmpty = true) {
         const select = document.getElementById(selectId);
         if (!select) return;
@@ -494,7 +481,6 @@ class ModalManager {
     }
 }
 
-// Initialize modal manager
 if (window.app) {
     window.modals = new ModalManager(window.app);
 }

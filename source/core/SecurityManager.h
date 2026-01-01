@@ -11,7 +11,6 @@
 #include <iostream>
 using namespace std;
 
-
 class SecurityManager
 {
 private:
@@ -26,7 +25,6 @@ public:
     string hash_password(const string &password)
     {
         unsigned char hash[SHA256_DIGEST_LENGTH];
-
 
         EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
         const EVP_MD *md = EVP_sha256();

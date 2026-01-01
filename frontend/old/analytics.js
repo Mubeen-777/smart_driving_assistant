@@ -1,6 +1,3 @@
-// analytics.js - Analytics and Charts Module (REAL DATA ONLY - NO MOCK DATA)
-// All data comes from the backend database via API
-
 class AnalyticsManager {
     constructor(app) {
         this.app = app;
@@ -105,7 +102,6 @@ class AnalyticsManager {
 
         const ctx = canvas.getContext('2d');
         
-        // Generate labels from real data
         const labels = this.performanceData.dates?.map(d => 
             d.getDate().toString().padStart(2, '0')
         ) || [];
@@ -191,7 +187,6 @@ class AnalyticsManager {
 
         const ctx = canvas.getContext('2d');
         
-        // Use real safety scores from database
         const safetyData = this.performanceData.safetyScores.slice(-12);
         const labels = this.performanceData.dates?.slice(-12).map(d => 
             d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -225,7 +220,6 @@ class AnalyticsManager {
             }
         });
 
-        // Update current safety score from real data
         const currentScoreEl = document.getElementById('currentSafetyScore');
         if (currentScoreEl) {
             const currentScore = safetyData.length > 0 ? safetyData[safetyData.length - 1] : (this.tripStats?.safety_score || 1000);
@@ -239,7 +233,6 @@ class AnalyticsManager {
 
         const ctx = canvas.getContext('2d');
         
-        // Use real fuel efficiency data
         const fuelData = this.performanceData.fuelEfficiency.slice(-8);
         const labels = this.performanceData.dates?.slice(-8).map(d => 
             d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -277,9 +270,8 @@ class AnalyticsManager {
 
         const ctx = canvas.getContext('2d');
         
-        // Calculate real performance metrics
         const stats = this.tripStats || {};
-        const safetyScore = (stats.safety_score || 1000) / 10; // Scale to 0-100
+        const safetyScore = (stats.safety_score || 1000) / 10; 
         const avgDistance = this.performanceData.distances.length > 0 
             ? Math.min(100, (this.performanceData.distances.reduce((a,b) => a+b, 0) / this.performanceData.distances.length) * 2)
             : 0;
@@ -572,15 +564,12 @@ class AnalyticsManager {
         try {
             if (this.app.showLoading) this.app.showLoading();
             
-            // Gather all data
             const stats = await window.db?.getTripStatistics() || {};
             const trips = await window.db?.getTripHistory(100) || [];
             const expenses = await window.db?.getExpenseSummary() || {};
             
-            // Create CSV content
             const csvContent = this.generateCSV(stats, trips, expenses);
             
-            // Create download link
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -608,7 +597,6 @@ class AnalyticsManager {
         let csv = 'Smart Drive Manager - Data Export\n';
         csv += `Generated: ${new Date().toLocaleString()}\n\n`;
         
-        // Statistics section
         csv += 'STATISTICS\n';
         csv += 'Metric,Value\n';
         csv += `Total Trips,${stats.total_trips || 0}\n`;
@@ -617,7 +605,6 @@ class AnalyticsManager {
         csv += `Safety Score,${stats.safety_score || 1000}\n`;
         csv += `Total Expenses,$${(expenses.total_expenses || 0).toFixed(2)}\n\n`;
         
-        // Trips section
         if (trips.length > 0) {
             csv += 'TRIP HISTORY\n';
             csv += 'Trip ID,Date,Distance (km),Duration,Avg Speed (km/h),Safety Score\n';
@@ -635,5 +622,4 @@ class AnalyticsManager {
     }
 }
 
-// Initialize when window.app is available
 window.analytics = null;

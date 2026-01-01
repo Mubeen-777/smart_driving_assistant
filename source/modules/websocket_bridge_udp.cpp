@@ -1,6 +1,3 @@
-// websocket_bridge_udp.cpp - WebSocket bridge with UDP ADAS receiver
-// Compile: g++ -std=c++17 websocket_bridge_udp.cpp -o websocket_bridge -pthread -lwebsockets
-
 #include <libwebsockets.h>
 #include <thread>
 #include <mutex>
@@ -14,7 +11,6 @@
 
 using namespace std;
 
-// Global state
 struct per_session_data {
     bool initialized;
 };
@@ -23,17 +19,15 @@ queue<string> message_queue;
 mutex queue_mutex;
 atomic<bool> running(true);
 
-// UDP Receiver
 UDPReceiver* udp_receiver = nullptr;
 
-// Convert ADAS data to JSON for WebSocket
 string adas_data_to_json(const AdasData& data) {
     ostringstream oss;
     oss << fixed << setprecision(6);
     oss << "{"
         << "\"type\":\"live_data\","
         << "\"data\":{"
-        << "\"speed\":" << (data.kalman_speed * 3.6) << ","  // Convert m/s to km/h
+        << "\"speed\":" << (data.kalman_speed * 3.6) << ","  
         << "\"acceleration\":" << data.accel_y << ","
         << "\"latitude\":" << data.latitude << ","
         << "\"longitude\":" << data.longitude << ","
@@ -70,13 +64,11 @@ string adas_event_to_json(const AdasEvent& event) {
     return oss.str();
 }
 
-// Broadcast message to all WebSocket clients
 void broadcast_message(const string& message) {
     lock_guard<mutex> lock(queue_mutex);
     message_queue.push(message);
 }
 
-// WebSocket callback
 static int callback_smartdrive(struct lws *wsi, enum lws_callback_reasons reason,
                                void *user, void *in, size_t len) {
     per_session_data *pss = (per_session_data*)user;
@@ -91,8 +83,6 @@ static int callback_smartdrive(struct lws *wsi, enum lws_callback_reasons reason
             string message((char*)in, len);
             cout << "📨 Received from frontend: " << message << endl;
             
-            // Handle frontend commands (trip start/stop, etc.)
-            // Forward to backend via HTTP if needed
             break;
         }
         
@@ -169,21 +159,17 @@ int main() {
     cout << "  SMART DRIVE WEBSOCKET BRIDGE WITH UDP" << endl;
     cout << "═══════════════════════════════════════════════" << endl;
     
-    // Start UDP receiver
     udp_receiver = new UDPReceiver(5555);
     
-    // Set callback for ADAS data
     udp_receiver->set_data_callback([](const AdasData& data) {
         string json = adas_data_to_json(data);
         broadcast_message(json);
     });
     
-    // Set callback for ADAS events
     udp_receiver->set_event_callback([](const AdasEvent& event) {
         string json = adas_event_to_json(event);
         broadcast_message(json);
         
-        // Log critical events
         if (event.event_type == "CRASH" || event.event_type == "IMPACT") {
             cout << "🚨🚨🚨 CRITICAL EVENT: " << event.event_type << " 🚨🚨🚨" << endl;
         }
@@ -202,15 +188,12 @@ int main() {
     cout << "   3. Set UDP_PORT to 5555" << endl;
     cout << endl;
     
-    // Start WebSocket server
     thread ws_thread(websocket_thread);
     
     cout << "✅ System ready. Press Ctrl+C to stop." << endl;
     
-    // Wait for shutdown signal
     ws_thread.join();
     
-    // Cleanup
     running = false;
     udp_receiver->stop();
     delete udp_receiver;

@@ -1025,7 +1025,7 @@
 
 <body>
     <div class="app-container">
-        <!-- Sidebar Navigation -->
+        
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
@@ -1103,9 +1103,8 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
+            
             <header class="main-header">
                 <div class="page-title">
                     <h1>Expense Tracking</h1>
@@ -1124,7 +1123,6 @@
                 </div>
             </header>
 
-            <!-- Add Expense Button -->
             <div style="text-align: right; margin-bottom: 30px;">
                 <button class="btn btn-primary" onclick="showAddExpenseModal()">
                     <i class="fas fa-plus"></i>
@@ -1132,7 +1130,6 @@
                 </button>
             </div>
 
-            <!-- Stats Overview -->
             <div class="stats-overview">
                 <div class="stat-card">
                     <div class="stat-icon">
@@ -1167,7 +1164,6 @@
                 </div>
             </div>
 
-            <!-- Filter Bar -->
             <div class="filter-bar">
                 <div class="filter-controls">
                     <div class="filter-group">
@@ -1219,15 +1215,13 @@
                 </div>
             </div>
 
-            <!-- Expenses List -->
             <div class="expenses-list" id="expensesList">
-                <!-- Loading State -->
+                
                 <div class="loading-state" id="loadingState">
                     <div class="spinner"></div>
                     <div class="loading-text">Loading expenses...</div>
                 </div>
 
-                <!-- Empty State (Hidden by default) -->
                 <div class="empty-state" id="emptyState" style="display: none;">
                     <div class="empty-state-icon">
                         <i class="fas fa-money-bill-wave"></i>
@@ -1242,12 +1236,10 @@
                     </button>
                 </div>
 
-                <!-- Expenses will be dynamically inserted here -->
             </div>
         </main>
     </div>
 
-    <!-- Add Expense Modal -->
     <div class="modal-overlay" id="addExpenseModal">
         <div class="modal">
             <div class="modal-header">
@@ -1309,7 +1301,6 @@
         </div>
     </div>
 
-    <!-- Edit Expense Modal -->
     <div class="modal-overlay" id="editExpenseModal">
         <div class="modal">
             <div class="modal-header">

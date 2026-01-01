@@ -1,7 +1,6 @@
 #ifndef BTREE_H
 #define BTREE_H
 
-
 #include <cstdint>
 #include <cstring>
 #include <vector>
@@ -94,18 +93,15 @@ struct BTreeNode
 
     CompositeKey keys[MAX_KEYS];
 
-    
     union
     {
         BTreeValue values[MAX_CHILDREN];      
         uint64_t child_offsets[MAX_CHILDREN]; 
     };
 
-    
     uint64_t next_leaf; 
     uint64_t prev_leaf; 
 
-    
     uint8_t padding[3480];
 
     BTreeNode() : node_type(1), key_count(0), parent_offset(0), level(0),
@@ -135,7 +131,6 @@ struct BTreeMetadata
     uint64_t free_list_head;  
     uint64_t last_compaction; 
     uint8_t reserved[4040];   
-
 
     BTreeMetadata() : version(1), root_offset(0), total_records(0),
                       tree_height(0), free_list_head(0), last_compaction(0)
@@ -213,7 +208,6 @@ private:
         return offset;
     }
 
-    
     void add_to_cache(uint64_t offset, const BTreeNode &node, bool dirty)
     {
         if (cache_.size() >= CACHE_SIZE)
@@ -228,7 +222,6 @@ private:
         cache_.push_back({offset, node, dirty});
     }
 
-    
     void update_cache(uint64_t offset, const BTreeNode &node, bool dirty)
     {
         for (auto &entry : cache_)
@@ -243,7 +236,6 @@ private:
         add_to_cache(offset, node, dirty);
     }
 
-    
     int find_key_position(const BTreeNode &node, const CompositeKey &key)
     {
         int pos = 0;
@@ -254,7 +246,6 @@ private:
         return pos;
     }
 
-    
     void split_child(uint64_t parent_offset, BTreeNode &parent, int child_index)
     {
         BTreeNode child;
@@ -262,7 +253,6 @@ private:
         if (!read_node(child_offset, child))
             return;
 
-        
         uint64_t new_node_offset = allocate_node();
         BTreeNode new_node;
         new_node.node_type = child.node_type;
@@ -270,14 +260,12 @@ private:
 
         int mid = BTreeNode::MIN_KEYS;
 
-        
         new_node.key_count = BTreeNode::MIN_KEYS;
         for (int i = 0; i < BTreeNode::MIN_KEYS; i++)
         {
             new_node.keys[i] = child.keys[mid + 1 + i];
         }
 
-        
         if (child.is_leaf())
         {
             for (int i = 0; i < BTreeNode::MIN_KEYS; i++)
@@ -299,7 +287,6 @@ private:
 
         child.key_count = BTreeNode::MIN_KEYS;
 
-        
         for (int i = parent.key_count; i > child_index; i--)
         {
             parent.keys[i] = parent.keys[i - 1];
@@ -310,13 +297,11 @@ private:
         parent.child_offsets[child_index + 1] = new_node_offset;
         parent.key_count++;
 
-        
         write_node(child_offset, child);
         write_node(new_node_offset, new_node);
         write_node(parent_offset, parent);
     }
 
-    
     void insert_non_full(uint64_t node_offset, BTreeNode &node,
                          const CompositeKey &key, const BTreeValue &value)
     {
@@ -365,7 +350,6 @@ private:
         }
     }
 
-    
     bool search_recursive(uint64_t node_offset, const CompositeKey &key, BTreeValue &result)
     {
         if (node_offset == 0)
@@ -377,7 +361,6 @@ private:
 
         int pos = find_key_position(node, key);
 
-        
         if (pos < node.key_count && node.keys[pos] == key)
         {
             if (node.is_leaf())
@@ -392,17 +375,14 @@ private:
             }
         }
 
-        
         if (node.is_leaf())
         {
             return false;
         }
 
-        
         return search_recursive(node.child_offsets[pos], key, result);
     }
 
-    
     void range_query_recursive(uint64_t node_offset,
                                const CompositeKey &start_key,
                                const CompositeKey &end_key,
@@ -426,7 +406,6 @@ private:
                 }
             }
 
-            
             if (node.key_count > 0 && node.keys[node.key_count - 1] < end_key && node.next_leaf != 0)
             {
                 range_query_recursive(node.next_leaf, start_key, end_key, results);
@@ -476,7 +455,6 @@ public:
 
         cout << "        Writing metadata..." << endl;
 
-        
         metadata_ = BTreeMetadata();
         file_.write(reinterpret_cast<char *>(&metadata_), sizeof(BTreeMetadata));
 
@@ -489,7 +467,6 @@ public:
 
         cout << "        Creating root node..." << endl;
 
-        
         BTreeNode root;
         root.node_type = 1; 
         root.level = 0;
@@ -508,11 +485,9 @@ public:
 
         cout << "        Updating metadata..." << endl;
 
-        
         file_.seekp(0, ios::beg);
         file_.write(reinterpret_cast<char *>(&metadata_), sizeof(BTreeMetadata));
         file_.flush();
-
 
         cout << "        BTree file created successfully" << endl;
         return true;
@@ -581,7 +556,6 @@ public:
         }
     }
 
-    
     bool insert(const CompositeKey &key, const BTreeValue &value)
     {
         if (metadata_.root_offset == 0)

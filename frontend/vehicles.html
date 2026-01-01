@@ -905,7 +905,7 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Sidebar Navigation -->
+        
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
@@ -983,9 +983,8 @@
             </div>
         </aside>
         
-        <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
+            
             <header class="main-header">
                 <div class="page-title">
                     <h1>My Vehicles</h1>
@@ -1004,7 +1003,6 @@
                 </div>
             </header>
             
-            <!-- Add Vehicle Button -->
             <div style="text-align: right; margin-bottom: 30px;">
                 <button class="btn btn-primary" onclick="showAddVehicleModal()">
                     <i class="fas fa-plus"></i>
@@ -1012,7 +1010,6 @@
                 </button>
             </div>
             
-            <!-- Maintenance Alerts -->
             <div class="alerts-section" id="alertsSection">
                 <div class="alerts-header">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -1021,15 +1018,13 @@
                 <div id="alertsList"></div>
             </div>
             
-            <!-- Vehicles Grid -->
             <div class="vehicles-grid" id="vehiclesGrid">
-                <!-- Loading State -->
+                
                 <div class="loading-state" id="loadingState">
                     <div class="spinner"></div>
                     <div class="loading-text">Loading vehicles...</div>
                 </div>
                 
-                <!-- Empty State (Hidden by default) -->
                 <div class="empty-state" id="emptyState" style="display: none;">
                     <div class="empty-state-icon">
                         <i class="fas fa-car"></i>
@@ -1044,12 +1039,10 @@
                     </button>
                 </div>
                 
-                <!-- Vehicles will be dynamically inserted here -->
             </div>
         </main>
     </div>
     
-    <!-- Add Vehicle Modal -->
     <div class="modal-overlay" id="addVehicleModal">
         <div class="modal">
             <div class="modal-header">
@@ -1116,7 +1109,6 @@
         </div>
     </div>
     
-    <!-- Update Odometer Modal -->
     <div class="modal-overlay" id="odometerModal">
         <div class="modal">
             <div class="modal-header">
@@ -1149,7 +1141,6 @@
         </div>
     </div>
     
-    <!-- Maintenance Modal -->
     <div class="modal-overlay" id="maintenanceModal">
         <div class="modal">
             <div class="modal-header">

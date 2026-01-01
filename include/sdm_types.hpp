@@ -7,9 +7,7 @@
 #include <iostream>
 using namespace std;
 
-
 #pragma pack(push, 1)
-
 
 enum class UserRole : uint8_t
 {
@@ -65,33 +63,29 @@ enum class DrivingEventType : uint8_t
     IDLE_EXCESSIVE = 4
 };
 
-//DATABASE HEADER
 struct SDMHeader
 {
-    char magic[8];          // 8 bytes
-    uint32_t version;       // 4 bytes (total: 12)
-    uint64_t total_size;    // 8 bytes (total: 20)
-    uint64_t created_time;  // 8 bytes (total: 28)
-    uint64_t last_modified; // 8 bytes (total: 36)
-    char creator_info[64];  // 64 bytes (total: 100)
+    char magic[8];          
+    uint32_t version;       
+    uint64_t total_size;    
+    uint64_t created_time;  
+    uint64_t last_modified; 
+    char creator_info[64];  
 
-    // Offsets to main sections
-    uint64_t driver_table_offset;       // 8 (108)
-    uint64_t vehicle_table_offset;      // 8 (116)
-    uint64_t trip_table_offset;         // 8 (124)
-    uint64_t maintenance_table_offset;  // 8 (132)
-    uint64_t expense_table_offset;      // 8 (140)
-    uint64_t document_table_offset;     // 8 (148)
-    uint64_t incident_table_offset;     // 8 (156)
+    uint64_t driver_table_offset;       
+    uint64_t vehicle_table_offset;      
+    uint64_t trip_table_offset;         
+    uint64_t maintenance_table_offset;  
+    uint64_t expense_table_offset;      
+    uint64_t document_table_offset;     
+    uint64_t incident_table_offset;     
 
-    // Index file offsets
-    uint64_t primary_index_offset;      // 8 (164)
-    uint64_t secondary_index_offset;    // 8 (172)
+    uint64_t primary_index_offset;      
+    uint64_t secondary_index_offset;    
 
-    // Counts
-    uint32_t max_drivers;               // 4 (176)
-    uint32_t max_vehicles;              // 4 (180)
-    uint32_t max_trips;                 // 4 (184)
+    uint32_t max_drivers;               
+    uint32_t max_vehicles;              
+    uint32_t max_trips;                 
 
     uint8_t reserved[3912];
 
@@ -113,33 +107,29 @@ static_assert(sizeof(SDMHeader) == 4096, "SDMHeader must be 4096 bytes");
 
 struct DriverProfile
 {
-    uint64_t driver_id;          // 8 bytes
-    char username[64];           // 64 (72)
-    char password_hash[65];    // 64 (136)
-    UserRole role;               // 1 (137)
+    uint64_t driver_id;          
+    char username[64];           
+    char password_hash[65];    
+    UserRole role;               
     
-    // Personal info
-    char full_name[128];         // 128 (265)
-    char email[128];             // 128 (393)
-    char phone[32];              // 32 (425)
-    char license_number[32];     // 32 (457)
-    uint64_t license_expiry;     // 8 (465)
+    char full_name[128];         
+    char email[128];             
+    char phone[32];              
+    char license_number[32];     
+    uint64_t license_expiry;     
     
-    // Statistics
-    uint64_t total_trips;        // 8 (473)
-    double total_distance;       // 8 (481)
-    double total_fuel_consumed;  // 8 (489)
-    uint32_t safety_score;       // 4 (493)
-    uint32_t harsh_events_count; // 4 (497)
+    uint64_t total_trips;        
+    double total_distance;       
+    double total_fuel_consumed;  
+    uint32_t safety_score;       
+    uint32_t harsh_events_count; 
     
-    // Timestamps
-    uint64_t created_time;       // 8 (505)
-    uint64_t last_login;         // 8 (513)
-    uint8_t is_active;           // 1 (514)
+    uint64_t created_time;       
+    uint64_t last_login;         
+    uint8_t is_active;           
     
-    // Linked list pointers
-    uint64_t trip_history_head;  // 8 (522)
-    uint64_t trip_history_tail;  // 8 (530)
+    uint64_t trip_history_head;  
+    uint64_t trip_history_tail;  
     
     uint8_t reserved[493];
 
@@ -161,46 +151,38 @@ struct DriverProfile
 
 static_assert(sizeof(DriverProfile) == 1024, "DriverProfile must be 1024 bytes");
 
-
 struct VehicleInfo
 {
-    uint64_t vehicle_id;         // 8 bytes
-    uint64_t owner_driver_id;    // 8 (16)
+    uint64_t vehicle_id;         
+    uint64_t owner_driver_id;    
     
-    char license_plate[32];      // 32 (48)
-    char make[64];               // 64 (112)
-    char model[64];              // 64 (176)
-    uint32_t year;               // 4 (180)
-    VehicleType type;            // 1 (181)
-    char color[32];              // 32 (213)
-    char vin[32];                // 32 (245)
+    char license_plate[32];      
+    char make[64];               
+    char model[64];              
+    uint32_t year;               
+    VehicleType type;            
+    char color[32];              
+    char vin[32];                
     
-    // Technical specs
-    uint32_t engine_capacity;    // 4 (249)
-    double fuel_tank_capacity;   // 8 (257)
-    char fuel_type[16];          // 16 (273)
+    uint32_t engine_capacity;    
+    double fuel_tank_capacity;   
+    char fuel_type[16];          
     
-    // Odometer
-    double current_odometer;     // 8 (281)
-    double last_service_odometer;// 8 (289)
+    double current_odometer;     
+    double last_service_odometer;
     
-    // Insurance
-    char insurance_provider[64]; // 64 (353)
-    char insurance_policy[64];   // 64 (417)
-    uint64_t insurance_expiry;   // 8 (425)
+    char insurance_provider[64]; 
+    char insurance_policy[64];   
+    uint64_t insurance_expiry;   
     
-    // Registration
-    uint64_t registration_expiry;// 8 (433)
+    uint64_t registration_expiry;
     
-    // Maintenance tracking
-    uint64_t last_maintenance_date;  // 8 (441)
-    uint64_t next_maintenance_due;   // 8 (449)
+    uint64_t last_maintenance_date;  
+    uint64_t next_maintenance_due;   
     
-    uint64_t created_time;       // 8 (457)
-    uint8_t is_active;           // 1 (458)
+    uint64_t created_time;       
+    uint8_t is_active;           
     
-    // Padding to make exactly 1024 bytes
-    // Total so far: 458 bytes, need 1024 - 458 = 566 bytes padding
     uint8_t reserved[566];
 
     VehicleInfo() : vehicle_id(0), owner_driver_id(0), year(0),
@@ -226,45 +208,37 @@ static_assert(sizeof(VehicleInfo) == 1024, "VehicleInfo must be 1024 bytes");
 
 struct TripRecord
 {
-    uint64_t trip_id;            // 8 bytes
-    uint64_t driver_id;          // 8 (16)
-    uint64_t vehicle_id;         // 8 (24)
+    uint64_t trip_id;            
+    uint64_t driver_id;          
+    uint64_t vehicle_id;         
     
-    // Time
-    uint64_t start_time;         // 8 (32)
-    uint64_t end_time;           // 8 (40)
-    uint32_t duration;           // 4 (44)
+    uint64_t start_time;         
+    uint64_t end_time;           
+    uint32_t duration;           
     
-    // Location
-    double start_latitude;       // 8 (52)
-    double start_longitude;      // 8 (60)
-    double end_latitude;         // 8 (68)
-    double end_longitude;        // 8 (76)
-    char start_address[128];     // 128 (204)
-    char end_address[128];       // 128 (332)
+    double start_latitude;       
+    double start_longitude;      
+    double end_latitude;         
+    double end_longitude;        
+    char start_address[128];     
+    char end_address[128];       
     
-    // Metrics
-    double distance;             // 8 (340)
-    double avg_speed;            // 8 (348)
-    double max_speed;            // 8 (356)
-    double fuel_consumed;        // 8 (364)
-    double fuel_efficiency;      // 8 (372)
+    double distance;             
+    double avg_speed;            
+    double max_speed;            
+    double fuel_consumed;        
+    double fuel_efficiency;      
     
-    // Events
-    uint16_t harsh_braking_count;        // 2 (374)
-    uint16_t rapid_acceleration_count;   // 2 (376)
-    uint16_t speeding_count;             // 2 (378)
-    uint16_t sharp_turn_count;           // 2 (380)
+    uint16_t harsh_braking_count;        
+    uint16_t rapid_acceleration_count;   
+    uint16_t speeding_count;             
+    uint16_t sharp_turn_count;           
     
-    // GPS data
-    uint64_t gps_data_offset;    // 8 (388)
-    uint32_t gps_data_count;     // 4 (392)
+    uint64_t gps_data_offset;    
+    uint32_t gps_data_count;     
     
-    // Notes
-    char notes[256];             // 256 (648)
+    char notes[256];             
     
-    // Padding to make exactly 1024 bytes
-    // Total so far: 648 bytes, need 1024 - 648 = 376 bytes padding
     uint8_t reserved[376];
 
     TripRecord() : trip_id(0), driver_id(0), vehicle_id(0), start_time(0),
@@ -289,9 +263,9 @@ struct GPSWaypoint
     uint64_t timestamp;
     double latitude;
     double longitude;
-    float speed;    // km/h
-    float altitude; // meters
-    float accuracy; // meters
+    float speed;    
+    float altitude; 
+    float accuracy; 
     uint8_t satellites;
     uint8_t reserved[3];
 
@@ -302,41 +276,34 @@ struct GPSWaypoint
     }
 };
 
-
 struct MaintenanceRecord
 {
-    uint64_t maintenance_id;     // 8 bytes
-    uint64_t vehicle_id;         // 8 (16)
-    uint64_t driver_id;          // 8 (24)
+    uint64_t maintenance_id;     
+    uint64_t vehicle_id;         
+    uint64_t driver_id;          
     
-    MaintenanceType type;        // 1 (25)
-    uint64_t service_date;       // 8 (33)
-    double odometer_reading;     // 8 (41)
+    MaintenanceType type;        
+    uint64_t service_date;       
+    double odometer_reading;     
     
-    char service_center[128];    // 128 (169)
-    char technician[64];         // 64 (233)
-    char description[192];       // 192 (425)
+    char service_center[128];    
+    char technician[64];         
+    char description[192];       
     
-    // Cost
-    double labor_cost;           // 8 (433)
-    double parts_cost;           // 8 (441)
-    double total_cost;           // 8 (449)
-    char currency[8];            // 8 (457)
+    double labor_cost;           
+    double parts_cost;           
+    double total_cost;           
+    char currency[8];            
     
-    // Parts replaced
-    char parts_replaced[192];    // 192 (649)
+    char parts_replaced[192];    
     
-    // Next service
-    uint64_t next_service_date;  // 8 (657)
-    double next_service_odometer;// 8 (665)
+    uint64_t next_service_date;  
+    double next_service_odometer;
     
-    // Documents
-    uint64_t receipt_doc_id;     // 8 (673)
+    uint64_t receipt_doc_id;     
     
-    char notes[191];             // 191 (864)
+    char notes[191];             
     
-    // Padding to make exactly 1024 bytes
-    // Total: 864 bytes, need 1024 - 864 = 160 bytes padding
     uint8_t reserved[160];
 
     MaintenanceRecord() : maintenance_id(0), vehicle_id(0), driver_id(0),
@@ -357,41 +324,34 @@ struct MaintenanceRecord
 
 static_assert(sizeof(MaintenanceRecord) == 1024, "MaintenanceRecord must be 1024 bytes");
 
-
 struct ExpenseRecord
 {
-    uint64_t expense_id;         // 8 bytes
-    uint64_t driver_id;          // 8 (16)
-    uint64_t vehicle_id;         // 8 (24)
-    uint64_t trip_id;            // 8 (32)
+    uint64_t expense_id;         
+    uint64_t driver_id;          
+    uint64_t vehicle_id;         
+    uint64_t trip_id;            
     
-    ExpenseCategory category;    // 1 (33)
-    uint64_t expense_date;       // 8 (41)
+    ExpenseCategory category;    
+    uint64_t expense_date;       
     
-    double amount;               // 8 (49)
-    char currency[8];            // 8 (57)
-    char description[256];       // 256 (313)
+    double amount;               
+    char currency[8];            
+    char description[256];       
     
-    // Fuel-specific
-    double fuel_quantity;        // 8 (321)
-    double fuel_price_per_unit;  // 8 (329)
-    char fuel_station[128];      // 128 (457)
+    double fuel_quantity;        
+    double fuel_price_per_unit;  
+    char fuel_station[128];      
     
-    // Payment
-    char payment_method[32];     // 32 (489)
-    char receipt_number[64];     // 64 (553)
+    char payment_method[32];     
+    char receipt_number[64];     
     
-    // Tax
-    uint8_t is_tax_deductible;   // 1 (554)
-    double tax_amount;           // 8 (562)
+    uint8_t is_tax_deductible;   
+    double tax_amount;           
     
-    // Document
-    uint64_t receipt_doc_id;     // 8 (570)
+    uint64_t receipt_doc_id;     
     
-    char notes[256];             // 256 (826)
+    char notes[256];             
     
-    // Padding to make exactly 1024 bytes
-    // Total: 826 bytes, need 1024 - 826 = 198 bytes padding
     uint8_t reserved[198];
 
     ExpenseRecord() : expense_id(0), driver_id(0), vehicle_id(0), trip_id(0),
@@ -411,25 +371,23 @@ struct ExpenseRecord
 
 static_assert(sizeof(ExpenseRecord) == 1024, "ExpenseRecord must be 1024 bytes");
 
-
 struct DocumentMetadata
 {
-    uint64_t document_id;        // 8 bytes
-    uint64_t owner_id;           // 8 (16)
-    uint8_t owner_type;          // 1 (17)
+    uint64_t document_id;        
+    uint64_t owner_id;           
+    uint8_t owner_type;          
     
-    char filename[256];          // 256 (273)
-    char mime_type[64];          // 64 (337)
-    uint64_t file_size;          // 8 (345)
-    uint64_t upload_date;        // 8 (353)
-    uint64_t expiry_date;        // 8 (361)
+    char filename[256];          
+    char mime_type[64];          
+    uint64_t file_size;          
+    uint64_t upload_date;        
+    uint64_t expiry_date;        
     
-    // Storage
-    uint64_t data_offset;        // 8 (369)
-    uint32_t data_blocks;        // 4 (373)
+    uint64_t data_offset;        
+    uint32_t data_blocks;        
     
-    char description[256];       // 256 (629)
-    char tags[128];              // 128 (757)
+    char description[256];       
+    char tags[128];              
     
     uint8_t reserved[267];
 
@@ -449,45 +407,37 @@ static_assert(sizeof(DocumentMetadata) == 1024, "DocumentMetadata must be 1024 b
 
 struct IncidentReport
 {
-    uint64_t incident_id;        // 8 bytes
-    uint64_t driver_id;          // 8 (16)
-    uint64_t vehicle_id;         // 8 (24)
-    uint64_t trip_id;            // 8 (32)
+    uint64_t incident_id;        
+    uint64_t driver_id;          
+    uint64_t vehicle_id;         
+    uint64_t trip_id;            
     
-    IncidentType type;           // 1 (33)
-    uint64_t incident_time;      // 8 (41)
+    IncidentType type;           
+    uint64_t incident_time;      
     
-    // Location
-    double latitude;             // 8 (49)
-    double longitude;            // 8 (57)
-    char location_address[256];  // 256 (313)
+    double latitude;             
+    double longitude;            
+    char location_address[256];  
     
-    // Details
-    char description[512];       // 512 (825)
-    char police_report_number[64]; // 64 (889)
-    char insurance_claim_number[64]; // 64 (953)
+    char description[512];       
+    char police_report_number[64]; 
+    char insurance_claim_number[64]; 
     
-    // Parties involved
-    char other_party_info[256];  // 256 (1209)
-    char witness_info[256];      // 256 (1465)
+    char other_party_info[256];  
+    char witness_info[256];      
     
-    // Damage/cost
-    double estimated_damage;     // 8 (1473)
-    double insurance_payout;     // 8 (1481)
-    char currency[8];            // 8 (1489)
+    double estimated_damage;     
+    double insurance_payout;     
+    char currency[8];            
     
-    // Documents
-    uint64_t photo_doc_ids[5];   // 40 (1529)
-    uint64_t report_doc_id;      // 8 (1537)
+    uint64_t photo_doc_ids[5];   
+    uint64_t report_doc_id;      
     
-    // Status
-    uint8_t is_resolved;         // 1 (1538)
-    uint64_t resolved_date;      // 8 (1546)
+    uint8_t is_resolved;         
+    uint64_t resolved_date;      
     
-    char notes[256];             // 256 (1802)
+    char notes[256];             
     
-    // Padding to make exactly 2048 bytes
-    // Total: 1802 bytes, need 2048 - 1802 = 246 bytes padding
     uint8_t reserved[246];
 
     IncidentReport() : incident_id(0), driver_id(0), vehicle_id(0), trip_id(0),
@@ -511,16 +461,15 @@ struct IncidentReport
 
 static_assert(sizeof(IncidentReport) == 2048, "IncidentReport must be 2048 bytes");
 
-
 struct SessionInfo
 {
-    char session_id[64];         // 64 bytes
-    uint64_t driver_id;          // 8 (72)
-    uint64_t login_time;         // 8 (80)
-    uint64_t last_activity;      // 8 (88)
-    uint32_t operations_count;   // 4 (92)
-    char ip_address[64];         // 64 (156)
-    uint8_t reserved[36];        // 36 (192 - exact size, no padding needed)
+    char session_id[64];         
+    uint64_t driver_id;          
+    uint64_t login_time;         
+    uint64_t last_activity;      
+    uint32_t operations_count;   
+    char ip_address[64];         
+    uint8_t reserved[36];        
 
     SessionInfo() : driver_id(0), login_time(0), last_activity(0),
                     operations_count(0)
@@ -531,24 +480,22 @@ struct SessionInfo
     }
 };
 
-
 struct DatabaseStats
 {
-    uint64_t total_drivers;              // 8 bytes
-    uint64_t active_drivers;             // 8 (16)
-    uint64_t total_vehicles;             // 8 (24)
-    uint64_t total_trips;                // 8 (32)
-    uint64_t total_distance;             // 8 (40)
-    uint64_t total_expenses;             // 8 (48)
-    uint64_t total_maintenance_records;  // 8 (56)
-    uint64_t total_documents;            // 8 (64)
-    uint64_t total_incidents;            // 8 (72)
-    uint64_t database_size;              // 8 (80)
-    uint64_t used_space;                 // 8 (88)
-    double fragmentation;                // 8 (96)
-    uint32_t active_sessions;            // 4 (100)
+    uint64_t total_drivers;              
+    uint64_t active_drivers;             
+    uint64_t total_vehicles;             
+    uint64_t total_trips;                
+    uint64_t total_distance;             
+    uint64_t total_expenses;             
+    uint64_t total_maintenance_records;  
+    uint64_t total_documents;            
+    uint64_t total_incidents;            
+    uint64_t database_size;              
+    uint64_t used_space;                 
+    double fragmentation;                
+    uint32_t active_sessions;            
     
-    // Padding to make 128 bytes total
     uint8_t reserved[28];
 
     DatabaseStats() : total_drivers(0), active_drivers(0), total_vehicles(0),
@@ -560,7 +507,6 @@ struct DatabaseStats
         memset(reserved, 0, sizeof(reserved));
     }
 };
-
 
 enum class DetectionType : uint8_t
 {
@@ -586,36 +532,29 @@ enum class DriverState : uint8_t
 
 struct ObjectDetection
 {
-    uint64_t detection_id;       // 8 bytes
-    uint64_t trip_id;            // 8 (16)
-    uint64_t timestamp;          // 8 (24)
+    uint64_t detection_id;       
+    uint64_t trip_id;            
+    uint64_t timestamp;          
     
-    DetectionType type;          // 1 (25)
-    float confidence;            // 4 (29)
+    DetectionType type;          
+    float confidence;            
     
-    // Bounding box
-    float bbox_x;                // 4 (33)
-    float bbox_y;                // 4 (37)
-    float bbox_width;            // 4 (41)
-    float bbox_height;           // 4 (45)
+    float bbox_x;                
+    float bbox_y;                
+    float bbox_width;            
+    float bbox_height;           
     
-    // Distance estimation
-    float estimated_distance;    // 4 (49)
-    float relative_speed;        // 4 (53)
+    float estimated_distance;    
+    float relative_speed;        
     
-    // Location
-    double latitude;             // 8 (61)
-    double longitude;            // 8 (69)
+    double latitude;             
+    double longitude;            
     
-    // Camera info
-    uint8_t camera_id;           // 1 (70)
+    uint8_t camera_id;           
     
-    // Alert triggered
-    uint8_t alert_triggered;     // 1 (71)
-    char alert_message[128];     // 128 (199)
+    uint8_t alert_triggered;     
+    char alert_message[128];     
     
-    // Padding to make exactly 256 bytes
-    // Total: 199 bytes, need 256 - 199 = 57 bytes padding
     uint8_t reserved[57];
 
     ObjectDetection() : detection_id(0), trip_id(0), timestamp(0),
@@ -634,39 +573,32 @@ static_assert(sizeof(ObjectDetection) == 256, "ObjectDetection must be 256 bytes
 
 struct DriverBehaviorDetection
 {
-    uint64_t detection_id;       // 8 bytes
-    uint64_t trip_id;            // 8 (16)
-    uint64_t driver_id;          // 8 (24)
-    uint64_t timestamp;          // 8 (32)
+    uint64_t detection_id;       
+    uint64_t trip_id;            
+    uint64_t driver_id;          
+    uint64_t timestamp;          
     
-    DriverState state;           // 1 (33)
-    float confidence;            // 4 (37)
-    uint32_t duration;           // 4 (41)
+    DriverState state;           
+    float confidence;            
+    uint32_t duration;           
     
-    // Face detection
-    uint8_t face_detected;       // 1 (42)
-    float head_pitch;            // 4 (46)
-    float head_yaw;              // 4 (50)
-    float head_roll;             // 4 (54)
+    uint8_t face_detected;       
+    float head_pitch;            
+    float head_yaw;              
+    float head_roll;             
     
-    // Eye tracking
-    uint8_t eyes_detected;       // 1 (55)
-    float eye_closure_ratio;     // 4 (59)
-    uint8_t blink_count;         // 1 (60)
+    uint8_t eyes_detected;       
+    float eye_closure_ratio;     
+    uint8_t blink_count;         
     
-    // Attention metrics
-    float attention_score;       // 4 (64)
-    uint8_t looking_at_road;     // 1 (65)
+    float attention_score;       
+    uint8_t looking_at_road;     
     
-    // Alert
-    uint8_t alert_triggered;     // 1 (66)
-    char alert_type[64];         // 64 (130)
+    uint8_t alert_triggered;     
+    char alert_type[64];         
     
-    // Frame reference
-    char frame_filename[128];    // 128 (258)
+    char frame_filename[128];    
     
-    // Padding to make exactly 512 bytes
-    // Total: 258 bytes, need 512 - 258 = 254 bytes padding
     uint8_t reserved[254];
 
     DriverBehaviorDetection() : detection_id(0), trip_id(0), driver_id(0),
@@ -687,31 +619,25 @@ static_assert(sizeof(DriverBehaviorDetection) == 512, "DriverBehaviorDetection m
 
 struct VisionAnalytics
 {
-    uint64_t trip_id;                    // 8 bytes
+    uint64_t trip_id;                    
     
-    // Object detection stats
-    uint32_t total_vehicles_detected;    // 4 (12)
-    uint32_t total_pedestrians_detected; // 4 (16)
-    uint32_t total_cyclists_detected;    // 4 (20)
-    uint32_t total_traffic_signs_detected; // 4 (24)
-    uint32_t total_obstacles_detected;   // 4 (28)
+    uint32_t total_vehicles_detected;    
+    uint32_t total_pedestrians_detected; 
+    uint32_t total_cyclists_detected;    
+    uint32_t total_traffic_signs_detected; 
+    uint32_t total_obstacles_detected;   
     
-    // Collision warnings
-    uint32_t forward_collision_warnings; // 4 (32)
-    uint32_t lane_departure_warnings;    // 4 (36)
-    uint32_t blind_spot_warnings;        // 4 (40)
+    uint32_t forward_collision_warnings; 
+    uint32_t lane_departure_warnings;    
+    uint32_t blind_spot_warnings;        
     
-    // Driver behavior stats
-    uint32_t drowsiness_events;          // 4 (44)
-    uint32_t distraction_events;         // 4 (48)
-    uint32_t phone_usage_events;         // 4 (52)
-    uint32_t total_attention_lapses;     // 4 (56)
+    uint32_t drowsiness_events;          
+    uint32_t distraction_events;         
+    uint32_t phone_usage_events;         
+    uint32_t total_attention_lapses;     
     
-    // Safety score impact
-    float vision_safety_score;           // 4 (60)
+    float vision_safety_score;           
     
-    // Padding to make exactly 320 bytes
-    // Total: 60 bytes, need 320 - 60 = 260 bytes padding
     uint8_t reserved[260];
 
     VisionAnalytics() : trip_id(0), total_vehicles_detected(0),

@@ -9,33 +9,29 @@
 using namespace std;
 
 struct SDMConfig {
-    // Database settings
-    uint64_t total_size;            // 500 MB default
-    uint64_t block_size;            // 4096 bytes
+    
+    uint64_t total_size;            
+    uint64_t block_size;            
     uint32_t max_drivers;
     uint32_t max_vehicles;
     uint32_t max_trips;
     uint8_t btree_order;
     uint32_t cache_size;
     
-    // Server settings
     uint16_t port;
     uint32_t max_connections;
     uint32_t queue_capacity;
     uint16_t worker_threads;
     
-    // Security
     bool require_authentication;
     string password_hash_algo;
-    uint32_t session_timeout;       // seconds
+    uint32_t session_timeout;       
     string admin_username;
     string admin_password;
     
-    // Analytics
     uint16_t segment_tree_depth;
-    uint32_t alert_check_interval;  // seconds
+    uint32_t alert_check_interval;  
     
-    // File paths
     string database_path;
     string index_path;
     string log_path;
@@ -58,32 +54,28 @@ struct SDMConfig {
         
         string line, section;
         while (getline(file, line)) {
-            // Remove comments
+            
             size_t comment_pos = line.find('#');
             if (comment_pos != string::npos) {
                 line = line.substr(0, comment_pos);
             }
             
-            // Trim whitespace
             line.erase(0, line.find_first_not_of(" \t\r\n"));
             line.erase(line.find_last_not_of(" \t\r\n") + 1);
             
             if (line.empty()) continue;
             
-            // Section header
             if (line[0] == '[' && line[line.length() - 1] == ']') {
                 section = line.substr(1, line.length() - 2);
                 continue;
             }
             
-            // Key-value pair
             size_t eq_pos = line.find('=');
             if (eq_pos == string::npos) continue;
             
             string key = line.substr(0, eq_pos);
             string value = line.substr(eq_pos + 1);
             
-            // Trim
             key.erase(0, key.find_first_not_of(" \t"));
             key.erase(key.find_last_not_of(" \t") + 1);
             value.erase(0, value.find_first_not_of(" \t"));
@@ -132,4 +124,4 @@ private:
     }
 };
 
-#endif // SDM_CONFIG_HPP
+#endif 

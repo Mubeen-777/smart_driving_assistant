@@ -19,18 +19,18 @@ struct AdasData {
     uint64_t timestamp;
     double latitude;
     double longitude;
-    float kalman_speed;    // m/s
-    float gps_speed;       // m/s
-    float accel_x;         // m/s²
+    float kalman_speed;    
+    float gps_speed;       
+    float accel_x;         
     float accel_y;
     float accel_z;
-    float gyro_x;          // rad/s
+    float gyro_x;          
     float gyro_y;
     float gyro_z;
 };
 
 struct AdasEvent {
-    string event_type;     // HARD_BRAKE, RAPID_ACCEL, CRASH, IMPACT
+    string event_type;     
     float value;
     double latitude;
     double longitude;
@@ -44,7 +44,6 @@ private:
     atomic<bool> running_;
     thread receive_thread_;
     
-    // Callbacks for data/events
     function<void(const AdasData&)> data_callback_;
     function<void(const AdasEvent&)> event_callback_;
     
@@ -64,7 +63,6 @@ private:
                 buffer[bytes_received] = '\0';
                 string message(buffer);
                 
-                // Get client IP for logging
                 char client_ip[INET_ADDRSTRLEN];
                 inet_ntop(AF_INET, &(client_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
                 
@@ -97,7 +95,6 @@ private:
                     data_callback_(data);
                 }
                 
-                // Log every 50th packet to avoid spam
                 static int packet_count = 0;
                 if (++packet_count % 50 == 0) {
                     cout << "📊 [" << client_ip << "] Speed: " 
@@ -166,7 +163,6 @@ public:
             return false;
         }
         
-        // Allow socket reuse
         int opt = 1;
         setsockopt(socket_fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
         

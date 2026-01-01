@@ -1,4 +1,3 @@
-// sw.js - Service Worker
 const CACHE_NAME = 'smart-drive-v1.2.0';
 const urlsToCache = [
     '/',
@@ -11,11 +10,10 @@ const urlsToCache = [
     '/analytics.js',
     '/modals.js',
     '/main.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-    'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap'
+    'https:
+    'https:
 ];
 
-// Install event
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
@@ -27,7 +25,6 @@ self.addEventListener('install', event => {
     );
 });
 
-// Activate event
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(cacheNames => {
@@ -43,14 +40,12 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch event
 self.addEventListener('fetch', event => {
-    // Skip WebSocket connections
-    if (event.request.url.startsWith('ws://')) {
+    
+    if (event.request.url.startsWith('ws:
         return;
     }
     
-    // Skip API calls in development
     if (event.request.url.includes('localhost:8080')) {
         return;
     }
@@ -64,12 +59,11 @@ self.addEventListener('fetch', event => {
                 
                 return fetch(event.request)
                     .then(response => {
-                        // Check if we received a valid response
+                        
                         if (!response || response.status !== 200 || response.type !== 'basic') {
                             return response;
                         }
                         
-                        // Clone the response
                         const responseToCache = response.clone();
                         
                         caches.open(CACHE_NAME)
@@ -80,19 +74,17 @@ self.addEventListener('fetch', event => {
                         return response;
                     })
                     .catch(() => {
-                        // Return offline page for navigation requests
+                        
                         if (event.request.mode === 'navigate') {
                             return caches.match('/index.html');
                         }
                         
-                        // Return cached assets for other requests
                         return caches.match(event.request);
                     });
             })
     );
 });
 
-// Background sync for offline data
 self.addEventListener('sync', event => {
     if (event.tag === 'sync-trips') {
         event.waitUntil(syncTrips());
@@ -102,13 +94,13 @@ self.addEventListener('sync', event => {
 });
 
 async function syncTrips() {
-    // Get offline trips from IndexedDB
+    
     const trips = await getOfflineData('trips');
     
     for (const trip of trips) {
         try {
-            // Send trip to server
-            await fetch('http://localhost:8080/api/trip/sync', {
+            
+            await fetch('http:
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -116,7 +108,6 @@ async function syncTrips() {
                 body: JSON.stringify(trip)
             });
             
-            // Remove from offline storage
             await removeOfflineData('trips', trip.id);
         } catch (error) {
             console.error('Failed to sync trip:', error);
@@ -125,13 +116,13 @@ async function syncTrips() {
 }
 
 async function syncExpenses() {
-    // Get offline expenses from IndexedDB
+    
     const expenses = await getOfflineData('expenses');
     
     for (const expense of expenses) {
         try {
-            // Send expense to server
-            await fetch('http://localhost:8080/api/expense/sync', {
+            
+            await fetch('http:
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -139,7 +130,6 @@ async function syncExpenses() {
                 body: JSON.stringify(expense)
             });
             
-            // Remove from offline storage
             await removeOfflineData('expenses', expense.id);
         } catch (error) {
             console.error('Failed to sync expense:', error);
@@ -147,7 +137,6 @@ async function syncExpenses() {
     }
 }
 
-// IndexedDB helpers
 function openDB() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open('SmartDriveDB', 1);
@@ -158,7 +147,6 @@ function openDB() {
         request.onupgradeneeded = (event) => {
             const db = event.target.result;
             
-            // Create object stores
             if (!db.objectStoreNames.contains('offlineData')) {
                 const store = db.createObjectStore('offlineData', { keyPath: 'id' });
                 store.createIndex('type', 'type', { unique: false });
@@ -192,7 +180,6 @@ async function removeOfflineData(type, id) {
     });
 }
 
-// Push notifications
 self.addEventListener('push', event => {
     if (!event.data) return;
     

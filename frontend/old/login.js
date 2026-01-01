@@ -1,4 +1,3 @@
-// login.js - Login Page Logic
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     const errorMessage = document.getElementById('errorMessage');
@@ -9,14 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         
-        // Show loading
         const submitBtn = loginForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
         submitBtn.disabled = true;
         
         try {
-            // Use proxy endpoint to avoid CORS issues
+            
             const response = await fetch('/api', {
                 method: 'POST',
                 headers: {

@@ -1082,7 +1082,7 @@
 
 <body>
     <div class="app-container">
-        <!-- Sidebar Navigation -->
+        
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
@@ -1160,9 +1160,8 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
+            
             <header class="main-header">
                 <div class="page-title">
                     <h1>Trip History</h1>
@@ -1181,7 +1180,6 @@
                 </div>
             </header>
 
-            <!-- Stats Overview -->
             <div class="stats-overview">
                 <div class="stat-card">
                     <div class="stat-icon">
@@ -1216,7 +1214,6 @@
                 </div>
             </div>
 
-            <!-- Filter Bar -->
             <div class="filter-bar">
                 <div class="filter-controls">
                     <div class="filter-group">
@@ -1268,15 +1265,13 @@
                 </div>
             </div>
 
-            <!-- Trips List -->
             <div class="trips-list" id="tripsList">
-                <!-- Loading State -->
+                
                 <div class="loading-state" id="loadingState">
                     <div class="spinner"></div>
                     <div class="loading-text">Loading trips...</div>
                 </div>
 
-                <!-- Empty State (Hidden by default) -->
                 <div class="empty-state" id="emptyState" style="display: none;">
                     <div class="empty-state-icon">
                         <i class="fas fa-route"></i>
@@ -1291,10 +1286,8 @@
                     </a>
                 </div>
 
-                <!-- Trips will be dynamically inserted here -->
             </div>
 
-            <!-- Pagination -->
             <div class="pagination" id="pagination" style="display: none;">
                 <button class="pagination-btn" id="prevPage" disabled>
                     <i class="fas fa-chevron-left"></i>
@@ -1310,7 +1303,6 @@
         </main>
     </div>
 
-    <!-- Trip Details Modal -->
     <div class="modal-overlay" id="tripModal">
         <div class="modal">
             <div class="modal-header">
@@ -1326,7 +1318,7 @@
                         Trip Information
                     </h3>
                     <div class="trip-details" id="modalTripDetails">
-                        <!-- Trip details will be inserted here -->
+                        
                     </div>
                 </div>
 
@@ -1336,7 +1328,7 @@
                         Route Information
                     </h3>
                     <div class="trip-locations" id="modalTripLocations">
-                        <!-- Location details will be inserted here -->
+                        
                     </div>
                 </div>
 
@@ -1346,7 +1338,7 @@
                         Performance Metrics
                     </h3>
                     <div class="trip-events" id="modalTripEvents">
-                        <!-- Event badges will be inserted here -->
+                        
                     </div>
                 </div>
 
@@ -1358,7 +1350,7 @@
                     <div style="padding: 20px; background-color: var(--gray-lighter); border-radius: var(--radius-md);">
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;"
                             id="modalAdditionalInfo">
-                            <!-- Additional info will be inserted here -->
+                            
                         </div>
                     </div>
                 </div>

@@ -1,8 +1,6 @@
-// Configuration
-const API_URL = 'http://43.204.211.180:8080'; // Update with your cloud server IP
-const UPDATE_INTERVAL = 500; // Update every 500ms
+const API_URL = 'http:
+const UPDATE_INTERVAL = 500; 
 
-// State
 let updateInterval = null;
 let videoInterval = null;
 let tripActive = false;
@@ -10,7 +8,6 @@ let cameraActive = false;
 let sessionId = null;
 let userData = null;
 
-// Check authentication on page load
 window.addEventListener('load', () => {
     checkAuthentication();
     initializeSpeedometer();
@@ -21,7 +18,7 @@ function checkAuthentication() {
     const userDataStr = localStorage.getItem('user_data');
     
     if (!sessionId || !userDataStr) {
-        // Not logged in, redirect to login
+        
         window.location.href = 'login.html';
         return;
     }
@@ -36,19 +33,16 @@ function checkAuthentication() {
 }
 
 function logout() {
-    // Stop any active sessions
+    
     if (tripActive) stopTrip();
     if (cameraActive) toggleCamera();
     
-    // Clear local storage
     localStorage.removeItem('session_id');
     localStorage.removeItem('user_data');
     
-    // Redirect to login
     window.location.href = 'login.html';
 }
 
-// Initialize speedometer
 const canvas = document.getElementById('speedometer');
 const ctx = canvas.getContext('2d');
 canvas.width = 300;
@@ -63,21 +57,17 @@ function drawSpeedometer(speed) {
     const centerY = canvas.height / 2;
     const radius = 120;
     
-    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Draw outer circle
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
     ctx.strokeStyle = 'rgba(255,255,255,0.3)';
     ctx.lineWidth = 20;
     ctx.stroke();
     
-    // Draw speed arc
-    const maxSpeed = 200; // km/h
+    const maxSpeed = 200; 
     const speedAngle = (Math.min(speed, maxSpeed) / maxSpeed) * 1.5 * Math.PI - 0.75 * Math.PI;
     
-    // Color based on speed
     let color;
     if (speed < 60) color = '#00ff88';
     else if (speed < 100) color = '#ffd700';
@@ -89,13 +79,11 @@ function drawSpeedometer(speed) {
     ctx.lineWidth = 20;
     ctx.stroke();
     
-    // Draw center circle
     ctx.beginPath();
     ctx.arc(centerX, centerY, 15, 0, 2 * Math.PI);
     ctx.fillStyle = color;
     ctx.fill();
     
-    // Draw needle
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate(speedAngle);
@@ -107,7 +95,6 @@ function drawSpeedometer(speed) {
     ctx.stroke();
     ctx.restore();
     
-    // Draw speed markers
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
     ctx.font = '12px Arial';
     ctx.textAlign = 'center';
@@ -120,10 +107,9 @@ function drawSpeedometer(speed) {
     }
 }
 
-// API Functions
 async function apiRequest(endpoint, method = 'POST', data = {}) {
     try {
-        // Add session_id to all requests
+        
         const requestData = {
             ...data,
             session_id: sessionId
@@ -138,7 +124,7 @@ async function apiRequest(endpoint, method = 'POST', data = {}) {
         });
         
         if (response.status === 401) {
-            // Session expired
+            
             alert('Session expired. Please login again.');
             logout();
             return null;
@@ -159,7 +145,7 @@ async function startTrip() {
     const result = await apiRequest('/api/trip/start', 'POST', {
         operation: 'trip_start',
         driver_id: userData.driver_id,
-        vehicle_id: 1 // Default vehicle
+        vehicle_id: 1 
     });
     
     if (result && result.status === 'success') {
@@ -169,7 +155,6 @@ async function startTrip() {
         document.getElementById('tripStatus').classList.add('active');
         document.getElementById('tripStatus').textContent = 'Trip: Active';
         
-        // Start updating data
         if (!updateInterval) {
             updateInterval = setInterval(updateDashboard, UPDATE_INTERVAL);
         }
@@ -192,7 +177,6 @@ async function stopTrip() {
         document.getElementById('tripStatus').classList.remove('active');
         document.getElementById('tripStatus').textContent = 'Trip: Inactive';
         
-        // Stop updating
         if (updateInterval) {
             clearInterval(updateInterval);
             updateInterval = null;
@@ -218,12 +202,10 @@ async function toggleCamera() {
             document.getElementById('cameraStatus').classList.add('active');
             document.getElementById('cameraStatus').textContent = 'Camera: Active';
             
-            // Show video elements
             document.getElementById('videoFeed').style.display = 'block';
             document.getElementById('noVideo').style.display = 'none';
             document.getElementById('laneStatus').style.display = 'block';
             
-            // Start video stream
             startVideoStream();
         }
     } else {
@@ -237,19 +219,17 @@ async function toggleCamera() {
             document.getElementById('cameraStatus').classList.remove('active');
             document.getElementById('cameraStatus').textContent = 'Camera: Inactive';
             
-            // Hide video elements
             document.getElementById('videoFeed').style.display = 'none';
             document.getElementById('noVideo').style.display = 'flex';
             document.getElementById('laneStatus').style.display = 'none';
             
-            // Stop video stream
             stopVideoStream();
         }
     }
 }
 
 function startVideoStream() {
-    // Update video feed every 100ms
+    
     videoInterval = setInterval(() => {
         document.getElementById('videoFeed').src = 
             `${API_URL}/api/camera/frame?session_id=${sessionId}&t=${Date.now()}`;
@@ -269,17 +249,14 @@ async function updateDashboard() {
     
     if (!stats) return;
     
-    // Update speedometer
     const speed = Math.round(stats.speed || 0);
     document.getElementById('speedValue').textContent = speed;
     drawSpeedometer(speed);
     
-    // Update acceleration
     const accel = (stats.acceleration || 0).toFixed(2);
     const accelElem = document.getElementById('accelValue');
     accelElem.textContent = `${accel} m/s²`;
     
-    // Color code acceleration
     if (Math.abs(accel) > 3) {
         accelElem.style.color = '#ff4444';
     } else if (Math.abs(accel) > 2) {
@@ -288,11 +265,9 @@ async function updateDashboard() {
         accelElem.style.color = '#00ff88';
     }
     
-    // Update lane status
     document.getElementById('laneStatus').textContent = 
         `Lane: ${stats.lane_status || 'CENTERED'}`;
     
-    // Update counters
     document.getElementById('rapidAccelCount').textContent = 
         stats.rapid_accel_count || 0;
     document.getElementById('hardBrakeCount').textContent = 
@@ -302,7 +277,6 @@ async function updateDashboard() {
     document.getElementById('safetyScore').textContent = 
         stats.safety_score || 1000;
     
-    // Update safety score color
     const safetyScore = stats.safety_score || 1000;
     const scoreElem = document.getElementById('safetyScore');
     if (safetyScore >= 800) {
@@ -313,7 +287,6 @@ async function updateDashboard() {
         scoreElem.style.color = '#ff4444';
     }
     
-    // Handle warnings
     const warningBanner = document.getElementById('warningBanner');
     if (stats.warning_active) {
         warningBanner.textContent = stats.warning_message;
@@ -322,14 +295,12 @@ async function updateDashboard() {
         warningBanner.classList.remove('active');
     }
     
-    // Update GPS status
     if (stats.trip_active) {
         document.getElementById('gpsStatus').classList.add('active');
         document.getElementById('gpsStatus').textContent = 'GPS: Connected';
     }
 }
 
-// Cleanup on page unload
 window.addEventListener('beforeunload', () => {
     if (updateInterval) {
         clearInterval(updateInterval);

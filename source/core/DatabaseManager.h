@@ -236,10 +236,6 @@ public:
         }
     }
 
-    // ========================================================================
-    // DRIVER OPERATIONS
-    // ========================================================================
-
     bool create_driver(const DriverProfile &driver)
     {
         lock_guard<mutex> lock(db_mutex_);
@@ -380,7 +376,7 @@ public:
 
             if (expense.expense_id == expense_id)
             {
-                // Mark as deleted by setting expense_id to 0
+                
                 expense.expense_id = 0;
                 file_.seekp(offset, ios::beg);
                 file_.write(reinterpret_cast<const char *>(&expense), sizeof(ExpenseRecord));
@@ -436,10 +432,6 @@ public:
         file_.clear();
         return drivers;
     }
-
-    // ========================================================================
-    // VEHICLE OPERATIONS
-    // ========================================================================
 
     bool create_vehicle(const VehicleInfo &vehicle)
     {
@@ -565,10 +557,6 @@ public:
         file_.clear();
         return vehicles;
     }
-
-    // ========================================================================
-    // TRIP OPERATIONS
-    // ========================================================================
 
     bool create_trip(const TripRecord &trip)
     {
@@ -698,7 +686,6 @@ public:
         return trips;
     }
 
-    // NEW: Get all active trips (end_time == 0) for system recovery
     vector<TripRecord> get_all_active_trips()
     {
         vector<TripRecord> active_trips;
@@ -715,7 +702,6 @@ public:
             file_.seekg(offset, ios::beg);
             if (!file_.read(reinterpret_cast<char *>(&trip), sizeof(TripRecord))) break;
 
-            // Definition of active: valid ID and end_time is 0
             if (trip.trip_id != 0 && trip.end_time == 0)
             {
                 active_trips.push_back(trip);
@@ -724,10 +710,6 @@ public:
         file_.clear();
         return active_trips;
     }
-
-    // ========================================================================
-    // MAINTENANCE OPERATIONS
-    // ========================================================================
 
     bool create_maintenance(const MaintenanceRecord &record)
     {
@@ -780,10 +762,6 @@ public:
         return records;
     }
 
-    // ========================================================================
-    // EXPENSE OPERATIONS
-    // ========================================================================
-
     bool create_expense(const ExpenseRecord &expense)
     {
         lock_guard<mutex> lock(db_mutex_);
@@ -809,8 +787,6 @@ public:
 
         return false;
     }
-
-    
 
     vector<ExpenseRecord> get_expenses_by_driver(uint64_t driver_id, int limit = 100)
     {
@@ -864,10 +840,6 @@ public:
         file_.clear();
         return expenses;
     }
-
-    // ========================================================================
-    // INCIDENT OPERATIONS (NEWLY ADDED)
-    // ========================================================================
 
     bool create_incident(const IncidentReport &incident)
     {
@@ -995,18 +967,10 @@ public:
         return incidents;
     }
 
-    // ========================================================================
-    // HELPER FUNCTIONS
-    // ========================================================================
-
     uint64_t get_current_timestamp() const
     {
         return static_cast<uint64_t>(time(nullptr));
     }
-
-    // ========================================================================
-    // MAX ID RETRIEVAL (FOR PERSISTENCE)
-    // ========================================================================
 
     uint64_t get_max_driver_id()
     {

@@ -244,7 +244,6 @@ struct GPSDataPoint
           speed(spd), altitude(0), accuracy(0), satellites(0) {}
 };
 
-
 using GPSBuffer = CircularQueue<GPSDataPoint>;
 using RequestQueue = CircularQueue<ServerRequest>;
 using FastGPSBuffer = LockFreeCircularQueue<GPSDataPoint>;

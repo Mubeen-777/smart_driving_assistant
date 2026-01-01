@@ -1,7 +1,6 @@
 #ifndef VEHICLEMANAGER_H
 #define VEHICLEMANAGER_H
 
-
 #include "../../include/sdm_types.hpp"
 #include "../../source/core/DatabaseManager.h"
 #include "../../source/core/CacheManager.h"
@@ -10,7 +9,6 @@
 #include <vector>
 #include <string>
 #include <set>
-
 
 class VehicleManager
 {
@@ -22,46 +20,41 @@ private:
     uint64_t next_maintenance_id_;
     uint64_t next_alert_id_;
     set<string> processed_alerts_;
-    // Maintenance alert priority queue
+    
     MaintenanceAlertQueue alert_queue_;
 
-    // Alert priority calculation
     uint32_t calculate_alert_priority(const VehicleInfo &vehicle,
                                       const MaintenanceRecord &last_service,
                                       MaintenanceType type)
     {
         uint64_t current_time = get_current_timestamp();
 
-        // Days since last service
         uint64_t days_overdue = 0;
         if (last_service.next_service_date > 0 && current_time > last_service.next_service_date)
         {
             days_overdue = (current_time - last_service.next_service_date) / 86400ULL;
         }
 
-        // Severity based on type
-        uint8_t severity = 2; // Medium
+        uint8_t severity = 2; 
         switch (type)
         {
         case MaintenanceType::BRAKE_SERVICE:
         case MaintenanceType::ENGINE_CHECK:
-            severity = 4; // Critical
+            severity = 4; 
             break;
         case MaintenanceType::OIL_CHANGE:
         case MaintenanceType::TRANSMISSION:
-            severity = 3; // High
+            severity = 3; 
             break;
         default:
-            severity = 2; // Medium
+            severity = 2; 
             break;
         }
 
-        // Lower priority number = more urgent
         uint32_t priority = 1000;
         priority -= (days_overdue * 20);
         priority -= (severity * 50);
 
-        // Odometer check
         if (vehicle.current_odometer > last_service.next_service_odometer)
         {
             double km_overdue = vehicle.current_odometer - last_service.next_service_odometer;
@@ -76,7 +69,6 @@ private:
                                 std::to_string(static_cast<int>(type));
         processed_alerts_.erase(alert_key);
 
-        // Rebuild alert queue without this type
         auto all_alerts = alert_queue_.get_top_k(1000);
 
         while (!alert_queue_.empty())
@@ -175,12 +167,8 @@ public:
     {
         next_vehicle_id_ = db_.get_max_vehicle_id() + 1;
         next_maintenance_id_ = db_.get_max_maintenance_id() + 1;
-        next_alert_id_ = 1; // Alerts are transient and rebuilt on refresh_maintenance_alerts
+        next_alert_id_ = 1; 
     }
-
-    // ========================================================================
-    // VEHICLE OPERATIONS
-    // ========================================================================
 
     uint64_t add_vehicle(const std::string &license_plate,
                          const std::string &make,
@@ -190,17 +178,15 @@ public:
                          uint64_t owner_driver_id,
                          const std::string &vin = "")
     {
-        // Check if license plate already exists
+        
         uint64_t existing_id;
         if (index_.search_by_plate(license_plate, existing_id))
         {
-            return 0; // Already exists
+            return 0; 
         }
 
-        // Generate vehicle ID
         uint64_t vehicle_id = generate_vehicle_id();
 
-        // Create vehicle
         VehicleInfo vehicle;
         memset(&vehicle, 0, sizeof(VehicleInfo));
         vehicle.vehicle_id = vehicle_id;
@@ -224,17 +210,14 @@ public:
         vehicle.is_active = 1;
         vehicle.created_time = get_current_timestamp();
 
-        // Save to database
         if (!db_.create_vehicle(vehicle))
         {
             return 0;
         }
 
-        // Add to index
         index_.insert_vehicle_plate(license_plate, vehicle_id);
-        index_.insert_primary(2, vehicle_id, vehicle.created_time, 0); // entity_type=2
+        index_.insert_primary(2, vehicle_id, vehicle.created_time, 0); 
 
-        // Cache it
         cache_.put_vehicle(vehicle_id, vehicle);
 
         return vehicle_id;
@@ -264,13 +247,12 @@ public:
 
     bool get_vehicle(uint64_t vehicle_id, VehicleInfo &vehicle)
     {
-        // Try cache
+        
         if (cache_.get_vehicle(vehicle_id, vehicle))
         {
             return true;
         }
 
-        // Fetch from database
         if (db_.read_vehicle(vehicle_id, vehicle))
         {
             cache_.put_vehicle(vehicle_id, vehicle);
@@ -282,7 +264,7 @@ public:
 
     bool get_vehicle_by_plate(const std::string &license_plate, VehicleInfo &vehicle)
     {
-        // Search index
+        
         uint64_t vehicle_id;
         if (!index_.search_by_plate(license_plate, vehicle_id))
         {
@@ -297,10 +279,6 @@ public:
         return db_.get_vehicles_by_owner(driver_id);
     }
 
-    // ========================================================================
-    // ODOMETER UPDATES
-    // ========================================================================
-
     bool update_odometer(uint64_t vehicle_id, double new_reading)
     {
         VehicleInfo vehicle;
@@ -311,12 +289,11 @@ public:
 
         if (new_reading < vehicle.current_odometer)
         {
-            return false; // Invalid reading
+            return false; 
         }
 
         vehicle.current_odometer = new_reading;
 
-        // Check if maintenance is due
         check_maintenance_due(vehicle);
 
         return update_vehicle(vehicle);
@@ -373,7 +350,6 @@ public:
             update_vehicle(vehicle);
         }
 
-        // CLEAR OLD ALERTS
         clear_maintenance_alerts_for_vehicle_and_type(vehicle_id, type);
 
         std::cout << "\n✓ Maintenance record added and alerts updated" << std::endl;
@@ -385,15 +361,10 @@ public:
         return db_.get_maintenance_by_vehicle(vehicle_id);
     }
 
-    // ========================================================================
-    // MAINTENANCE ALERTS
-    // ========================================================================
-
     void refresh_maintenance_alerts()
     {
         alert_queue_.clear();
 
-        // Get all vehicles
         auto all_drivers = db_.get_all_drivers();
         for (const auto &driver : all_drivers)
         {
@@ -422,8 +393,7 @@ public:
 
     void acknowledge_alert(uint64_t alert_id)
     {
-        // Would remove from queue by ID
-        // Simplified: just extract if it's at top
+        
         if (!alert_queue_.empty())
         {
             auto top = alert_queue_.peek();
@@ -433,10 +403,6 @@ public:
             }
         }
     }
-
-    // ========================================================================
-    // HELPER FUNCTIONS
-    // ========================================================================
 
 private:
     uint64_t generate_vehicle_id()
@@ -467,19 +433,19 @@ private:
         switch (record.type)
         {
         case MaintenanceType::OIL_CHANGE:
-            record.next_service_date = current_time + (90 * 86400); // 3 months
-            record.next_service_odometer = record.odometer_reading + 5000;        // 5000 km
+            record.next_service_date = current_time + (90 * 86400); 
+            record.next_service_odometer = record.odometer_reading + 5000;        
             break;
         case MaintenanceType::TIRE_ROTATION:
-            record.next_service_date = current_time + (180 * 86400); // 6 months
+            record.next_service_date = current_time + (180 * 86400); 
             record.next_service_odometer = record.odometer_reading + 10000;
             break;
         case MaintenanceType::BRAKE_SERVICE:
-            record.next_service_date = current_time + (365 * 86400); // 1 year
+            record.next_service_date = current_time + (365 * 86400); 
             record.next_service_odometer = record.odometer_reading + 20000;
             break;
         case MaintenanceType::ENGINE_CHECK:
-            record.next_service_date = current_time + (365 * 86400); // 1 year
+            record.next_service_date = current_time + (365 * 86400); 
             record.next_service_odometer = record.odometer_reading + 15000;
             break;
         default:
@@ -490,7 +456,7 @@ private:
     }
     void check_maintenance_due(const VehicleInfo &vehicle)
     {
-        // Check if any maintenance is overdue and create alerts
+        
         check_maintenance_alerts(vehicle);
     }
 
@@ -519,13 +485,13 @@ private:
         {
         case MaintenanceType::BRAKE_SERVICE:
         case MaintenanceType::ENGINE_CHECK:
-            return 4; // Critical
+            return 4; 
         case MaintenanceType::OIL_CHANGE:
         case MaintenanceType::TRANSMISSION:
-            return 3; // High
+            return 3; 
         default:
-            return 2; // Medium
+            return 2; 
         }
     }
 };
-#endif // VEHICLEMANAGER_H
+#endif 

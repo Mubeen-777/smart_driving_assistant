@@ -1,4 +1,3 @@
-<!-- index.html - Main Dashboard -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -79,7 +78,7 @@
 
 <body>
     <div class="app-container">
-        <!-- Sidebar Navigation -->
+        
         <nav class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
@@ -151,9 +150,8 @@
             </div>
         </nav>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <!-- Top Bar -->
+            
             <header class="top-bar">
                 <div class="page-title">
                     <h1 id="pageTitle">Dashboard</h1>
@@ -192,13 +190,11 @@
                 </div>
             </header>
 
-            <!-- Content Area (Will be dynamically loaded) -->
             <div class="content-area" id="contentArea">
-                <!-- Dashboard content will be loaded here -->
+                
             </div>
         </main>
 
-        <!-- Alerts Panel -->
         <aside class="alerts-panel">
             <div class="alerts-header">
                 <h3><i class="fas fa-bell"></i> Alerts & Notifications</h3>
@@ -217,12 +213,8 @@
         </aside>
     </div>
 
-    <!-- Page Templates (Hidden) -->
-
     <div id="pageTemplates" style="display: none;">
-        <!-- Add these to the #pageTemplates section in index.html -->
-
-        <!-- Analytics & Reports Template -->
+        
         <div id="reportsTemplate">
             <div class="page-header">
                 <h2><i class="fas fa-chart-bar"></i> Analytics & Reports</h2>
@@ -550,7 +542,6 @@
             </div>
         </div>
 
-        <!-- Settings Template -->
         <div id="settingsTemplate">
             <div class="page-header">
                 <h2><i class="fas fa-cog"></i> Settings</h2>
@@ -979,11 +970,10 @@
                 </div>
             </div>
         </div>
-        <!-- Dashboard Template -->
-
+        
         <div id="dashboardTemplate">
             <div class="dashboard-grid">
-                <!-- Row 1: Camera and Quick Actions -->
+                
                 <div class="card card-wide">
                     <div class="card-header">
                         <h3><i class="fas fa-video"></i> Live Camera Feed</h3>
@@ -995,7 +985,7 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <!-- Camera feed container - always active after login -->
+                        
                         <div class="video-container">
                             <div class="video-placeholder" id="noVideo" style="display: none;">
                                 <i class="fas fa-spinner fa-spin"></i>
@@ -1042,7 +1032,6 @@
                     </div>
                 </div>
 
-                <!-- Row 2: Stats and Map -->
                 <div class="card">
                     <div class="card-header">
                         <h3><i class="fas fa-tachometer-alt"></i> Speedometer</h3>
@@ -1090,7 +1079,7 @@
                                     <p>GPS Map</p>
                                     <p class="small">Real-time position tracking</p>
                                 </div>
-                                <!-- In production, integrate with Google Maps or Leaflet -->
+                                
                             </div>
                         </div>
                     </div>
@@ -1134,7 +1123,6 @@
                     </div>
                 </div>
 
-                <!-- Row 3: Quick Stats -->
                 <div class="card card-wide">
                     <div class="card-header">
                         <h3><i class="fas fa-chart-line"></i> Quick Statistics</h3>
@@ -1189,7 +1177,6 @@
             </div>
         </div>
 
-        <!-- Trips Template -->
         <div id="tripsTemplate">
             <div class="page-header">
                 <h2><i class="fas fa-route"></i> Trip Management</h2>
@@ -1233,7 +1220,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Trips will be loaded here -->
+                                
                             </tbody>
                         </table>
                     </div>
@@ -1286,7 +1273,6 @@
             </div>
         </div>
 
-        <!-- Vehicles Template -->
         <div id="vehiclesTemplate">
             <div class="page-header">
                 <h2><i class="fas fa-car-side"></i> Vehicle Management</h2>
@@ -1310,7 +1296,7 @@
                         </div>
                         <div class="card-body">
                             <div class="vehicles-grid" id="vehiclesGrid">
-                                <!-- Vehicles will be loaded here -->
+                                
                             </div>
                         </div>
                     </div>
@@ -1324,7 +1310,7 @@
                         </div>
                         <div class="card-body">
                             <div class="alerts-list" id="maintenanceAlerts">
-                                <!-- Alerts will be loaded here -->
+                                
                             </div>
                         </div>
                     </div>
@@ -1349,14 +1335,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Maintenance records will be loaded here -->
+                            
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Expenses Template -->
         <div id="expensesTemplate">
             <div class="page-header">
                 <h2><i class="fas fa-money-bill-wave"></i> Expense Tracking</h2>
@@ -1437,7 +1422,7 @@
                         </div>
                         <div class="card-body">
                             <div class="budget-status" id="budgetStatus">
-                                <!-- Budget alerts will be loaded here -->
+                                
                             </div>
                         </div>
                     </div>
@@ -1462,14 +1447,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Expenses will be loaded here -->
+                            
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Drivers Template -->
         <div id="driversTemplate">
             <div class="page-header">
                 <h2><i class="fas fa-user-circle"></i> Driver Profiles</h2>
@@ -1493,7 +1477,7 @@
                         </div>
                         <div class="card-body">
                             <div class="driver-profile" id="driverProfile">
-                                <!-- Profile will be loaded here -->
+                                
                             </div>
                         </div>
                     </div>
@@ -1534,7 +1518,7 @@
                 </div>
                 <div class="card-body">
                     <div class="recommendations" id="recommendationsList">
-                        <!-- Recommendations will be loaded here -->
+                        
                     </div>
                 </div>
             </div>
@@ -1556,14 +1540,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Leaderboard will be loaded here -->
+                            
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Incidents Template -->
         <div id="incidentsTemplate">
             <div class="page-header">
                 <h2><i class="fas fa-exclamation-triangle"></i> Incident Management</h2>
@@ -1659,14 +1642,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Incidents will be loaded here -->
+                            
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Camera Template -->
         <div id="cameraTemplate">
             <div class="page-header">
                 <h2><i class="fas fa-video"></i> Vision System</h2>
@@ -1716,7 +1698,7 @@
                                     <div class="lane-right"></div>
                                 </div>
                                 <div class="object-detection" id="objectDetection">
-                                    <!-- Object detection boxes will appear here -->
+                                    
                                 </div>
                             </div>
                         </div>
@@ -1815,7 +1797,6 @@
         </div>
     </div>
 
-    <!-- Modals -->
     <div class="modal" id="newTripModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -2116,7 +2097,6 @@
         </div>
     </div>
 
-    <!-- SOS Countdown Modal -->
     <div class="modal" id="sosModal">
         <div class="modal-content sos-content">
             <div class="modal-header" style="background: #dc3545; color: white;">
@@ -2138,13 +2118,11 @@
         </div>
     </div>
 
-    <!-- Loading Spinner -->
     <div class="loading-spinner" id="loadingSpinner">
         <div class="spinner"></div>
         <p>Loading...</p>
     </div>
 
-    <!-- Toast Notifications -->
     <div class="toast-container" id="toastContainer"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

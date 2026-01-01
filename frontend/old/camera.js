@@ -1,7 +1,3 @@
-// camera.js - Camera and Vision System (REAL DATA ONLY - NO SIMULATION)
-// This module displays REAL data from the WebSocket bridge (C++ OpenCV backend)
-// All detection data comes from the actual camera and computer vision processing
-
 class CameraManager {
     constructor(app) {
         this.app = app;
@@ -26,7 +22,6 @@ class CameraManager {
 
         const ctx = canvas.getContext('2d');
         
-        // Initialize with empty data - will be populated by real WebSocket data
         this.visionChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -53,7 +48,7 @@ class CameraManager {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: false, // Disable animation for real-time performance
+                animation: false, 
                 plugins: {
                     legend: {
                         display: true,
@@ -84,7 +79,6 @@ class CameraManager {
         const container = document.querySelector('.vision-container');
         if (!container) return;
 
-        // Create lane visualization elements (will be updated by real data)
         const centerLine = document.createElement('div');
         centerLine.className = 'lane-center-line';
         centerLine.id = 'laneCenterLine';
@@ -101,7 +95,6 @@ class CameraManager {
         container.appendChild(rightBoundary);
     }
 
-    // Called by WebSocket when real detection data arrives from C++ backend
     updateFromWebSocket(detectionData) {
         if (!detectionData) return;
 
@@ -114,24 +107,18 @@ class CameraManager {
             detected_objects = []
         } = detectionData;
 
-        // Update display with REAL data
         this.updateDetectionDisplay(lane_deviation, objects_detected, driver_attention, drowsiness_level);
 
-        // Add to log
         this.addToDetectionLog(lane_deviation, objects_detected, lane_status);
 
-        // Update chart with REAL data
         this.updateVisionChart(lane_deviation, driver_attention);
 
-        // Update object detection overlay with REAL detected objects
         if (detected_objects && detected_objects.length > 0) {
             this.updateObjectDetection(detected_objects);
         }
 
-        // Check for warnings based on REAL data
         this.checkForWarnings(lane_deviation, driver_attention, drowsiness_level);
 
-        // Update lane visualization
         this.updateLaneVisualization(lane_status, lane_deviation);
     }
 
@@ -179,12 +166,10 @@ class CameraManager {
 
         logContainer.insertBefore(logEntry, logContainer.firstChild);
 
-        // Limit log entries
         while (logContainer.children.length > 50) {
             logContainer.removeChild(logContainer.lastChild);
         }
 
-        // Store in memory
         this.detectionLog.unshift({
             time: now,
             laneDeviation,
@@ -203,12 +188,10 @@ class CameraManager {
 
         const now = new Date().toLocaleTimeString();
 
-        // Add new data point
         this.visionChart.data.labels.push(now);
         this.visionChart.data.datasets[0].data.push(laneDeviation);
         this.visionChart.data.datasets[1].data.push(driverAttention);
 
-        // Keep only last N data points
         while (this.visionChart.data.labels.length > this.maxDataPoints) {
             this.visionChart.data.labels.shift();
             this.visionChart.data.datasets[0].data.shift();
@@ -219,27 +202,25 @@ class CameraManager {
     }
 
     updateLaneVisualization(laneStatus, deviation) {
-        // Update lane center line in vision overlay
+        
         const centerLine = document.querySelector('.lane-center');
         const leftBoundary = document.querySelector('.lane-left');
         const rightBoundary = document.querySelector('.lane-right');
         
         if (centerLine) {
-            // Shift center line based on real deviation
-            const offset = (deviation / 100) * 50; // Max 50% offset
+            
+            const offset = (deviation / 100) * 50; 
             centerLine.style.transform = `translateX(${offset}px)`;
             
-            // Color based on status
             if (laneStatus === 'LEFT' || laneStatus === 'RIGHT') {
-                centerLine.style.backgroundColor = 'rgba(248, 150, 30, 0.9)'; // Warning
+                centerLine.style.backgroundColor = 'rgba(248, 150, 30, 0.9)'; 
             } else if (laneStatus === 'DEPARTURE') {
-                centerLine.style.backgroundColor = 'rgba(247, 37, 133, 0.9)'; // Danger
+                centerLine.style.backgroundColor = 'rgba(247, 37, 133, 0.9)'; 
             } else {
-                centerLine.style.backgroundColor = 'rgba(76, 201, 240, 0.9)'; // Normal
+                centerLine.style.backgroundColor = 'rgba(76, 201, 240, 0.9)'; 
             }
         }
 
-        // Update lane status indicator
         const laneStatusIndicator = document.getElementById('laneStatusIndicator');
         if (laneStatusIndicator) {
             const statusText = laneStatus === 'CENTERED' ? 'Centered' : 
@@ -247,7 +228,6 @@ class CameraManager {
                               laneStatus === 'RIGHT' ? 'Right' : 'Departure';
             laneStatusIndicator.innerHTML = `<i class="fas fa-road"></i> Lane: ${statusText}`;
             
-            // Update color based on status
             if (laneStatus === 'LEFT' || laneStatus === 'RIGHT') {
                 laneStatusIndicator.style.background = 'rgba(248, 150, 30, 0.1)';
                 laneStatusIndicator.style.color = 'var(--warning-color)';
@@ -260,7 +240,6 @@ class CameraManager {
             }
         }
 
-        // Update app's live data
         if (this.app && this.app.liveData) {
             this.app.liveData.lane_status = laneStatus;
             if (this.app.updateDashboard) {
@@ -272,7 +251,6 @@ class CameraManager {
     checkForWarnings(laneDeviation, driverAttention, drowsinessLevel) {
         if (!this.app) return;
         
-        // Only alert on significant real events
         if (laneDeviation > 12) {
             if (this.app.showToast) {
                 this.app.showToast(`⚠️ High lane deviation: ${laneDeviation.toFixed(1)}%`, 'warning');
@@ -309,7 +287,6 @@ class CameraManager {
             box.style.width = `${obj.width}%`;
             box.style.height = `${obj.height}%`;
             
-            // Color based on object type
             if (obj.type === 'Pedestrian') {
                 box.style.borderColor = '#f72585';
             } else if (obj.type === 'Car' || obj.type === 'Truck') {
@@ -321,7 +298,6 @@ class CameraManager {
         });
     }
 
-    // Public methods
     startVisionProcessing() {
         console.log('📷 Vision processing active - receiving real data from WebSocket');
         this.app.showToast('Vision processing active', 'success');
@@ -348,7 +324,6 @@ class CameraManager {
         this.app.showToast(`Night vision ${isNightVision ? 'enabled' : 'disabled'}`, 'info');
     }
 
-    // Clear all data
     reset() {
         this.detectionLog = [];
         if (this.visionChart) {
@@ -360,7 +335,6 @@ class CameraManager {
     }
 }
 
-// Initialize camera manager when app is ready
 if (window.app) {
     window.cameraManager = new CameraManager(window.app);
 }

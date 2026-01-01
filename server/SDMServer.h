@@ -35,9 +35,6 @@
 #include<iostream>
 using namespace std;
 
-
-
-
 class SDMServer {
 private:
     SDMConfig config_;
@@ -93,7 +90,6 @@ public:
         stop();
         cleanup();
     }
-    
     
     bool initialize() {
         cout << "=== Smart Drive Manager Server ===" << endl;
@@ -211,7 +207,6 @@ public:
         return true;
     }
     
-    
     bool start() {
         if (running_) {
             cerr << "Server is already running!" << endl;
@@ -311,7 +306,6 @@ public:
         }
     }
     
-    
 private:
     void listener_thread() {
         struct sockaddr_in client_addr;
@@ -363,7 +357,6 @@ private:
         }
     }
     
-    
     void worker_thread(int worker_id) {
         while (running_) {
             ServerRequest request;
@@ -393,7 +386,6 @@ private:
         
         close(request.client_socket);
     }
-    
     
     void send_response(int socket, const string& response) {
         

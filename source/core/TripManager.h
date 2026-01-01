@@ -20,10 +20,9 @@ private:
     CacheManager &cache_;
     IndexManager &index_;
     uint64_t next_trip_id_;
-    // GPS data buffer
+    
     CircularQueue<GPSWaypoint> gps_buffer_;
 
-    // Active trips
     struct ActiveTrip
     {
         uint64_t trip_id;
@@ -35,11 +34,10 @@ private:
 
     std::vector<ActiveTrip> active_trips_;
 
-    // Constants
     static constexpr double EARTH_RADIUS_KM = 6371.0;
-    static constexpr double HARSH_BRAKING_THRESHOLD = -3.0;     // m/s²
-    static constexpr double RAPID_ACCELERATION_THRESHOLD = 3.0; // m/s²
-    static constexpr double SPEEDING_THRESHOLD = 120.0;         // km/h
+    static constexpr double HARSH_BRAKING_THRESHOLD = -3.0;     
+    static constexpr double RAPID_ACCELERATION_THRESHOLD = 3.0; 
+    static constexpr double SPEEDING_THRESHOLD = 120.0;         
 
     void update_driver_safety_score(uint64_t driver_id, int delta)
     {
@@ -60,7 +58,6 @@ private:
         }
     }
 
-    // NEW: Find active trip for a driver
     ActiveTrip *find_active_trip(uint64_t driver_id)
     {
         for (auto &active : active_trips_)
@@ -83,7 +80,6 @@ public:
         load_active_trips();
     }
 
-    // NEW: Load active trips from database on startup
     void load_active_trips()
     {
         auto recovered_trips = db_.get_all_active_trips();
@@ -92,7 +88,7 @@ public:
             active.trip_id = trip.trip_id;
             active.record = trip;
             active.start_time = trip.start_time;
-            active.vision_active = false; // Reset vision state on reload
+            active.vision_active = false; 
             active_trips_.push_back(active);
         }
         if (!recovered_trips.empty()) {
@@ -100,25 +96,19 @@ public:
         }
     }
 
-    // ========================================================================
-    // TRIP LIFECYCLE
-    // ========================================================================
-
     uint64_t start_trip(uint64_t driver_id, uint64_t vehicle_id,
                         double start_lat, double start_lon,
                         const std::string &start_address = "")
     {
-        // Check if driver already has an active trip
+        
         ActiveTrip* existing = find_active_trip(driver_id);
         if (existing) {
             std::cerr << "Driver " << driver_id << " already has active trip " << existing->trip_id << std::endl;
-            return 0; // Prevent multiple active trips
+            return 0; 
         }
 
-        // Generate trip ID
         uint64_t trip_id = generate_trip_id();
 
-        // Create trip record
         TripRecord trip;
         memset(&trip, 0, sizeof(TripRecord));
         trip.trip_id = trip_id;
@@ -131,16 +121,13 @@ public:
         if (!start_address.empty())
             strncpy(trip.start_address, start_address.c_str(), sizeof(trip.start_address) - 1);
 
-        // Save to database
         if (!db_.create_trip(trip))
         {
-            return 0; // Failed
+            return 0; 
         }
 
-        // Add to index (use driver_id as the key for trip entities)
-        index_.insert_primary(3, driver_id, trip.start_time, 0); // entity_type=3 for Trip
+        index_.insert_primary(3, driver_id, trip.start_time, 0); 
 
-        // Create active trip
         ActiveTrip active;
         active.trip_id = trip_id;
         active.record = trip;
@@ -148,7 +135,6 @@ public:
         active.vision_active = false;
         active_trips_.push_back(active);
 
-        // Invalidate cache for driver trips
         cache_.invalidate_query_result("driver_trips_" + std::to_string(driver_id));
 
         return trip_id;
@@ -157,7 +143,7 @@ public:
     bool log_gps_point(uint64_t trip_id, double latitude, double longitude,
                        float speed, float altitude = 0, float accuracy = 0)
     {
-        // Create waypoint
+        
         GPSWaypoint waypoint;
         memset(&waypoint, 0, sizeof(GPSWaypoint));
         waypoint.timestamp = get_current_timestamp();
@@ -167,20 +153,17 @@ public:
         waypoint.altitude = altitude;
         waypoint.accuracy = accuracy;
 
-        // Add to buffer
         if (!gps_buffer_.try_enqueue(waypoint))
         {
-            return false; // Buffer full
+            return false; 
         }
 
-        // Find active trip and add waypoint
         for (auto &active : active_trips_)
         {
             if (active.trip_id == trip_id)
             {
                 active.waypoints.push_back(waypoint);
 
-                // Detect driving events
                 detect_driving_events(active, waypoint);
 
                 return true;
@@ -190,7 +173,6 @@ public:
         return false;
     }
 
-    // NEW: Overloaded version for websocket_bridge compatibility
     bool log_gps_point(uint64_t trip_id, double latitude, double longitude,
                        float speed)
     {
@@ -211,8 +193,6 @@ public:
 
         ActiveTrip &active = *it;
 
-        // Stop vision processing and update safety score
-
         calculate_trip_metrics(active);
 
         active.record.end_time = get_current_timestamp();
@@ -228,14 +208,13 @@ public:
 
         if (!db_.update_trip(active.record))
         {
-            return false; // Database update failed
+            return false; 
         }
 
         update_driver_stats(active.record);
 
         active_trips_.erase(it);
 
-        // Invalidate cache for driver trips
         cache_.invalidate_query_result("driver_trips_" + std::to_string(active.record.driver_id));
 
         return true;
@@ -286,7 +265,6 @@ public:
         if (trip.waypoints.empty())
             return;
 
-        // Calculate total distance
         double total_distance = 0;
         for (size_t i = 1; i < trip.waypoints.size(); i++)
         {
@@ -296,13 +274,11 @@ public:
         }
         trip.record.distance = total_distance;
 
-        // Calculate average speed
         if (trip.record.duration > 0)
         {
-            trip.record.avg_speed = (total_distance / trip.record.duration) * 3600; // km/h
+            trip.record.avg_speed = (total_distance / trip.record.duration) * 3600; 
         }
 
-        // Find max speed
         trip.record.max_speed = 0;
         for (const auto &waypoint : trip.waypoints)
         {
@@ -312,8 +288,6 @@ public:
             }
         }
 
-        // Estimate fuel consumption (simplified formula)
-        // Real implementation would use vehicle-specific parameters
         trip.record.fuel_consumed = estimate_fuel_consumption(trip.record);
 
         if (trip.record.fuel_consumed > 0)
@@ -322,13 +296,9 @@ public:
         }
     }
 
-    // ========================================================================
-    // TRIP QUERIES
-    // ========================================================================
-
     std::vector<TripRecord> get_driver_trips(uint64_t driver_id, int limit = 100)
     {
-        // Check cache first
+        
         std::vector<uint64_t> cached_trip_ids;
         std::string cache_key = "driver_trips_" + std::to_string(driver_id);
 
@@ -348,10 +318,8 @@ public:
             return trips;
         }
 
-        // Fetch from database
         auto trips = db_.get_trips_by_driver(driver_id, limit);
 
-        // Cache trip IDs
         cached_trip_ids.clear();
         for (const auto &trip : trips)
         {
@@ -362,7 +330,6 @@ public:
         return trips;
     }
 
-    // NEW: Comprehensive search with filters and pagination
     std::vector<TripRecord> search_trips(uint64_t driver_id, uint64_t vehicle_id = 0, 
                                         const std::string& status = "all",
                                         uint64_t start_time = 0, uint64_t end_time = 0,
@@ -370,16 +337,12 @@ public:
     {
         std::vector<TripRecord> all_trips;
 
-        // Try to use index if date range is provided
         if (start_time > 0 || end_time > 0)
         {
             if (end_time == 0) end_time = get_current_timestamp();
             
-            // This now works correctly because start_trip uses driver_id
             auto offsets = index_.range_query_primary(3, driver_id, start_time, end_time);
             
-            // For now, our database doesn't support reading by offset easily in get_trips_by_driver
-            // So we fetch all driver trips and filter. Optimized version would use offsets.
             all_trips = db_.get_trips_by_driver(driver_id, 1000); 
         }
         else if (vehicle_id > 0)
@@ -391,21 +354,17 @@ public:
             all_trips = db_.get_trips_by_driver(driver_id, 1000);
         }
 
-        // Apply filters in memory
         std::vector<TripRecord> filtered;
         for (const auto& trip : all_trips)
         {
-            // Driver ID match (already handled by db queries usually, but safe to check)
+            
             if (trip.driver_id != driver_id) continue;
 
-            // Vehicle ID filter
             if (vehicle_id > 0 && trip.vehicle_id != vehicle_id) continue;
 
-            // Date range filter (if not already handled by index or for double check)
             if (start_time > 0 && trip.start_time < start_time) continue;
             if (end_time > 0 && trip.start_time > end_time) continue;
 
-            // Status filter
             if (status == "active") {
                 if (trip.end_time != 0) continue;
             } else if (status == "completed") {
@@ -415,12 +374,10 @@ public:
             filtered.push_back(trip);
         }
 
-        // Sorting (newest first)
         std::sort(filtered.begin(), filtered.end(), [](const TripRecord& a, const TripRecord& b) {
             return a.start_time > b.start_time;
         });
 
-        // Pagination
         std::vector<TripRecord> paginated;
         for (int i = offset; i < (int)filtered.size() && (int)paginated.size() < limit; i++)
         {
@@ -439,13 +396,12 @@ public:
 
     bool get_trip_details(uint64_t trip_id, TripRecord &trip)
     {
-        // Try cache first
+        
         if (cache_.get_trip(trip_id, trip))
         {
             return true;
         }
 
-        // Fetch from database
         if (db_.read_trip(trip_id, trip))
         {
             cache_.put_trip(trip_id, trip);
@@ -455,7 +411,6 @@ public:
         return false;
     }
 
-    // NEW: Get active trip for a driver (used by RequestHandler)
     TripRecord get_active_trip(uint64_t driver_id)
     {
         ActiveTrip *active = find_active_trip(driver_id);
@@ -463,12 +418,9 @@ public:
         {
             return active->record;
         }
-        return TripRecord(); // Return empty trip if no active trip
+        return TripRecord(); 
     }
 
-    // ========================================================================
-    // ANALYTICS
-    // ========================================================================
     struct TripStatistics
     {
         uint64_t total_trips;
@@ -523,7 +475,6 @@ public:
             stats.avg_fuel_efficiency = 0;
         }
 
-        // Get driver's safety score
         DriverProfile driver;
         if (db_.read_driver(driver_id, driver))
         {
@@ -532,10 +483,7 @@ public:
 
         return stats;
     }
-    // ========================================================================
-    // HELPER FUNCTIONS
-    // ========================================================================
-
+    
 private:
     uint64_t generate_trip_id()
     {
@@ -547,7 +495,6 @@ private:
         return static_cast<uint64_t>(time(nullptr));
     }
 
-    // Haversine formula for distance calculation
     double calculate_distance(double lat1, double lon1, double lat2, double lon2)
     {
         double dLat = (lat2 - lat1) * M_PI / 180.0;
@@ -577,12 +524,9 @@ private:
 
     double estimate_fuel_consumption(const TripRecord &trip)
     {
-        // Simplified fuel consumption model
-        // Real implementation would use vehicle specs and driving patterns
+        
+        double base_consumption = trip.distance * 0.08; 
 
-        double base_consumption = trip.distance * 0.08; // 8L/100km base
-
-        // Penalties for harsh driving
         double harsh_penalty = (trip.harsh_braking_count * 0.05 +
                                 trip.rapid_acceleration_count * 0.05 +
                                 trip.speeding_count * 0.02) *
@@ -597,7 +541,7 @@ private:
 
         if (stats.total_distance > 0)
         {
-            // Calculate harsh events per 100km (simplified)
+            
             double events_per_100km = (stats.total_trips / stats.total_distance) * 100;
             uint32_t deduction = events_per_100km * 10;
 
@@ -619,13 +563,11 @@ private:
                                          trip.rapid_acceleration_count +
                                          trip.speeding_count;
 
-            // Recalculate safety score
             TripStatistics stats;
             memset(&stats, 0, sizeof(TripStatistics));
             stats.total_trips = driver.total_trips;
             stats.total_distance = driver.total_distance;
-            // The original line `stats.safety_score = driver.safety_score;` was redundant
-            // as safety_score is calculated by `calculate_safety_score` based on other stats.
+            
             driver.safety_score = calculate_safety_score(stats);
 
             db_.update_driver(driver);
@@ -634,4 +576,4 @@ private:
     }
 };
 
-#endif // TRIPMANAGER_H
+#endif 

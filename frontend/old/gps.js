@@ -1,17 +1,14 @@
-// gps_udp.js - GPS Manager using UDP data from device (NO browser GPS)
 class GPSManager {
     constructor(app) {
         this.app = app;
         this.lastPosition = null;
         this.lastTime = null;
-        this.lastSpeed = 0; // m/s from device
+        this.lastSpeed = 0; 
         
-        // Device data tracking
         this.deviceConnected = false;
         this.lastDataTime = null;
-        this.dataTimeout = 5000; // 5 seconds without data = disconnected
+        this.dataTimeout = 5000; 
         
-        // Safety event tracking (from device)
         this.eventCounts = {
             hardBrake: 0,
             rapidAccel: 0,
@@ -22,7 +19,6 @@ class GPSManager {
         console.log('🚗 GPS Manager initialized (UDP mode - waiting for device data)');
     }
     
-    // Called when UDP data arrives via WebSocket
     processUDPData(data) {
         if (!data) {
             console.warn('⚠️ Invalid UDP data received');
@@ -35,9 +31,9 @@ class GPSManager {
         const {
             latitude,
             longitude,
-            speed,           // km/h from device
-            gps_speed,       // km/h backup
-            acceleration,    // m/s² (accel_y from device)
+            speed,           
+            gps_speed,       
+            acceleration,    
             accel_x,
             accel_y,
             accel_z,
@@ -47,7 +43,6 @@ class GPSManager {
             timestamp
         } = data;
         
-        // Validate data
         if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
             console.warn('⚠️ Invalid GPS coordinates from device:', { latitude, longitude });
             return;
@@ -55,11 +50,9 @@ class GPSManager {
         
         const currentTime = Date.now();
         
-        // Use device-calculated speed (already in km/h)
         const currentSpeed = speed || gps_speed || 0;
-        const speedMs = currentSpeed / 3.6; // Convert to m/s
+        const speedMs = currentSpeed / 3.6; 
         
-        // Log data every 2 seconds
         if (!this.lastDataTime || currentTime - this.lastDataTime > 2000) {
             console.log('📊 Device Data:', {
                 lat: latitude.toFixed(6),
@@ -70,7 +63,6 @@ class GPSManager {
             });
         }
         
-        // Update app's live data
         if (this.app && this.app.updateLiveData) {
             this.app.updateLiveData({
                 speed: currentSpeed,
@@ -87,23 +79,19 @@ class GPSManager {
             });
         }
         
-        // Update location UI immediately
         if (this.app && this.app.updateLocationUI) {
-            this.app.updateLocationUI(latitude, longitude, 10); // Assume 10m accuracy from device
+            this.app.updateLocationUI(latitude, longitude, 10); 
         }
         
-        // Record position in trip tracker if trip is active
         if (this.app && this.app.tripTracker && this.app.tripTracker.isActive()) {
             this.app.tripTracker.recordPosition(latitude, longitude, currentSpeed);
         }
         
-        // Store for next iteration
         this.lastPosition = { lat: latitude, lon: longitude };
         this.lastTime = currentTime;
         this.lastSpeed = speedMs;
     }
     
-    // Handle safety events from device
     handleDeviceEvent(event) {
         if (!event || !event.warning_type) {
             console.warn('⚠️ Invalid event data:', event);
@@ -117,7 +105,6 @@ class GPSManager {
             location: `${latitude?.toFixed(6)}, ${longitude?.toFixed(6)}`
         });
         
-        // Update event counters
         switch(warning_type) {
             case 'HARD_BRAKE':
                 this.eventCounts.hardBrake++;
@@ -143,12 +130,10 @@ class GPSManager {
                 break;
         }
         
-        // Update dashboard
         if (this.app && this.app.updateDashboard) {
             this.app.updateDashboard();
         }
         
-        // Play alert sound
         if (this.app && this.app.playAlertSound) {
             this.app.playAlertSound();
         }
@@ -163,12 +148,10 @@ class GPSManager {
     triggerCrashSequence(lat, lon, severity) {
         console.log('🚨 Initiating crash response sequence');
         
-        // Show SOS modal
         const modal = document.getElementById('sosModal');
         if (modal) {
             modal.style.display = 'flex';
             
-            // Auto-send SOS after 10 seconds
             let countdown = 10;
             const countdownEl = document.getElementById('sosCountdown');
             
@@ -182,7 +165,6 @@ class GPSManager {
                 }
             }, 1000);
             
-            // Store timer so it can be cancelled
             modal.dataset.sosTimer = timer;
         }
     }
@@ -195,19 +177,18 @@ class GPSManager {
         }
         
         try {
-            // Report incident to database
+            
             if (window.db) {
                 const vehicleId = this.app?.userData?.vehicle_id || 0;
                 await window.db.reportIncident(
                     vehicleId,
-                    0, // Accident type
+                    0, 
                     lat,
                     lon,
                     `Automatic crash detection - Severity: ${severity?.toFixed(2) || 'Unknown'}`
                 );
             }
             
-            // Close modal
             const modal = document.getElementById('sosModal');
             if (modal) {
                 modal.style.display = 'none';
@@ -228,7 +209,7 @@ class GPSManager {
     cancelCrashSequence() {
         const modal = document.getElementById('sosModal');
         if (modal) {
-            // Clear timer
+            
             if (modal.dataset.sosTimer) {
                 clearInterval(parseInt(modal.dataset.sosTimer));
             }
@@ -240,7 +221,6 @@ class GPSManager {
         }
     }
     
-    // Check device connection status
     checkConnectionStatus() {
         if (!this.lastDataTime) {
             this.deviceConnected = false;
@@ -264,23 +244,20 @@ class GPSManager {
         return true;
     }
     
-    // Get connection status for UI
     getStatus() {
         return {
             connected: this.deviceConnected,
             lastUpdate: this.lastDataTime,
             timeSinceUpdate: this.lastDataTime ? Date.now() - this.lastDataTime : null,
             location: this.lastPosition,
-            speed: this.lastSpeed * 3.6, // Convert to km/h
+            speed: this.lastSpeed * 3.6, 
             eventCounts: this.eventCounts
         };
     }
     
-    // No startTracking/stopTracking needed - device handles everything
     startTracking() {
         console.log('📱 Waiting for device data via UDP...');
         
-        // Start connection check interval
         this.connectionCheckInterval = setInterval(() => {
             this.checkConnectionStatus();
         }, 2000);
@@ -300,5 +277,4 @@ class GPSManager {
     }
 }
 
-// Make globally accessible
 console.log('✅ GPS Manager (UDP Mode) loaded');

@@ -6,7 +6,6 @@
 #include "../../source/core/CacheManager.h"
 #include "../../source/core/IndexManager.h"
 #include "../../source/data_structures/CircularQueue.h"
-#include "../../source/data_structures/DoublyLinkedList.h"
 #include "../../source/data_structures/Map.h"
 #include <vector>
 #include <cmath>

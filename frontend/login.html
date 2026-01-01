@@ -10,7 +10,7 @@
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <style>
-        /* ===== CSS Variables ===== */
+        
         :root {
             --primary: #6d5dfc;
             --primary-dark: #5b4ff0;
@@ -43,7 +43,7 @@
             --transition-slow: 0.5s ease;
         }
 
-        /* ===== Reset & Base Styles ===== */
+        
         * {
             margin: 0;
             padding: 0;
@@ -68,7 +68,7 @@
             overflow-x: hidden;
         }
 
-        /* ===== Background Animation ===== */
+        
         .background-animation {
             position: fixed;
             top: 0;
@@ -133,7 +133,7 @@
             }
         }
 
-        /* ===== Login Container ===== */
+        
         .login-container {
             width: 100%;
             max-width: 1200px;
@@ -158,7 +158,7 @@
             }
         }
 
-        /* ===== Left Side - Branding ===== */
+        
         .brand-side {
             flex: 1;
             background: linear-gradient(135deg, var(--dark) 0%, #131722 100%);
@@ -294,7 +294,7 @@
             margin-top: 40px;
         }
 
-        /* ===== Right Side - Login Form ===== */
+        
         .login-side {
             flex: 1;
             padding: 60px;
@@ -321,7 +321,7 @@
             font-size: 15px;
         }
 
-        /* ===== Form Styles ===== */
+        
         .login-form {
             max-width: 400px;
             margin: 0 auto;
@@ -384,7 +384,7 @@
             color: var(--primary);
         }
 
-        /* ===== Buttons ===== */
+        
         .login-btn {
             width: 100%;
             padding: 16px;
@@ -419,7 +419,7 @@
             transform: none !important;
         }
 
-        /* ===== Divider ===== */
+        
         .divider {
             text-align: center;
             margin: 30px 0;
@@ -448,7 +448,7 @@
             background: var(--gray-light);
         }
 
-        /* ===== Admin Link ===== */
+        
         .admin-link {
             text-align: center;
             margin-top: 25px;
@@ -468,7 +468,7 @@
             text-decoration: underline;
         }
 
-        /* ===== Alert ===== */
+        
         .alert {
             padding: 16px;
             border-radius: var(--radius-md);
@@ -503,7 +503,7 @@
             border-left-color: var(--success);
         }
 
-        /* ===== Loading State ===== */
+        
         .loading {
             display: none;
             text-align: center;
@@ -528,7 +528,7 @@
             }
         }
 
-        /* ===== Back to Home ===== */
+        
         .back-home {
             position: absolute;
             top: 30px;
@@ -553,7 +553,7 @@
             box-shadow: var(--shadow-md);
         }
 
-        /* ===== Status Indicator ===== */
+        
         .status-indicator {
             display: inline-flex;
             align-items: center;
@@ -590,7 +590,7 @@
             }
         }
 
-        /* ===== Responsive Design ===== */
+        
         @media (max-width: 992px) {
             .login-container {
                 flex-direction: column;
@@ -650,7 +650,7 @@
             }
         }
 
-        /* ===== Utilities ===== */
+        
         .hidden {
             display: none;
         }
@@ -673,11 +673,13 @@
         <div class="bg-circle"></div>
     </div>
 
+    
     <a href="index.html" class="back-home">
         <i class="fas fa-arrow-left"></i>
         <span>Back to Home</span>
     </a>
 
+    
     <div class="login-container">
         
         <div class="brand-side">
@@ -739,6 +741,7 @@
             </div>
         </div>
 
+        
         <div class="login-side">
             <div class="login-header">
                 <h2 class="login-title">Sign In</h2>
@@ -749,6 +752,7 @@
                 
                 <div id="alert" class="alert"></div>
 
+                
                 <form id="loginForm" onsubmit="handleLogin(event)">
                     <div class="form-group">
                         <label class="form-label">Username</label>
@@ -778,13 +782,16 @@
                     </button>
                 </form>
 
+                
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
                     <span>Authenticating...</span>
                 </div>
 
+                
                 <div class="divider">OR</div>
 
+                
                 <div class="admin-link">
                     <p>Don't have an account? <a href="register.html">Register New Driver</a>
                     </p>
@@ -794,10 +801,10 @@
     </div>
 
     <script>
-        // ===== Configuration =====
+        
         const API_URL = 'http://43.204.211.180:8080';
 
-        // ===== DOM Elements =====
+        
         const loginForm = document.getElementById('loginForm');
         const usernameInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');
@@ -806,7 +813,7 @@
         const backendStatus = document.getElementById('backendStatus');
         const backendStatusDot = document.getElementById('backendStatusDot');
 
-        // ===== Check if Already Logged In =====
+        
         window.addEventListener('load', function () {
             const sessionId = localStorage.getItem('session_id');
             if (sessionId) {
@@ -816,7 +823,7 @@
             }
         });
 
-        // ===== Check Backend Status =====
+        
         async function checkBackendStatus() {
             try {
                 const response = await fetch(API_URL, {
@@ -837,25 +844,25 @@
             }
         }
 
-        // ===== Show Alert =====
+        
         function showAlert(message, type) {
             alertBox.textContent = message;
             alertBox.className = `alert ${type}`;
             alertBox.style.display = 'block';
 
-            // Auto-hide after 5 seconds
+            
             setTimeout(() => {
                 alertBox.style.display = 'none';
             }, 5000);
         }
 
-        // ===== Show Loading =====
+        
         function showLoading(show) {
             loading.style.display = show ? 'block' : 'none';
             loginForm.querySelector('button[type="submit"]').disabled = show;
         }
 
-        // ===== Handle Login =====
+        
         async function handleLogin(event) {
             event.preventDefault();
 
@@ -867,7 +874,7 @@
                 return;
             }
 
-            // Show loading
+            
             loginForm.style.display = 'none';
             loading.style.display = 'block';
             alertBox.style.display = 'none';
@@ -892,11 +899,11 @@
                 console.log("Login response:", data);
 
                 if (data.status === 'success') {
-                    // Save session
+                    
                     localStorage.setItem('session_id', data.data.session_id);
                     localStorage.setItem('driver_id', data.data.driver_id);
                     localStorage.setItem('driver_name', data.data.driver_name);
-                    localStorage.setItem('driver_info', JSON.stringify(data.data)); // Backup full info
+                    localStorage.setItem('driver_info', JSON.stringify(data.data)); 
 
                     showAlert('Login successful! Redirecting...', 'success');
 
@@ -915,7 +922,7 @@
                         let activeTrip = tripData.data && (tripData.data.trip || (tripData.data.trip_id ? tripData.data : null));
                         if (activeTrip && activeTrip.trip_id) {
                             console.log('Login: Found stuck active trip. Auto-resetting...');
-                            // End the trip silently
+                            
                             await fetch(API_URL, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
@@ -939,7 +946,7 @@
                         window.location.href = 'dashboard.html';
                     }, 1000);
                 } else {
-                    // Show error
+                    
                     loginForm.style.display = 'block';
                     loading.style.display = 'none';
                     showAlert(data.message || 'Login failed', 'error');
@@ -957,7 +964,7 @@
             }
         }
 
-        // ===== Add Shake Animation =====
+        
         const style = document.createElement('style');
         style.textContent = `
             @keyframes shake {
@@ -968,7 +975,7 @@
         `;
         document.head.appendChild(style);
 
-        // ===== Enter Key Submission =====
+        
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Enter' && !loading.style.display) {
                 event.preventDefault();
@@ -976,7 +983,7 @@
             }
         });
 
-        // ===== Input Focus Effects =====
+        
         const inputs = document.querySelectorAll('.form-input');
         inputs.forEach(input => {
             input.addEventListener('focus', function () {

@@ -1,0 +1,109 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build CLI",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-std=c++17",
+                "-Wall",
+                "-Wextra",
+                "-g",
+                "-O2",
+                "-I${workspaceFolder}/include",
+                "-I${workspaceFolder}/source",
+                "${workspaceFolder}/source/cli/main.cpp",
+                "-o",
+                "${workspaceFolder}/source/cli/main",
+                "-pthread"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "build Modules",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-std=c++17",
+                "-Wall",
+                "-Wextra",
+                "-g",
+                "-O2",
+                "-I${workspaceFolder}/include",
+                "-I${workspaceFolder}/source",
+                "-I/usr/include/opencv4",
+                "${workspaceFolder}/source/modules/main.cpp",
+                "${workspaceFolder}/source/modules/camera.cpp",
+                "${workspaceFolder}/source/modules/websocket_bridge.cpp",
+                "${workspaceFolder}/source/modules/websocket_bridge_udp.cpp",
+                "-o",
+                "${workspaceFolder}/source/modules/main",
+                "-pthread",
+                "-lopencv_core",
+                "-lopencv_imgproc",
+                "-lopencv_imgcodecs",
+                "-lopencv_videoio",
+                "-lopencv_highgui"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "rm",
+            "args": [
+                "-f",
+                "${workspaceFolder}/source/cli/main",
+                "${workspaceFolder}/source/modules/main"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "rebuild",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "clean",
+                "build CLI"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        }
+    ]
+}

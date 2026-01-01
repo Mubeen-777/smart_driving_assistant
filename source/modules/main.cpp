@@ -1,3 +1,4 @@
+
 #include "camera.h"
 #include "lane_detector.h"
 
@@ -93,7 +94,7 @@ struct SystemConfig
 
     CameraMode camera_mode = CAMERA_AUTO_DETECT;
     string camera_source = "auto";
-    int camera_width = 640; 
+    int camera_width = 640;
     int camera_height = 480;
     int target_fps = 30;
 
@@ -106,7 +107,7 @@ struct SystemConfig
 
     bool use_gpu = false;
     int processing_interval = 1;
-    int detection_interval = 1; 
+    int detection_interval = 1;
 
     string phone_ip = "192.168.18.76";
     int phone_port = 4747;
@@ -117,7 +118,7 @@ struct SystemConfig
 
     bool use_v4l2 = true;
     bool use_mjpeg = true;
-    int v4l2_buffer_size = 30; 
+    int v4l2_buffer_size = 30;
 
     bool enable_usb_gps = true;
     int gps_usb_port = 5555;
@@ -289,6 +290,8 @@ public:
         cout << "Waiting for camera to stabilize..." << endl;
         this_thread::sleep_for(chrono::seconds(2));
 
+        
+
         if (config.enable_lane_detection)
         {
             cout << "[3/5] Initializing Ultra-Fast Lane Detection..." << endl;
@@ -330,6 +333,7 @@ public:
             }
         }
         
+
         printSystemReady();
         return true;
     }
@@ -460,7 +464,7 @@ private:
         case SystemConfig::CAMERA_PHONE_WIFI:
             cout << "  Mode: Phone Camera (WiFi)" << endl;
             phone_camera_used = true;
-            camera_source = "http:
+            camera_source = "http://" + config.phone_ip +
                             ":" + to_string(config.phone_port) + "/video";
             camera_type = CameraManager::CAMERA_GSTREAMER;
             break;
@@ -516,7 +520,7 @@ private:
     {
         Mat frame;
         int consecutive_failures = 0;
-        const int max_failures = 50; 
+        const int max_failures = 50;
 
         cout << "Capture thread started" << endl;
 
@@ -744,7 +748,7 @@ private:
             }
             else
             {
-                
+
                 this_thread::sleep_for(chrono::milliseconds(10));
             }
 
@@ -798,7 +802,7 @@ private:
             
             break;
 
-        case 27: 
+        case 27:
             cout << "Exiting..." << endl;
             running = false;
             g_should_exit = true;
@@ -980,7 +984,7 @@ int main(int argc, char **argv)
             if (i + 1 < argc)
                 config.target_fps = stoi(argv[++i]);
         }
-        
+
         else if (arg == "--lane-model" || arg == "-lm")
         {
             if (i + 1 < argc)

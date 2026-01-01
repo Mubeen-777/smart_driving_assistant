@@ -1,3 +1,5 @@
+
+
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <cmath>
@@ -30,8 +32,8 @@ private:
     bool model_loaded;
     bool debug_mode;
 
-    float roi_top_ratio = 0.4f;    
-    float roi_bottom_ratio = 1.0f; 
+    float roi_top_ratio = 0.4f;
+    float roi_bottom_ratio = 1.0f;
 
     int canny_low = 50;
     int canny_high = 150;
@@ -40,8 +42,8 @@ private:
     int min_line_length = 50;
     int max_line_gap = 50;
 
-    float min_slope = 0.3f; 
-    float max_slope = 3.0f; 
+    float min_slope = 0.3f;
+    float max_slope = 3.0f;
 
 public:
     UltraFastLaneDetector() : model_loaded(false), debug_mode(false) {}
@@ -81,10 +83,10 @@ public:
 
         Mat mask = Mat::zeros(edges.size(), edges.type());
         Point pts[4] = {
-            Point(edges.cols * 0.1, edges.rows),       
-            Point(edges.cols * 0.4, edges.rows * 0.3), 
-            Point(edges.cols * 0.6, edges.rows * 0.3), 
-            Point(edges.cols * 0.9, edges.rows)        
+            Point(edges.cols * 0.1, edges.rows),
+            Point(edges.cols * 0.4, edges.rows * 0.3),
+            Point(edges.cols * 0.6, edges.rows * 0.3),
+            Point(edges.cols * 0.9, edges.rows)
         };
         fillConvexPoly(mask, pts, 4, Scalar(255));
 
@@ -238,10 +240,10 @@ public:
         }
 
         vector<Scalar> colors = {
-            Scalar(0, 255, 0),   
-            Scalar(0, 0, 255),   
-            Scalar(255, 255, 0), 
-            Scalar(255, 0, 255)  
+            Scalar(0, 255, 0),
+            Scalar(0, 0, 255),
+            Scalar(255, 255, 0),
+            Scalar(255, 0, 255)
         };
 
         for (size_t i = 0; i < result.lanes.size(); i++)
@@ -349,3 +351,4 @@ private:
         return lane;
     }
 };
+

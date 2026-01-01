@@ -1,3 +1,5 @@
+
+
 #ifndef MENUSYSTEM_H
 #define MENUSYSTEM_H
 
@@ -15,7 +17,7 @@ class MenuSystem
 {
 private:
     SDMConfig config_;
-    
+
     DatabaseManager *db_manager_;
     CacheManager *cache_manager_;
     IndexManager *index_manager_;
@@ -154,7 +156,7 @@ public:
 
         if (!admin_created)
         {
-            
+
             cout << " (already exists) ✓" << endl;
         }
         else
@@ -181,7 +183,7 @@ public:
             {
                 if (!show_login_menu())
                 {
-                    break; 
+                    break;
                 }
             }
             else
@@ -218,7 +220,7 @@ public:
             do_register();
             return true;
         case 3:
-            return false; 
+            return false;
         default:
             cout << "Invalid choice!" << endl;
             pause();
@@ -495,7 +497,7 @@ public:
 
         uint64_t trip_id = trip_manager_->start_trip(
             current_driver_.driver_id, vehicle_id,
-            31.5204, 74.3587, 
+            31.5204, 74.3587,
             "Lahore, Pakistan");
 
         if (trip_id == 0)
@@ -692,7 +694,7 @@ public:
 
     void add_maintenance_record()
     {
-        
+
         cout << "Add Maintenance Record - Implementation complete" << endl;
         pause();
     }
@@ -746,7 +748,7 @@ public:
             show_maintenance_alerts();
         }
     }
-    
+
     void show_expense_menu()
     {
         clear_screen();
@@ -852,7 +854,7 @@ public:
         cout << endl;
 
         uint64_t end_date = get_current_timestamp();
-        uint64_t start_date = end_date - (30ULL * 86400ULL * 1000000000ULL); 
+        uint64_t start_date = end_date - (30ULL * 86400ULL * 1000000000ULL);
 
         auto summary = expense_manager_->get_expense_summary(
             current_driver_.driver_id, start_date, end_date);
@@ -878,7 +880,7 @@ public:
 
     void set_budget_limit()
     {
-        
+
         cout << "Set Budget Limit - Implementation complete" << endl;
         pause();
     }
@@ -1322,4 +1324,4 @@ public:
     }
 };
 
-#endif 
+#endif // MENUSYSTEM_H

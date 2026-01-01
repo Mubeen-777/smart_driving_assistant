@@ -10,7 +10,7 @@
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <style>
-        /* ===== CSS Variables & Reset ===== */
+        
         :root {
             --primary: #6d5dfc;
             --primary-dark: #5b4ff0;
@@ -90,13 +90,13 @@
             max-width: 100%;
         }
 
-        /* ===== Layout ===== */
+        
         .app-container {
             display: flex;
             min-height: 100vh;
         }
 
-        /* ===== Sidebar ===== */
+        
         .sidebar {
             width: var(--sidebar-width);
             background: linear-gradient(180deg, var(--dark) 0%, #131722 100%);
@@ -235,7 +235,7 @@
             color: var(--danger);
         }
 
-        /* ===== Main Content ===== */
+        
         .main-content {
             flex: 1;
             margin-left: var(--sidebar-width);
@@ -243,7 +243,7 @@
             transition: margin-left var(--transition-normal);
         }
 
-        /* ===== Header ===== */
+        
         .main-header {
             display: flex;
             justify-content: space-between;
@@ -331,7 +331,7 @@
             color: var(--white);
         }
 
-        /* ===== Status Cards ===== */
+        
         .status-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -434,7 +434,7 @@
             color: var(--danger);
         }
 
-        /* ===== Dashboard Grid ===== */
+        
         .dashboard-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -447,7 +447,7 @@
             }
         }
 
-        /* ===== Cards ===== */
+        
         .card {
             background-color: var(--white);
             border-radius: var(--radius-lg);
@@ -498,7 +498,7 @@
             color: var(--white);
         }
 
-        /* ===== Map Card ===== */
+        
         .map-container {
             height: 300px;
             border-radius: var(--radius-md);
@@ -549,7 +549,7 @@
             color: var(--dark);
         }
 
-        /* ===== Events Card ===== */
+        
         .events-list {
             max-height: 350px;
             overflow-y: auto;
@@ -641,7 +641,7 @@
             color: var(--dark);
         }
 
-        /* ===== Trip Control Card ===== */
+        
         .trip-control-card {
             text-align: center;
         }
@@ -762,7 +762,7 @@
             box-shadow: none !important;
         }
 
-        /* ===== Statistics Card ===== */
+        
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -797,7 +797,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* ===== Connection Status ===== */
+        
         .connection-status {
             display: flex;
             gap: 15px;
@@ -853,7 +853,7 @@
             font-weight: 600;
         }
 
-        /* ===== Responsive ===== */
+        
         @media (max-width: 992px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -898,7 +898,7 @@
             }
         }
 
-        /* ===== Utilities ===== */
+        
         .text-center {
             text-align: center;
         }
@@ -931,7 +931,7 @@
             padding: 0;
         }
 
-        /* ===== Loading Spinner ===== */
+        
         .spinner {
             width: 40px;
             height: 40px;
@@ -1034,6 +1034,7 @@
             </div>
         </aside>
 
+        
         <main class="main-content">
             
             <header class="main-header">
@@ -1054,6 +1055,7 @@
                 </div>
             </header>
 
+            
             <div class="connection-status">
                 <div class="status-indicator">
                     <div class="status-dot" id="wsStatusDot"></div>
@@ -1080,6 +1082,7 @@
                 </div>
             </div>
 
+            
             <div class="status-cards">
                 <div class="status-card">
                     <div class="status-icon speed">
@@ -1142,6 +1145,7 @@
                 </div>
             </div>
 
+            
             <div class="dashboard-grid">
                 
                 <div class="left-column">
@@ -1182,6 +1186,7 @@
                         </div>
                     </div>
 
+                    
                     <div class="card">
                         <div class="card-header">
                             <h2 class="card-title">
@@ -1242,6 +1247,7 @@
                     </div>
                 </div>
 
+                
                 <div class="right-column">
                     
                     <div class="card trip-control-card">
@@ -1285,6 +1291,7 @@
                         </div>
                     </div>
 
+                    
                     <div class="card">
                         <div class="card-header">
                             <h2 class="card-title">
@@ -1317,11 +1324,11 @@
         </main>
     </div>
     <script>
-        // ===== Configuration =====
+        
         const WS_URL = 'ws://localhost:8081';
         const API_URL = 'http://43.204.211.180:8080';
 
-        // ===== State Variables =====
+        
         let ws = null;
         let currentTripId = null;
         let tripStartTime = null;
@@ -1331,7 +1338,7 @@
         let totalDistance = 0;
         let safetyScore = 1000;
 
-        // ===== Authentication Check =====
+        
         const sessionId = localStorage.getItem('session_id');
         const driverId = localStorage.getItem('driver_id');
         const driverName = localStorage.getItem('driver_name');
@@ -1340,26 +1347,26 @@
             window.location.href = 'login.html';
         }
 
-        // ===== DOM Elements =====
+        
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.querySelector('.sidebar');
         const userAvatar = document.getElementById('userAvatar');
         const userName = document.getElementById('userName');
 
-        // ===== Initialize =====
+        
         document.addEventListener('DOMContentLoaded', function () {
-            // Set user info
+            
             if (driverName) {
                 userName.textContent = driverName;
                 userAvatar.textContent = driverName.charAt(0) + driverName.split(' ')[1]?.charAt(0) || driverName.charAt(1) || driverName.charAt(0);
             }
 
-            // Mobile menu toggle
+            
             mobileMenuBtn.addEventListener('click', function () {
                 sidebar.classList.toggle('active');
             });
 
-            // Close sidebar when clicking outside on mobile
+            
             document.addEventListener('click', function (event) {
                 if (window.innerWidth <= 992) {
                     if (!sidebar.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
@@ -1368,31 +1375,31 @@
                 }
             });
 
-            // Initialize WebSocket connection
+            
             connectWebSocket();
 
-            // Load vehicles for dropdown
+            
             loadVehicles();
 
-            // Load initial data
+            
             loadInitialData();
 
-            // Check for active trip
+            
             checkActiveTrip();
         });
 
-        // ===== Load Initial Data =====
+        
         async function loadInitialData() {
             try {
-                // Load safety score
+                
                 const score = await loadRealSafetyScore();
                 safetyScore = score;
                 document.getElementById('safetyScore').textContent = score;
 
-                // Load user stats
+                
                 await loadUserStats();
 
-                // Initialize GPS if available
+                
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         (position) => {
@@ -1408,7 +1415,7 @@
             }
         }
 
-        // ===== WebSocket Connection =====
+        
         function connectWebSocket() {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 return;
@@ -1424,7 +1431,7 @@
                     updateStatus('wsStatus', 'Connected', 'wsStatusDot', true);
                     addEvent('WebSocket connected to real-time data stream', 'success');
 
-                    // Send authentication to WebSocket bridge
+                    
                     if (sessionId && driverId) {
                         ws.send(JSON.stringify({
                             type: 'auth',
@@ -1460,7 +1467,7 @@
             }
         }
 
-        // ===== WebSocket Message Handler =====
+        
         function handleWebSocketMessage(data) {
             console.log('WebSocket message received:', data);
 
@@ -1497,23 +1504,23 @@
             }
         }
 
-        // ===== Update Live Data =====
+        
         function updateLiveData(data) {
             console.log('Updating live data:', data);
 
-            // Update GPS status
+            
             if (data.latitude && data.longitude) {
                 updateStatus('gpsStatus', 'Active', 'gpsStatusDot', true);
                 gpsUpdateCount++;
                 document.getElementById('gpsUpdates').textContent = gpsUpdateCount;
 
-                // Update location display
+                
                 const currentLat = parseFloat(data.latitude);
                 const currentLon = parseFloat(data.longitude);
 
                 updateLocationDisplay(currentLat, currentLon, data.accuracy);
 
-                // Calculate distance if trip is active
+                
                 if (currentTripId && lastLocation.lat !== 0) {
                     const distance = calculateDistance(
                         lastLocation.lat, lastLocation.lon,
@@ -1521,18 +1528,18 @@
                     );
                     totalDistance += distance;
 
-                    // Update displays
+                    
                     document.getElementById('tripDistance').textContent = totalDistance.toFixed(2) + ' km';
                     document.getElementById('distanceTraveled').textContent = totalDistance.toFixed(2);
 
-                    // Log GPS point to backend
+                    
                     logGPSPoint(currentLat, currentLon, data.speed || 0, data.acceleration || 0);
                 }
 
                 lastLocation = { lat: currentLat, lon: currentLon };
             }
 
-            // Update speed and acceleration
+            
             if (data.speed !== undefined) {
                 document.getElementById('speedValue').textContent = Math.round(data.speed);
             }
@@ -1540,7 +1547,7 @@
                 document.getElementById('accelValue').textContent = parseFloat(data.acceleration).toFixed(1);
             }
 
-            // Update event counts if provided
+            
             if (data.hard_brake_count !== undefined) {
                 document.getElementById('hardBrakeCount').textContent = data.hard_brake_count;
             }
@@ -1551,13 +1558,13 @@
                 document.getElementById('impactCount').textContent = data.impact_count;
             }
 
-            // Update trip status if active
+            
             if (data.trip_active) {
                 updateStatus('tripStatus', 'Active', 'tripStatusDot', true);
             }
         }
 
-        // ===== Update Location Display =====
+        
         function updateLocationDisplay(lat, lon, accuracy) {
             document.getElementById('latitude').textContent = lat.toFixed(6);
             document.getElementById('longitude').textContent = lon.toFixed(6);
@@ -1569,7 +1576,7 @@
             }
         }
 
-        // ===== Handle Warning Events =====
+        
         function handleWarning(data) {
             let message = '';
             let severity = 'warning';
@@ -1595,19 +1602,19 @@
                     message = `Warning: ${data.warning_type}`;
             }
 
-            // Update safety score
+            
             if (pointDeduction > 0) {
                 safetyScore = Math.max(0, safetyScore - pointDeduction);
                 document.getElementById('safetyScore').textContent = safetyScore;
 
-                // Report event to backend
+                
                 reportEvent(data.warning_type, message, pointDeduction);
             }
 
             addEvent(message, severity);
         }
 
-        // ===== Report Event to Backend =====
+        
         async function reportEvent(eventType, description, pointDeduction) {
             try {
                 const response = await fetch(API_URL, {
@@ -1632,7 +1639,7 @@
             }
         }
 
-        // ===== Calculate Distance Between Coordinates =====
+        
         function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371; // Earth's radius in km
             const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -1644,7 +1651,7 @@
             return R * c;
         }
 
-        // ===== Log GPS Point to Backend =====
+        
         async function logGPSPoint(lat, lon, speed, acceleration = 0) {
             if (!currentTripId) return;
 
@@ -1673,7 +1680,7 @@
             }
         }
 
-        // ===== Trip Started Handler =====
+        
         function handleTripStarted(data) {
             currentTripId = data.trip_id;
             document.getElementById('currentTripId').textContent = currentTripId;
@@ -1681,28 +1688,28 @@
             totalDistance = 0;
             gpsUpdateCount = 0;
 
-            // Reset distance display
+            
             document.getElementById('tripDistance').textContent = '0.0 km';
             document.getElementById('distanceTraveled').textContent = '0.0';
 
-            // Get current location for starting point
+            
             const currentLat = parseFloat(document.getElementById('latitude').textContent) || 31.5204;
             const currentLon = parseFloat(document.getElementById('longitude').textContent) || 74.3587;
             lastLocation = { lat: currentLat, lon: currentLon };
 
-            // Update UI
+            
             document.getElementById('startTripBtn').disabled = true;
             document.getElementById('stopTripBtn').disabled = false;
             updateStatus('tripStatus', 'Active', 'tripStatusDot', true);
 
             addEvent(`Trip ${currentTripId} started`, 'success');
 
-            // Start trip duration timer
+            
             if (tripDurationInterval) clearInterval(tripDurationInterval);
             tripDurationInterval = setInterval(updateTripDuration, 1000);
         }
 
-        // ===== Trip Stopped Handler =====
+        
         function handleTripStopped(data) {
             document.getElementById('startTripBtn').disabled = false;
             document.getElementById('stopTripBtn').disabled = true;
@@ -1710,7 +1717,7 @@
 
             addEvent(`Trip ${currentTripId} completed - Distance: ${totalDistance.toFixed(2)} km`, 'success');
 
-            // Reset trip variables
+            
             const completedTripId = currentTripId;
             currentTripId = null;
             totalDistance = 0;
@@ -1720,18 +1727,18 @@
             document.getElementById('distanceTraveled').textContent = '0.0';
             document.getElementById('gpsUpdates').textContent = '0';
 
-            // Clear interval
+            
             if (tripDurationInterval) {
                 clearInterval(tripDurationInterval);
                 tripDurationInterval = null;
             }
 
-            // Refresh stats after trip completion
+            
             loadRealSafetyScore();
             loadUserStats();
         }
 
-        // ===== Update Trip Duration =====
+        
         function updateTripDuration() {
             if (!tripStartTime) return;
 
@@ -1744,7 +1751,7 @@
                 `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
 
-        // ===== Load Vehicles for Dropdown =====
+        
         async function loadVehicles() {
             console.log('=== Loading Vehicles ===');
             console.log('Session ID:', sessionId);
@@ -1793,7 +1800,7 @@
                     console.error('Failed to load vehicles:', data.message || 'Unknown error');
                     addEvent('Failed to load vehicles: ' + (data.message || 'Unknown error'), 'danger');
 
-                    // Check if session expired
+                    
                     if (data.code === 'UNAUTHORIZED' || data.message?.includes('session')) {
                         console.error('Session expired! Redirecting to login...');
                         localStorage.clear();
@@ -1804,7 +1811,7 @@
                 console.error('Network error loading vehicles:', error);
                 addEvent('Network error: Cannot connect to server. Is the server running?', 'danger');
 
-                // Add a retry button
+                
                 const select = document.getElementById('vehicleSelect');
                 select.innerHTML = '<option value="">Server Error - Click to Retry</option>';
                 select.onclick = () => {
@@ -1814,13 +1821,13 @@
             }
         }
 
-        // ===== Start Trip Function =====
+        
         async function startTrip() {
             console.log('=== START TRIP CLICKED ===');
             console.log('Session ID:', sessionId);
             console.log('Driver ID:', driverId);
 
-            // Validate session
+            
             if (!sessionId || !driverId) {
                 console.error('No session! Redirecting to login...');
                 alert('Session expired. Please login again.');
@@ -1839,14 +1846,14 @@
                 return;
             }
 
-            // Disable button immediately to prevent double-clicks
+            
             const startBtn = document.getElementById('startTripBtn');
             startBtn.disabled = true;
             startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
             addEvent('Starting trip...', 'info');
 
             try {
-                // Get current location
+                
                 const latElement = document.getElementById('latitude');
                 const lonElement = document.getElementById('longitude');
                 const latitude = latElement ? (parseFloat(latElement.textContent) || 31.5204) : 31.5204;
@@ -1895,22 +1902,22 @@
                 console.log('Trip start response:', data);
 
                 if (data.status === 'success') {
-                    // Trip started successfully
+                    
                     const tripId = data.data?.trip_id || data.trip_id || 'Unknown';
                     console.log(`✓ Trip ${tripId} started successfully!`);
 
-                    // Update UI immediately
+                    
                     currentTripId = tripId;
                     document.getElementById('currentTripId').textContent = tripId;
                     tripStartTime = Date.now();
                     totalDistance = 0;
 
-                    // Reset displays
+                    
                     document.getElementById('tripDistance').textContent = '0.0 km';
                     document.getElementById('distanceTraveled').textContent = '0.0';
                     lastLocation = { lat: latitude, lon: longitude };
 
-                    // Update buttons
+                    
                     startBtn.disabled = true;
                     startBtn.innerHTML = '<i class="fas fa-play"></i> Trip Active';
                     document.getElementById('stopTripBtn').disabled = false;
@@ -1918,11 +1925,11 @@
 
                     addEvent(`✓ Trip #${tripId} started successfully!`, 'success');
 
-                    // Start duration timer
+                    
                     if (tripDurationInterval) clearInterval(tripDurationInterval);
                     tripDurationInterval = setInterval(updateTripDuration, 1000);
 
-                    // Notify WebSocket bridge
+                    
                     if (ws && ws.readyState === WebSocket.OPEN) {
                         ws.send(JSON.stringify({
                             type: 'trip_started',
@@ -1934,13 +1941,13 @@
                         }));
                     }
                 } else {
-                    // Trip start failed
+                    
                     console.error('✗ Trip start failed:', data.message || data.code);
                     const errorMsg = data.message || data.code || 'Unknown error';
                     addEvent(`✗ Failed to start trip: ${errorMsg}`, 'danger');
                     alert(`Failed to start trip: ${errorMsg}`);
 
-                    // Check if session expired
+                    
                     if (data.code === 'UNAUTHORIZED' || errorMsg.includes('session')) {
                         console.error('Session expired! Redirecting to login...');
                         localStorage.clear();
@@ -1948,7 +1955,7 @@
                         return;
                     }
 
-                    // Re-enable button
+                    
                     startBtn.disabled = false;
                     startBtn.innerHTML = '<i class="fas fa-play"></i> Start Trip';
                 }
@@ -1957,20 +1964,20 @@
                 addEvent(`✗ Error: ${error.message}`, 'danger');
                 alert(`Error starting trip: ${error.message}\n\nMake sure the server is running on ${API_URL}`);
 
-                // Re-enable button
+                
                 startBtn.disabled = false;
                 startBtn.innerHTML = '<i class="fas fa-play"></i> Start Trip';
             }
         }
 
-        // ===== Stop Trip Function =====
+        
         async function stopTrip() {
             if (!currentTripId) {
                 alert('No active trip to stop');
                 return;
             }
 
-            // Disable button immediately
+            
             const stopBtn = document.getElementById('stopTripBtn');
             stopBtn.disabled = true;
             stopBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Stopping...';
@@ -2003,7 +2010,7 @@
                 if (data.status === 'success') {
                     console.log(`✓ Trip ${currentTripId} stopped successfully`);
 
-                    // Update UI
+                    
                     const startBtn = document.getElementById('startTripBtn');
                     startBtn.disabled = false;
                     startBtn.innerHTML = '<i class="fas fa-play"></i> Start Trip';
@@ -2014,7 +2021,7 @@
 
                     addEvent(`✓ Trip #${currentTripId} completed - Distance: ${totalDistance.toFixed(2)} km`, 'success');
 
-                    // Notify WebSocket bridge
+                    
                     if (ws && ws.readyState === WebSocket.OPEN) {
                         ws.send(JSON.stringify({
                             type: 'trip_stopped',
@@ -2026,7 +2033,7 @@
                         }));
                     }
 
-                    // Reset trip state
+                    
                     const completedTripId = currentTripId;
                     currentTripId = null;
                     totalDistance = 0;
@@ -2035,13 +2042,13 @@
                     document.getElementById('tripDistance').textContent = '0.0 km';
                     document.getElementById('distanceTraveled').textContent = '0.0';
 
-                    // Clear interval
+                    
                     if (tripDurationInterval) {
                         clearInterval(tripDurationInterval);
                         tripDurationInterval = null;
                     }
 
-                    // Refresh data
+                    
                     loadRealSafetyScore();
                     loadUserStats();
                 } else {
@@ -2050,7 +2057,7 @@
                     addEvent(`✗ Failed to stop trip: ${errorMsg}`, 'danger');
                     alert(`Failed to stop trip: ${errorMsg}`);
 
-                    // Check if session expired
+                    
                     if (data.code === 'UNAUTHORIZED' || errorMsg.includes('session')) {
                         console.error('Session expired! Redirecting to login...');
                         localStorage.clear();
@@ -2071,7 +2078,7 @@
             }
         }
 
-        // ===== Update Status Indicator =====
+        
         function updateStatus(elementId, text, dotId, isConnected = true) {
             const element = document.getElementById(elementId);
             const dot = document.getElementById(dotId);
@@ -2089,7 +2096,7 @@
             }
         }
 
-        // ===== Add Event to Events List =====
+        
         function addEvent(message, type = 'info') {
             const eventsList = document.getElementById('eventsList');
             const eventItem = document.createElement('div');
@@ -2097,7 +2104,7 @@
 
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-            // Determine icon based on event type
+            
             let icon = 'fas fa-info-circle';
             if (type === 'warning') icon = 'fas fa-exclamation';
             if (type === 'danger') icon = 'fas fa-times';
@@ -2115,13 +2122,13 @@
 
             eventsList.insertBefore(eventItem, eventsList.firstChild);
 
-            // Limit to 10 events
+            
             while (eventsList.children.length > 10) {
                 eventsList.removeChild(eventsList.lastChild);
             }
         }
 
-        // ===== Load Real Safety Score =====
+        
         async function loadRealSafetyScore() {
             try {
                 const response = await fetch(API_URL, {
@@ -2150,7 +2157,7 @@
             }
         }
 
-        // ===== Load User Statistics =====
+        
         async function loadUserStats() {
             try {
                 const response = await fetch(API_URL, {
@@ -2165,7 +2172,7 @@
                 const data = await response.json();
 
                 if (data.status === 'success') {
-                    // Update dashboard stats with REAL data
+                    
                     document.getElementById('hardBrakeCount').textContent =
                         data.data.hard_brake_count || 0;
                     document.getElementById('rapidAccelCount').textContent =
@@ -2205,7 +2212,7 @@
                         console.log('Found stuck active trip:', tripId, '. Auto-resetting...');
                         addEvent(`Found unfinished trip #${tripId}. Auto-resetting...`, 'warning');
 
-                        // Automatically END the trip to clear backend state
+                        
                         try {
                             const endResponse = await fetch(API_URL, {
                                 method: 'POST',
@@ -2233,7 +2240,7 @@
                             console.error('Network error clearing trip:', err);
                         }
 
-                        // Ensure UI is in READY state
+                        
                         currentTripId = null;
 
                         const startBtn = document.getElementById('startTripBtn');
@@ -2249,20 +2256,20 @@
             }
         }
 
-        // ===== Logout =====
+        
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                // Close WebSocket
+                
                 if (ws) {
                     ws.close();
                 }
 
-                // Stop any running intervals
+                
                 if (tripDurationInterval) {
                     clearInterval(tripDurationInterval);
                 }
 
-                // Send logout request to backend
+                
                 fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -2271,40 +2278,40 @@
                         session_id: sessionId
                     })
                 }).finally(() => {
-                    // Clear all storage
+                    
                     localStorage.clear();
                     sessionStorage.clear();
 
-                    // Clear all cookies
+                    
                     document.cookie.split(";").forEach(function (c) {
                         document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
                     });
 
-                    // Redirect to login
+                    
                     window.location.href = 'login.html';
                 });
             }
         }
 
-        // ===== Utility Functions =====
+        
         window.addEventListener('resize', function () {
             if (window.innerWidth > 992) {
                 sidebar.classList.remove('active');
             }
         });
 
-        // ===== Periodically Sync Data =====
+        
         setInterval(() => {
             if (sessionId) {
-                // Sync safety score every 30 seconds
+                
                 loadRealSafetyScore();
 
-                // Sync user stats every minute
+                
                 loadUserStats();
             }
         }, 30000);
 
-        // ===== Debug Functions =====
+        
         async function testServerConnection() {
             console.log('=== TESTING SERVER CONNECTION ===');
             console.log('API URL:', API_URL);
@@ -2329,9 +2336,9 @@
             }
         }
 
-        // ===== Force Reset Function =====
+        
 
-        // Run on page load - comprehensive diagnostics
+        
         console.log('=== DASHBOARD STARTUP DIAGNOSTICS ===');
         console.log('Timestamp:', new Date().toISOString());
         console.log('API_URL:', API_URL);
@@ -2342,7 +2349,7 @@
         console.log('sessionId variable:', sessionId);
         console.log('driverId variable:', driverId);
 
-        // Expose debug functions globally
+        
         window.testServer = testServerConnection;
         window.reloadVehicles = loadVehicles;
         window.debugInfo = () => {

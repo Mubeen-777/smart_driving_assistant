@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* ===== CSS Variables & Reset ===== */
+        
         :root {
             --primary: #6d5dfc;
             --primary-dark: #5b4ff0;
@@ -80,7 +80,7 @@
             max-width: 100%;
         }
         
-        /* ===== Header ===== */
+        
         .landing-header {
             background: linear-gradient(180deg, var(--dark) 0%, #131722 100%);
             padding: 25px 0;
@@ -205,7 +205,7 @@
             cursor: pointer;
         }
         
-        /* ===== Hero Section ===== */
+        
         .hero-section {
             min-height: 100vh;
             display: flex;
@@ -380,7 +380,7 @@
             color: var(--primary);
         }
         
-        /* ===== Features Section ===== */
+        
         .features-section {
             padding: 100px 30px;
             background: var(--white);
@@ -479,7 +479,7 @@
             gap: 12px;
         }
         
-        /* ===== CTA Section ===== */
+        
         .cta-section {
             padding: 100px 30px;
             background: linear-gradient(135deg, var(--dark) 0%, #131722 100%);
@@ -546,7 +546,7 @@
             box-shadow: 0 8px 25px rgba(255, 101, 132, 0.4);
         }
         
-        /* ===== Footer ===== */
+        
         .footer {
             background: var(--dark);
             color: var(--white);
@@ -632,7 +632,7 @@
             font-size: 14px;
         }
         
-        /* ===== Backend Status ===== */
+        
         .backend-status {
             background: var(--gray-lighter);
             border-radius: var(--radius-lg);
@@ -688,7 +688,7 @@
             color: var(--dark);
         }
         
-        /* ===== Animations ===== */
+        
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -718,7 +718,7 @@
             }
         }
         
-        /* ===== Responsive ===== */
+        
         @media (max-width: 992px) {
             .hero-container {
                 grid-template-columns: 1fr;
@@ -829,7 +829,7 @@
             }
         }
         
-        /* ===== Utilities ===== */
+        
         .hidden {
             display: none;
         }
@@ -865,6 +865,7 @@
         </div>
     </header>
 
+    
     <section class="hero-section">
         <div class="hero-background"></div>
         <div class="hero-container">
@@ -939,6 +940,7 @@
         </div>
     </section>
 
+    
     <section class="features-section" id="features">
         <div class="section-container">
             <div class="section-header">
@@ -1043,6 +1045,7 @@
         </div>
     </section>
 
+    
     <section class="cta-section">
         <div class="cta-container">
             <h2 class="cta-title">Ready to Transform Your Driving?</h2>
@@ -1068,7 +1071,7 @@
                         <div class="status-dot"></div>
                         <div class="status-info">
                             <div class="status-label">HTTP API</div>
-                            <div class="status-value">43.204.211.180:8080</div>
+                            <div class="status-value">localhost:8080</div>
                         </div>
                     </div>
                     
@@ -1092,6 +1095,7 @@
         </div>
     </section>
 
+    
     <footer class="footer">
         <div class="footer-container">
             <div class="footer-column">
@@ -1162,32 +1166,32 @@
     </footer>
 
     <script>
-        // ===== Configuration =====
+        
         const API_URL = 'http://43.204.211.180:8080';
         const WS_URL = 'ws://localhost:8081';
         
-        // ===== DOM Elements =====
+        
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const headerNav = document.getElementById('headerNav');
         const httpStatus = document.getElementById('httpStatus');
         const wsStatus = document.getElementById('wsStatus');
         const udpStatus = document.getElementById('udpStatus');
         
-        // ===== Initialize =====
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // Mobile menu toggle
+            
             mobileMenuBtn.addEventListener('click', function() {
                 headerNav.classList.toggle('active');
             });
             
-            // Close mobile menu when clicking outside
+            
             document.addEventListener('click', function(event) {
                 if (!headerNav.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
                     headerNav.classList.remove('active');
                 }
             });
             
-            // Close mobile menu when clicking a link
+            
             const navLinks = document.querySelectorAll('.nav-link');
             navLinks.forEach(link => {
                 link.addEventListener('click', function() {
@@ -1195,10 +1199,10 @@
                 });
             });
             
-            // Check backend status
+            
             checkBackendStatus();
             
-            // Smooth scroll for anchor links
+            
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -1217,9 +1221,9 @@
             });
         });
         
-        // ===== Check Backend Status =====
+        
         async function checkBackendStatus() {
-            // Check HTTP API
+            
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -1236,7 +1240,7 @@
                 updateStatus(httpStatus, 'Offline', false);
             }
             
-            // Check WebSocket
+            
             try {
                 const ws = new WebSocket(WS_URL);
                 let connected = false;
@@ -1251,7 +1255,7 @@
                     updateStatus(wsStatus, 'Offline', false);
                 };
                 
-                // Timeout after 3 seconds
+                
                 setTimeout(function() {
                     if (!connected) {
                         updateStatus(wsStatus, 'Offline', false);
@@ -1265,7 +1269,7 @@
             updateStatus(udpStatus, 'Available', true);
         }
         
-        // ===== Update Status Indicator =====
+        
         function updateStatus(element, text, isConnected) {
             const statusValue = element.querySelector('.status-value');
             statusValue.textContent = text;
@@ -1277,7 +1281,7 @@
             }
         }
         
-        // ===== Scroll Animation =====
+        
         window.addEventListener('scroll', function() {
             const header = document.querySelector('.landing-header');
             if (window.scrollY > 50) {
@@ -1287,11 +1291,11 @@
             }
         });
         
-        // ===== Check if Already Logged In =====
+        
         window.addEventListener('load', function() {
             const sessionId = localStorage.getItem('session_id');
             if (sessionId) {
-                // Change CTA buttons to go to dashboard
+                
                 const ctaButtons = document.querySelectorAll('.btn-primary');
                 ctaButtons.forEach(btn => {
                     if (btn.href.includes('login.html')) {

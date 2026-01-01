@@ -2,7 +2,7 @@
 #define RESPONSEBUILDER_H
 
 #include <string>
-#include "../../source/data_structures/Map.h"
+#include <map>
 #include <vector>
 #include <sstream>
 #include <iostream>
@@ -12,7 +12,7 @@ using namespace std;
 class ResponseBuilder {
 public:
     
-    string success(const string& status, const Map<string, string>& data = {}) {
+    string success(const string& status, const map<string, string>& data = {}) {
         ostringstream json;
         
         json << "{";
@@ -23,9 +23,9 @@ public:
             json << ",\"data\":{";
             
             bool first = true;
-            for (auto it = data.begin(); it != data.end(); ++it) {
+            for (const auto& pair : data) {
                 if (!first) json << ",";
-                json << "\"" << it.key() << "\":\"" << it.value() << "\"";
+                json << "\"" << pair.first << "\":\"" << pair.second << "\"";
                 first = false;
             }
             
@@ -36,6 +36,7 @@ public:
         
         return json.str();
     }
+    
     
     string error(const string& code, const string& message) {
         ostringstream json;
@@ -48,6 +49,7 @@ public:
         
         return json.str();
     }
+    
     
     string list(const string& status, int count, 
                     const string& message = "") {
@@ -69,7 +71,7 @@ public:
 
     string success_with_array(const string& status,
                               const string& array_key,
-                              const vector<Map<string, string>>& items) {
+                              const vector<map<string, string>>& items) {
         ostringstream json;
         
         json << "{";
@@ -84,9 +86,9 @@ public:
             json << "{";
             
             bool first_field = true;
-            for (auto it = item.begin(); it != item.end(); ++it) {
+            for (const auto& field : item) {
                 if (!first_field) json << ",";
-                json << "\"" << it.key() << "\":\"" << escape_json(it.value()) << "\"";
+                json << "\"" << field.first << "\":\"" << escape_json(field.second) << "\"";
                 first_field = false;
             }
             

@@ -1,19 +1,8 @@
-# Binaries
-sdm_main
-sdm_server
-websocket_bridge
-main
-*.o
-
-# Database and Indexes
-compiled/
-SDM.db
-SDM.log
-indexes/
-
-# Node modules
 node_modules/
-
-# OS files
-.DS_Store
-Thumbs.db
+*.o
+*.exe
+*.bin
+*.so
+*.a
+*.db
+compiled/

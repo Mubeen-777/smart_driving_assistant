@@ -376,7 +376,7 @@ public:
 
             if (expense.expense_id == expense_id)
             {
-                
+
                 expense.expense_id = 0;
                 file_.seekp(offset, ios::beg);
                 file_.write(reinterpret_cast<const char *>(&expense), sizeof(ExpenseRecord));
@@ -659,33 +659,6 @@ public:
         return trips;
     }
 
-    vector<TripRecord> get_trips_by_vehicle(uint64_t vehicle_id, int limit = 100)
-    {
-        vector<TripRecord> trips;
-        lock_guard<mutex> lock(db_mutex_);
-        if (!is_open_)
-            return trips;
-
-        int count = 0;
-        for (uint32_t i = 0; i < header_.max_trips && count < limit; i++)
-        {
-            TripRecord trip;
-            memset(&trip, 0, sizeof(TripRecord));
-            uint64_t offset = trip_table_start_ + (i * sizeof(TripRecord));
-
-            file_.seekg(offset, ios::beg);
-            if (!file_.read(reinterpret_cast<char *>(&trip), sizeof(TripRecord))) break;
-
-            if (trip.trip_id != 0 && trip.vehicle_id == vehicle_id)
-            {
-                trips.push_back(trip);
-                count++;
-            }
-        }
-        file_.clear();
-        return trips;
-    }
-
     vector<TripRecord> get_all_active_trips()
     {
         vector<TripRecord> active_trips;
@@ -787,6 +760,8 @@ public:
 
         return false;
     }
+
+    
 
     vector<ExpenseRecord> get_expenses_by_driver(uint64_t driver_id, int limit = 100)
     {

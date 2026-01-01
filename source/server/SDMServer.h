@@ -383,7 +383,7 @@ private:
     {
         try
         {
-            
+
             if (request.request_data.find("OPTIONS") == 0)
             {
                 send_cors_preflight(request.client_socket);

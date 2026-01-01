@@ -10,7 +10,7 @@
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <style>
-        /* ===== CSS Variables & Reset ===== */
+        
         :root {
             --primary: #6d5dfc;
             --primary-dark: #5b4ff0;
@@ -90,13 +90,13 @@
             max-width: 100%;
         }
 
-        /* ===== Layout ===== */
+        
         .app-container {
             display: flex;
             min-height: 100vh;
         }
 
-        /* ===== Sidebar ===== */
+        
         .sidebar {
             width: var(--sidebar-width);
             background: linear-gradient(180deg, var(--dark) 0%, #131722 100%);
@@ -235,7 +235,7 @@
             color: var(--danger);
         }
 
-        /* ===== Main Content ===== */
+        
         .main-content {
             flex: 1;
             margin-left: var(--sidebar-width);
@@ -243,7 +243,7 @@
             transition: margin-left var(--transition-normal);
         }
 
-        /* ===== Header ===== */
+        
         .main-header {
             display: flex;
             justify-content: space-between;
@@ -331,7 +331,7 @@
             color: var(--white);
         }
 
-        /* ===== Stats Overview ===== */
+        
         .stats-overview {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -422,7 +422,7 @@
             font-weight: 500;
         }
 
-        /* ===== Filter Bar ===== */
+        
         .filter-bar {
             display: flex;
             justify-content: space-between;
@@ -497,7 +497,7 @@
             gap: 10px;
         }
 
-        /* ===== Buttons ===== */
+        
         .btn {
             padding: 12px 24px;
             border-radius: var(--radius-md);
@@ -558,7 +558,7 @@
             box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
         }
 
-        /* ===== Trips List ===== */
+        
         .trips-list {
             background-color: var(--white);
             border-radius: var(--radius-lg);
@@ -762,7 +762,7 @@
             color: var(--success);
         }
 
-        /* ===== Loading State ===== */
+        
         .loading-state {
             display: flex;
             flex-direction: column;
@@ -797,7 +797,7 @@
             font-size: 16px;
         }
 
-        /* ===== Empty State ===== */
+        
         .empty-state {
             display: flex;
             flex-direction: column;
@@ -834,7 +834,7 @@
             line-height: 1.6;
         }
 
-        /* ===== Pagination ===== */
+        
         .pagination {
             display: flex;
             justify-content: center;
@@ -875,7 +875,7 @@
             cursor: not-allowed;
         }
 
-        /* ===== Responsive ===== */
+        
         @media (max-width: 992px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -946,7 +946,7 @@
             }
         }
 
-        /* ===== Utilities ===== */
+        
         .text-center {
             text-align: center;
         }
@@ -979,7 +979,7 @@
             padding: 0;
         }
 
-        /* ===== Trip Details Modal ===== */
+        
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -1160,6 +1160,7 @@
             </div>
         </aside>
 
+        
         <main class="main-content">
             
             <header class="main-header">
@@ -1180,6 +1181,7 @@
                 </div>
             </header>
 
+            
             <div class="stats-overview">
                 <div class="stat-card">
                     <div class="stat-icon">
@@ -1214,6 +1216,7 @@
                 </div>
             </div>
 
+            
             <div class="filter-bar">
                 <div class="filter-controls">
                     <div class="filter-group">
@@ -1265,6 +1268,7 @@
                 </div>
             </div>
 
+            
             <div class="trips-list" id="tripsList">
                 
                 <div class="loading-state" id="loadingState">
@@ -1272,6 +1276,7 @@
                     <div class="loading-text">Loading trips...</div>
                 </div>
 
+                
                 <div class="empty-state" id="emptyState" style="display: none;">
                     <div class="empty-state-icon">
                         <i class="fas fa-route"></i>
@@ -1286,8 +1291,10 @@
                     </a>
                 </div>
 
+                
             </div>
 
+            
             <div class="pagination" id="pagination" style="display: none;">
                 <button class="pagination-btn" id="prevPage" disabled>
                     <i class="fas fa-chevron-left"></i>
@@ -1303,6 +1310,7 @@
         </main>
     </div>
 
+    
     <div class="modal-overlay" id="tripModal">
         <div class="modal">
             <div class="modal-header">
@@ -1359,10 +1367,10 @@
     </div>
 
     <script>
-        // ===== Configuration =====
+        
         const API_URL = 'http://43.204.211.180:8080';
 
-        // ===== State Variables =====
+        
         let currentPage = 1;
         let totalPages = 1;
         let trips = [];
@@ -1374,7 +1382,7 @@
             endDate: ''
         };
 
-        // ===== Authentication Check =====
+        
         const sessionId = localStorage.getItem('session_id');
         const driverId = localStorage.getItem('driver_id');
         const driverName = localStorage.getItem('driver_name');
@@ -1383,7 +1391,7 @@
             window.location.href = 'login.html';
         }
 
-        // ===== DOM Elements =====
+        
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.querySelector('.sidebar');
         const userAvatar = document.getElementById('userAvatar');
@@ -1393,20 +1401,20 @@
         const emptyState = document.getElementById('emptyState');
         const pagination = document.getElementById('pagination');
 
-        // ===== Initialize =====
+        
         document.addEventListener('DOMContentLoaded', function () {
-            // Set user info
+            
             if (driverName) {
                 userName.textContent = driverName;
                 userAvatar.textContent = driverName.charAt(0) + driverName.split(' ')[1]?.charAt(0) || driverName.charAt(1) || driverName.charAt(0);
             }
 
-            // Mobile menu toggle
+            
             mobileMenuBtn.addEventListener('click', function () {
                 sidebar.classList.toggle('active');
             });
 
-            // Close sidebar when clicking outside on mobile
+            
             document.addEventListener('click', function (event) {
                 if (window.innerWidth <= 992) {
                     if (!sidebar.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
@@ -1415,7 +1423,7 @@
                 }
             });
 
-            // Initialize date inputs
+            
             const today = new Date();
             const sevenDaysAgo = new Date();
             sevenDaysAgo.setDate(today.getDate() - 7);
@@ -1423,17 +1431,17 @@
             document.getElementById('startDate').value = formatDateForInput(sevenDaysAgo);
             document.getElementById('endDate').value = formatDateForInput(today);
 
-            // Load trips and statistics
+            
             loadTripStatistics();
             loadTrips();
         });
 
-        // ===== Format Date for Input =====
+        
         function formatDateForInput(date) {
             return date.toISOString().split('T')[0];
         }
 
-        // ===== Format Duration =====
+        
         function formatDuration(seconds) {
             if (!seconds || seconds <= 0) return '0s';
 
@@ -1449,7 +1457,7 @@
             return result.trim();
         }
 
-        // ===== Format Date Display =====
+        
         function formatDateDisplay(timestamp) {
             const date = new Date(parseInt(timestamp) * 1000);
             return date.toLocaleDateString('en-US', {
@@ -1462,7 +1470,7 @@
             });
         }
 
-        // ===== Load Trip Statistics =====
+        
         async function loadTripStatistics() {
             try {
                 const response = await fetch(API_URL, {
@@ -1489,16 +1497,16 @@
             }
         }
 
-        // ===== Load Trips =====
+        
         async function loadTrips() {
             try {
-                // Show loading state
+                
                 loadingState.style.display = 'flex';
                 emptyState.style.display = 'none';
                 tripsList.innerHTML = '';
                 tripsList.appendChild(loadingState);
 
-                // Get filter values
+                
                 filters.vehicle = document.getElementById('vehicleFilter').value;
                 filters.timePeriod = document.getElementById('timeFilter').value;
                 filters.status = document.getElementById('statusFilter').value;
@@ -1519,7 +1527,7 @@
 
                 const data = await response.json();
 
-                // Hide loading state
+                
                 loadingState.style.display = 'none';
 
                 if (data.status === 'success' && data.data.trips && data.data.trips.length > 0) {
@@ -1529,7 +1537,7 @@
                     displayTrips(trips);
                     updatePagination();
 
-                    // Show pagination if more than one page
+                    
                     if (totalPages > 1) {
                         pagination.style.display = 'flex';
                     } else {
@@ -1545,7 +1553,7 @@
             }
         }
 
-        // ===== Show Empty State =====
+        
         function showEmptyState() {
             emptyState.style.display = 'flex';
             tripsList.innerHTML = '';
@@ -1553,7 +1561,7 @@
             pagination.style.display = 'none';
         }
 
-        // ===== Display Trips =====
+        
         function displayTrips(trips) {
             tripsList.innerHTML = '';
 
@@ -1570,7 +1578,7 @@
                 const fuelUsed = parseFloat(trip.fuel_consumed || 0).toFixed(1);
                 const efficiency = parseFloat(trip.fuel_efficiency || 0).toFixed(1);
 
-                // Event badges
+                
                 let eventBadges = '';
                 const harshBraking = parseInt(trip.harsh_braking_count) || 0;
                 const rapidAccel = parseInt(trip.rapid_acceleration_count) || 0;
@@ -1609,13 +1617,13 @@
                     eventBadges = '<span class="event-badge success"><i class="fas fa-check-circle"></i> Safe Trip</span>';
                 }
 
-                // GPS coordinates
+                
                 const startLat = parseFloat(trip.start_latitude || 0).toFixed(6);
                 const startLon = parseFloat(trip.start_longitude || 0).toFixed(6);
                 const endLat = parseFloat(trip.end_latitude || 0).toFixed(6);
                 const endLon = parseFloat(trip.end_longitude || 0).toFixed(6);
 
-                // Determine status
+                
                 let statusClass = 'status-completed';
                 let statusText = 'Completed';
 
@@ -1750,12 +1758,12 @@
             });
         }
 
-        // ===== View Trip Details =====
+        
         function viewTripDetails(tripId) {
             const trip = trips.find(t => t.trip_id == tripId);
             if (!trip) return;
 
-            // Update modal with trip details
+            
             const modalTripDetails = document.getElementById('modalTripDetails');
             const modalTripLocations = document.getElementById('modalTripLocations');
             const modalTripEvents = document.getElementById('modalTripEvents');
@@ -1768,7 +1776,7 @@
             const fuelUsed = parseFloat(trip.fuel_consumed || 0).toFixed(1);
             const efficiency = parseFloat(trip.fuel_efficiency || 0).toFixed(1);
 
-            // Trip details
+            
             modalTripDetails.innerHTML = `
                 <div class="detail-item">
                     <div class="detail-icon">
@@ -1811,7 +1819,7 @@
                 </div>
             `;
 
-            // Location details
+            
             const startLat = parseFloat(trip.start_latitude || 0).toFixed(6);
             const startLon = parseFloat(trip.start_longitude || 0).toFixed(6);
             const endLat = parseFloat(trip.end_latitude || 0).toFixed(6);
@@ -1851,7 +1859,7 @@
                 </div>
             `;
 
-            // Event badges
+            
             const harshBraking = parseInt(trip.harsh_braking_count) || 0;
             const rapidAccel = parseInt(trip.rapid_acceleration_count) || 0;
             const speeding = parseInt(trip.speeding_count) || 0;
@@ -1892,7 +1900,7 @@
 
             modalTripEvents.innerHTML = eventBadges;
 
-            // Additional info
+            
             modalAdditionalInfo.innerHTML = `
                 <div>
                     <div style="font-size: 13px; color: var(--gray); margin-bottom: 5px;">Fuel Used</div>
@@ -1912,24 +1920,24 @@
                 </div>
             `;
 
-            // Show modal
+            
             document.getElementById('tripModal').classList.add('active');
             document.body.style.overflow = 'hidden';
         }
 
-        // ===== Close Trip Modal =====
+        
         function closeTripModal() {
             document.getElementById('tripModal').classList.remove('active');
             document.body.style.overflow = 'auto';
         }
 
-        // ===== Apply Filters =====
+        
         function applyFilters() {
             currentPage = 1;
             loadTrips();
         }
 
-        // ===== Reset Filters =====
+        
         function resetFilters() {
             document.getElementById('vehicleFilter').value = 'all';
             document.getElementById('timeFilter').value = '7days';
@@ -1946,24 +1954,24 @@
             loadTrips();
         }
 
-        // ===== Update Pagination =====
+        
         function updatePagination() {
             const prevPageBtn = document.getElementById('prevPage');
             const nextPageBtn = document.getElementById('nextPage');
             const pageButtons = document.querySelectorAll('.pagination-btn:not(#prevPage):not(#nextPage)');
 
-            // Update prev/next buttons
+            
             prevPageBtn.disabled = currentPage === 1;
             nextPageBtn.disabled = currentPage === totalPages;
 
-            // Clear existing page buttons (except prev/next)
+            
             pageButtons.forEach(btn => btn.remove());
 
-            // Add page buttons
+            
             const paginationContainer = document.getElementById('pagination');
             const prevPageBtnElement = document.getElementById('prevPage');
 
-            // Calculate which pages to show
+            
             let startPage = Math.max(1, currentPage - 2);
             let endPage = Math.min(totalPages, currentPage + 2);
 
@@ -1977,7 +1985,7 @@
                 startPage = Math.max(1, endPage - 4);
             }
 
-            // Add page number buttons
+            
             for (let i = startPage; i <= endPage; i++) {
                 const pageBtn = document.createElement('button');
                 pageBtn.className = 'pagination-btn';
@@ -1987,41 +1995,41 @@
                 paginationContainer.insertBefore(pageBtn, nextPageBtn);
             }
 
-            // Add prev/next button event listeners
+            
             prevPageBtn.onclick = () => goToPage(currentPage - 1);
             nextPageBtn.onclick = () => goToPage(currentPage + 1);
         }
 
-        // ===== Go to Page =====
+        
         function goToPage(page) {
             if (page < 1 || page > totalPages || page === currentPage) return;
 
             currentPage = page;
             loadTrips();
 
-            // Scroll to top of trips list
+            
             tripsList.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // ===== Logout =====
+        
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                // Clear local storage
+                
                 localStorage.clear();
 
-                // Redirect to login page
+                
                 window.location.href = 'login.html';
             }
         }
 
-        // ===== Utility Functions =====
+        
         window.addEventListener('resize', function () {
             if (window.innerWidth > 992) {
                 sidebar.classList.remove('active');
             }
         });
 
-        // Close modal when clicking outside
+        
         document.getElementById('tripModal').addEventListener('click', function (e) {
             if (e.target === this) {
                 closeTripModal();

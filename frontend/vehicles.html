@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* ===== CSS Variables & Reset ===== */
+        
         :root {
             --primary: #6d5dfc;
             --primary-dark: #5b4ff0;
@@ -82,13 +82,13 @@
             max-width: 100%;
         }
         
-        /* ===== Layout ===== */
+        
         .app-container {
             display: flex;
             min-height: 100vh;
         }
         
-        /* ===== Sidebar ===== */
+        
         .sidebar {
             width: var(--sidebar-width);
             background: linear-gradient(180deg, var(--dark) 0%, #131722 100%);
@@ -227,7 +227,7 @@
             color: var(--danger);
         }
         
-        /* ===== Main Content ===== */
+        
         .main-content {
             flex: 1;
             margin-left: var(--sidebar-width);
@@ -235,7 +235,7 @@
             transition: margin-left var(--transition-normal);
         }
         
-        /* ===== Header ===== */
+        
         .main-header {
             display: flex;
             justify-content: space-between;
@@ -323,7 +323,7 @@
             color: var(--white);
         }
         
-        /* ===== Buttons ===== */
+        
         .btn {
             padding: 12px 24px;
             border-radius: var(--radius-md);
@@ -399,7 +399,7 @@
             font-size: 13px;
         }
         
-        /* ===== Alerts Section ===== */
+        
         .alerts-section {
             background: linear-gradient(135deg, rgba(255, 101, 132, 0.1) 0%, rgba(255, 141, 161, 0.05) 100%);
             border-left: 4px solid var(--secondary);
@@ -502,7 +502,7 @@
             color: var(--gray);
         }
         
-        /* ===== Vehicles Grid ===== */
+        
         .vehicles-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -621,7 +621,7 @@
             flex: 1;
         }
         
-        /* ===== Loading State ===== */
+        
         .loading-state {
             display: flex;
             flex-direction: column;
@@ -652,7 +652,7 @@
             font-size: 16px;
         }
         
-        /* ===== Empty State ===== */
+        
         .empty-state {
             display: flex;
             flex-direction: column;
@@ -690,7 +690,7 @@
             line-height: 1.6;
         }
         
-        /* ===== Modals ===== */
+        
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -769,7 +769,7 @@
             padding: 30px;
         }
         
-        /* ===== Form Styles ===== */
+        
         .form-group {
             margin-bottom: 20px;
         }
@@ -818,7 +818,7 @@
             flex: 1;
         }
         
-        /* ===== Responsive ===== */
+        
         @media (max-width: 992px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -867,7 +867,7 @@
             }
         }
         
-        /* ===== Utilities ===== */
+        
         .text-center { text-align: center; }
         .text-right { text-align: right; }
         .mb-0 { margin-bottom: 0; }
@@ -877,7 +877,7 @@
         .mb-20 { margin-bottom: 20px; }
         .p-0 { padding: 0; }
         
-        /* ===== Vehicle Type Colors ===== */
+        
         .vehicle-sedan .vehicle-icon {
             background: linear-gradient(135deg, #3498db 0%, #5dade2 100%);
         }
@@ -983,6 +983,7 @@
             </div>
         </aside>
         
+        
         <main class="main-content">
             
             <header class="main-header">
@@ -1003,12 +1004,14 @@
                 </div>
             </header>
             
+            
             <div style="text-align: right; margin-bottom: 30px;">
                 <button class="btn btn-primary" onclick="showAddVehicleModal()">
                     <i class="fas fa-plus"></i>
                     Add New Vehicle
                 </button>
             </div>
+            
             
             <div class="alerts-section" id="alertsSection">
                 <div class="alerts-header">
@@ -1018,12 +1021,14 @@
                 <div id="alertsList"></div>
             </div>
             
+            
             <div class="vehicles-grid" id="vehiclesGrid">
                 
                 <div class="loading-state" id="loadingState">
                     <div class="spinner"></div>
                     <div class="loading-text">Loading vehicles...</div>
                 </div>
+                
                 
                 <div class="empty-state" id="emptyState" style="display: none;">
                     <div class="empty-state-icon">
@@ -1039,9 +1044,11 @@
                     </button>
                 </div>
                 
+                
             </div>
         </main>
     </div>
+    
     
     <div class="modal-overlay" id="addVehicleModal">
         <div class="modal">
@@ -1109,6 +1116,7 @@
         </div>
     </div>
     
+    
     <div class="modal-overlay" id="odometerModal">
         <div class="modal">
             <div class="modal-header">
@@ -1140,6 +1148,7 @@
             </div>
         </div>
     </div>
+    
     
     <div class="modal-overlay" id="maintenanceModal">
         <div class="modal">
@@ -1205,13 +1214,13 @@
     </div>
 
     <script>
-        // ===== Configuration =====
+        
         const API_URL = 'http://43.204.211.180:8080';
         
-        // ===== State Variables =====
+        
         let vehicles = [];
         
-        // ===== Authentication Check =====
+        
         const sessionId = localStorage.getItem('session_id');
         const driverId = localStorage.getItem('driver_id');
         const driverName = localStorage.getItem('driver_name');
@@ -1220,7 +1229,7 @@
             window.location.href = 'login.html';
         }
         
-        // ===== DOM Elements =====
+        
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.querySelector('.sidebar');
         const userAvatar = document.getElementById('userAvatar');
@@ -1230,20 +1239,20 @@
         const emptyState = document.getElementById('emptyState');
         const alertsSection = document.getElementById('alertsSection');
         
-        // ===== Initialize =====
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // Set user info
+            
             if (driverName) {
                 userName.textContent = driverName;
                 userAvatar.textContent = driverName.charAt(0) + driverName.split(' ')[1]?.charAt(0) || driverName.charAt(1) || driverName.charAt(0);
             }
             
-            // Mobile menu toggle
+            
             mobileMenuBtn.addEventListener('click', function() {
                 sidebar.classList.toggle('active');
             });
             
-            // Close sidebar when clicking outside on mobile
+            
             document.addEventListener('click', function(event) {
                 if (window.innerWidth <= 992) {
                     if (!sidebar.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
@@ -1252,29 +1261,29 @@
                 }
             });
             
-            // Load vehicles and maintenance alerts
+            
             loadVehicles();
         });
         
-        // ===== Get Vehicle Type Class =====
+        
         function getVehicleTypeClass(type) {
             const classes = ['vehicle-sedan', 'vehicle-suv', 'vehicle-truck', 'vehicle-van', 'vehicle-motorcycle', 'vehicle-other'];
             return classes[parseInt(type)] || 'vehicle-other';
         }
         
-        // ===== Get Vehicle Type Icon =====
+        
         function getVehicleTypeIcon(type) {
             const icons = ['fas fa-car', 'fas fa-truck', 'fas fa-truck-pickup', 'fas fa-shuttle-van', 'fas fa-motorcycle', 'fas fa-car'];
             return icons[parseInt(type)] || 'fas fa-car';
         }
         
-        // ===== Get Vehicle Type Name =====
+        
         function getVehicleTypeName(type) {
             const names = ['Sedan', 'SUV', 'Truck', 'Van', 'Motorcycle', 'Other'];
             return names[parseInt(type)] || 'Other';
         }
         
-        // ===== Load Vehicles =====
+        
         async function loadVehicles() {
             try {
                 const response = await fetch(API_URL, {
@@ -1288,7 +1297,7 @@
                 
                 const data = await response.json();
                 
-                // Hide loading state
+                
                 loadingState.style.display = 'none';
                 
                 if (data.status === 'success' && data.data.vehicles && data.data.vehicles.length > 0) {
@@ -1305,14 +1314,14 @@
             }
         }
         
-        // ===== Show Empty State =====
+        
         function showEmptyState() {
             emptyState.style.display = 'flex';
             vehiclesGrid.innerHTML = '';
             vehiclesGrid.appendChild(emptyState);
         }
         
-        // ===== Display Vehicles =====
+        
         function displayVehicles(vehicles) {
             vehiclesGrid.innerHTML = '';
             
@@ -1373,7 +1382,7 @@
             });
         }
         
-        // ===== Load Maintenance Alerts =====
+        
         async function loadMaintenanceAlerts() {
             try {
                 const response = await fetch(API_URL, {
@@ -1395,7 +1404,7 @@
             }
         }
         
-        // ===== Display Alerts =====
+        
         function displayAlerts(alerts) {
             const alertsList = document.getElementById('alertsList');
             alertsList.innerHTML = '';
@@ -1445,7 +1454,7 @@
             alertsSection.classList.add('active');
         }
         
-        // ===== Modal Functions =====
+        
         function showAddVehicleModal() {
             document.getElementById('addVehicleModal').classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -1473,7 +1482,7 @@
         function showMaintenanceModal(vehicleId) {
             document.getElementById('maintenanceVehicleId').value = vehicleId;
             
-            // Set current odometer value
+            
             const vehicle = vehicles.find(v => v.vehicle_id == vehicleId);
             if (vehicle) {
                 document.getElementById('maintenanceOdometer').value = vehicle.current_odometer || 0;
@@ -1489,7 +1498,7 @@
             document.body.style.overflow = 'auto';
         }
         
-        // ===== Add Vehicle =====
+        
         async function addVehicle(event) {
             event.preventDefault();
             
@@ -1526,7 +1535,7 @@
             }
         }
         
-        // ===== Update Odometer =====
+        
         async function updateOdometer(event) {
             event.preventDefault();
             
@@ -1560,7 +1569,7 @@
             }
         }
         
-        // ===== Add Maintenance =====
+        
         async function addMaintenance(event) {
             event.preventDefault();
             
@@ -1597,15 +1606,15 @@
             }
         }
         
-        // ===== Show Notification =====
+        
         function showNotification(message, type = 'info') {
-            // Remove any existing notification
+            
             const existingNotification = document.querySelector('.notification-toast');
             if (existingNotification) {
                 existingNotification.remove();
             }
             
-            // Create notification
+            
             const notification = document.createElement('div');
             notification.className = `notification-toast`;
             notification.style.cssText = `
@@ -1631,12 +1640,12 @@
             
             document.body.appendChild(notification);
             
-            // Animate in
+            
             setTimeout(() => {
                 notification.style.transform = 'translateX(0)';
             }, 10);
             
-            // Remove after 5 seconds
+            
             setTimeout(() => {
                 notification.style.transform = 'translateX(150%)';
                 setTimeout(() => {
@@ -1644,7 +1653,7 @@
                 }, 300);
             }, 5000);
             
-            // Click to dismiss
+            
             notification.addEventListener('click', () => {
                 notification.style.transform = 'translateX(150%)';
                 setTimeout(() => {
@@ -1653,25 +1662,25 @@
             });
         }
         
-        // ===== Logout =====
+        
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                // Clear local storage
+                
                 localStorage.clear();
                 
-                // Redirect to login page
+                
                 window.location.href = 'login.html';
             }
         }
         
-        // ===== Utility Functions =====
+        
         window.addEventListener('resize', function() {
             if (window.innerWidth > 992) {
                 sidebar.classList.remove('active');
             }
         });
         
-        // Close modals when clicking outside
+        
         document.querySelectorAll('.modal-overlay').forEach(modal => {
             modal.addEventListener('click', function(e) {
                 if (e.target === this) {
@@ -1681,7 +1690,7 @@
             });
         });
         
-        // Close modals with Escape key
+        
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 document.querySelectorAll('.modal-overlay').forEach(modal => {

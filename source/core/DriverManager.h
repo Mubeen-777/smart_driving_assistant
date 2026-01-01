@@ -70,7 +70,7 @@ public:
 
     bool get_driver_profile(uint64_t driver_id, DriverProfile &driver)
     {
-        
+
         if (cache_.get_driver(driver_id, driver))
         {
             return true;
@@ -88,11 +88,11 @@ public:
     struct DriverBehaviorMetrics
     {
         uint64_t driver_id;
-        uint32_t safety_score; 
+        uint32_t safety_score;
 
         uint64_t total_trips;
         double total_distance;
-        double total_duration; 
+        double total_duration;
 
         uint32_t harsh_braking_count;
         uint32_t rapid_acceleration_count;
@@ -103,20 +103,20 @@ public:
         double acceleration_rate;
         double speeding_rate;
 
-        double avg_fuel_efficiency; 
+        double avg_fuel_efficiency;
 
         double avg_speed;
         double max_speed_recorded;
 
-        uint32_t night_driving_trips; 
-        uint32_t peak_hour_trips;     
+        uint32_t night_driving_trips;
+        uint32_t peak_hour_trips;
 
         uint32_t drowsiness_events;
         uint32_t distraction_events;
         uint32_t collision_warnings;
 
-        uint32_t rank_in_fleet; 
-        double percentile;      
+        uint32_t rank_in_fleet;
+        double percentile;
     };
 
     DriverBehaviorMetrics get_driver_behavior(uint64_t driver_id)
@@ -147,7 +147,7 @@ public:
 
     uint32_t calculate_safety_score(const DriverBehaviorMetrics &metrics)
     {
-        uint32_t score = 1000; 
+        uint32_t score = 1000;
 
         score -= std::min(score, (uint32_t)(metrics.harsh_braking_rate * 10));
         score -= std::min(score, (uint32_t)(metrics.acceleration_rate * 10));
@@ -158,7 +158,7 @@ public:
 
         if (metrics.total_distance > 10000 && score > 900)
         {
-            score += 50; 
+            score += 50;
         }
 
         return std::min((uint32_t)1000, score);
@@ -193,6 +193,7 @@ public:
             rank.total_distance = driver.total_distance;
             rank.total_trips = driver.total_trips;
             
+
             auto trips = db_.get_trips_by_driver(driver.driver_id, 100);
             double total_duration = 0;
             for (const auto& trip : trips) {
@@ -300,7 +301,7 @@ public:
         std::string alert_type;
         uint64_t expiry_date;
         uint32_t days_until_expiry;
-        uint8_t severity; 
+        uint8_t severity;
     };
 
     std::vector<DocumentAlert> get_license_expiry_alerts(int days_threshold = 30)
@@ -327,19 +328,19 @@ public:
 
                     if (days_until <= 0)
                     {
-                        alert.severity = 3; 
+                        alert.severity = 3;
                     }
                     else if (days_until <= 7)
                     {
-                        alert.severity = 3; 
+                        alert.severity = 3;
                     }
                     else if (days_until <= 14)
                     {
-                        alert.severity = 2; 
+                        alert.severity = 2;
                     }
                     else
                     {
-                        alert.severity = 1; 
+                        alert.severity = 1;
                     }
 
                     alerts.push_back(alert);
@@ -354,7 +355,7 @@ public:
     {
         std::string category;
         std::string recommendation;
-        uint8_t priority; 
+        uint8_t priority;
         double potential_improvement;
     };
 
@@ -365,13 +366,13 @@ public:
         auto metrics = get_driver_behavior(driver_id);
 
         if (metrics.harsh_braking_rate > 2.0)
-        { 
+        {
             DriverRecommendation rec;
             rec.category = "Braking Behavior";
             rec.recommendation = "Reduce harsh braking by anticipating stops earlier. "
                                  "This improves safety and fuel efficiency.";
             rec.priority = 3;
-            rec.potential_improvement = 15.0; 
+            rec.potential_improvement = 15.0;
             recommendations.push_back(rec);
         }
 
@@ -387,7 +388,7 @@ public:
         }
 
         if (metrics.avg_fuel_efficiency < 10.0)
-        { 
+        {
             DriverRecommendation rec;
             rec.category = "Fuel Efficiency";
             rec.recommendation = "Improve fuel efficiency by maintaining steady speeds "
@@ -483,4 +484,4 @@ private:
         }
     }
 };
-#endif 
+#endif // DRIVERMANAGER_H

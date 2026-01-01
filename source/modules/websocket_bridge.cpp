@@ -1,3 +1,4 @@
+
 #include <websocketpp/config/asio.hpp>
 #include <websocketpp/server.hpp>
 #include <nlohmann/json.hpp>
@@ -86,7 +87,7 @@ private:
     }
     
 public:
-    HTTPClient(const string& url = "http:
+    HTTPClient(const string& url = "http://localhost:8080") : main_server_url(url) {
         curl_global_init(CURL_GLOBAL_DEFAULT);
     }
     
@@ -143,19 +144,23 @@ private:
     thread server_thread;
     atomic<bool> running;
     
+
     unique_ptr<CameraManager> camera;
     unique_ptr<UltraFastLaneDetector> lane_detector;
     thread camera_thread;
     atomic<bool> camera_running;
     
+
     int udp_socket;
     thread udp_receiver_thread;
     atomic<bool> udp_receiver_running;
     const int UDP_PORT = 5555;
     
+
     unique_ptr<HTTPClient> http_client;
     string current_session_id;
     
+
     using connection_hdl = websocketpp::connection_hdl;
     struct connection_data {
         json info;
@@ -166,10 +171,11 @@ private:
     map<connection_hdl, connection_data, owner_less<connection_hdl>> clients;
     mutex clients_mutex;
     
+
     struct MobileData {
-        atomic<double> speed{0};           
-        atomic<double> acceleration{0};    
-        atomic<double> latitude{31.5204};  
+        atomic<double> speed{0};
+        atomic<double> acceleration{0};
+        atomic<double> latitude{31.5204};
         atomic<double> longitude{74.3587};
         atomic<double> altitude{0};
         atomic<double> accuracy{10.0};
@@ -184,6 +190,7 @@ private:
         atomic<int> packet_count{0};
     } mobile_data;
     
+
     struct SafetyData {
         atomic<double> safety_score{1000};
         atomic<int> rapid_accel_count{0};
@@ -205,6 +212,7 @@ private:
         }
     } safety_data;
     
+
     struct TripData {
         atomic<bool> active{false};
         atomic<uint64_t> trip_id{0};
@@ -215,9 +223,11 @@ private:
         atomic<uint64_t> vehicle_id{0};
     } trip_data;
     
+
     atomic<int> total_frames{0};
     atomic<int> total_udp_packets{0};
     
+
     chrono::steady_clock::time_point last_broadcast;
     chrono::steady_clock::time_point last_gps_log;
     
@@ -229,12 +239,14 @@ public:
         udp_receiver_running(false),
         http_client(nullptr) {
         
+
         ws_server.init_asio();
         ws_server.set_reuse_addr(true);
         
         last_broadcast = chrono::steady_clock::now();
         last_gps_log = chrono::steady_clock::now();
         
+
         ws_server.set_open_handler(bind(&SmartDriveBridge::on_open, this, placeholders::_1));
         ws_server.set_close_handler(bind(&SmartDriveBridge::on_close, this, placeholders::_1));
         ws_server.set_message_handler(bind(&SmartDriveBridge::on_message, this, placeholders::_1, placeholders::_2));
@@ -242,7 +254,7 @@ public:
         cout << "SmartDriveBridge initialized" << endl;
         cout << "  - WebSocket: localhost:8081" << endl;
         cout << "  - UDP Receiver: port 5555" << endl;
-        cout << "  - Main Server: http:
+        cout << "  - Main Server: http://localhost:8080" << endl;
     }
     
     ~SmartDriveBridge() {
@@ -253,9 +265,10 @@ public:
         cout << "=== Smart Drive Bridge Initialization ===" << endl;
         
         try {
+
+            http_client = make_unique<HTTPClient>("http://localhost:8080");
             
-            http_client = make_unique<HTTPClient>("http:
-            
+
             cout << "Initializing camera system..." << endl;
             camera = make_unique<CameraManager>();
             CameraManager::CameraConfig cam_cfg;
@@ -272,6 +285,7 @@ public:
                 cout << "✓ Camera initialized: " << cam_cfg.source << endl;
             }
             
+
             if (camera) {
                 lane_detector = make_unique<UltraFastLaneDetector>();
                 if (!lane_detector->initialize("")) {
@@ -298,6 +312,7 @@ public:
         try {
             running = true;
             
+
             ws_server.listen(8081);
             ws_server.start_accept();
             
@@ -310,29 +325,33 @@ public:
                 }
             });
             
+
             if (camera) {
                 camera_running = true;
                 camera_thread = thread(&SmartDriveBridge::camera_loop, this);
                 cout << "✓ Camera processing started" << endl;
             }
             
+
             if (setup_udp_receiver()) {
                 udp_receiver_running = true;
                 udp_receiver_thread = thread(&SmartDriveBridge::udp_receiver_loop, this);
                 cout << "✓ UDP receiver started on port 5555" << endl;
             }
             
+
             thread broadcast_thread(&SmartDriveBridge::broadcast_loop, this);
             broadcast_thread.detach();
             
+
             thread gps_log_thread(&SmartDriveBridge::gps_logging_loop, this);
             gps_log_thread.detach();
             
             cout << endl << "✅ Bridge server started successfully!" << endl;
-            cout << "   Frontend: ws:
+            cout << "   Frontend: ws://localhost:8081" << endl;
             cout << "   Mobile UDP: port 5555" << endl;
             cout << "   Camera: " << (camera ? "Active" : "Inactive") << endl;
-            cout << "   Main Server: http:
+            cout << "   Main Server: http://localhost:8080" << endl;
             cout << endl;
             
         } catch (const exception& e) {
@@ -348,11 +367,13 @@ public:
         camera_running = false;
         udp_receiver_running = false;
         
+
         if (udp_socket >= 0) {
             close(udp_socket);
             udp_socket = -1;
         }
         
+
         if (udp_receiver_thread.joinable()) {
             udp_receiver_thread.join();
         }
@@ -361,6 +382,7 @@ public:
             camera_thread.join();
         }
         
+
         try {
             ws_server.stop_listening();
             
@@ -383,6 +405,7 @@ public:
             cerr << "Error stopping WebSocket server: " << e.what() << endl;
         }
         
+
         if (camera) {
             camera->release();
         }
@@ -393,7 +416,7 @@ public:
     bool is_running() const { return running; }
     
 private:
-    
+
     bool setup_udp_receiver() {
         udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
         if (udp_socket < 0) {
@@ -419,6 +442,7 @@ private:
         return true;
     }
     
+
     void udp_receiver_loop() {
         char buffer[2048];
         struct sockaddr_in client_addr;
@@ -431,7 +455,7 @@ private:
         cout << "📱 Waiting for mobile data on UDP port " << UDP_PORT << "..." << endl;
         
         while (udp_receiver_running) {
-            int ret = poll(&pfd, 1, 100); 
+            int ret = poll(&pfd, 1, 100);
             
             if (ret < 0) {
                 if (errno != EINTR) {
@@ -440,7 +464,7 @@ private:
                 continue;
             }
             
-            if (ret == 0) continue; 
+            if (ret == 0) continue;
             
             ssize_t bytes_received = recvfrom(udp_socket, buffer, sizeof(buffer) - 1, 0,
                                              (struct sockaddr*)&client_addr, &client_len);
@@ -460,6 +484,7 @@ private:
         char client_ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &(client_addr->sin_addr), client_ip, INET_ADDRSTRLEN);
         
+
         vector<string> parts;
         stringstream ss(packet);
         string part;
@@ -472,13 +497,13 @@ private:
         
         try {
             if (parts[0] == "ADAS_DATA" && parts.size() >= 12) {
-                
+
                 mobile_data.timestamp = stoull(parts[1]);
                 mobile_data.latitude = stod(parts[2]);
                 mobile_data.longitude = stod(parts[3]);
                 
-                double kalman_speed = stof(parts[4]); 
-                mobile_data.speed = kalman_speed * 3.6; 
+                double kalman_speed = stof(parts[4]);
+                mobile_data.speed = kalman_speed * 3.6;
                 
                 mobile_data.accel_x = stof(parts[6]);
                 mobile_data.accel_y = stof(parts[7]);
@@ -487,13 +512,17 @@ private:
                 mobile_data.gyro_y = stof(parts[10]);
                 mobile_data.gyro_z = stof(parts[11]);
                 
+
                 double current_accel = mobile_data.accel_y.load();
                 mobile_data.acceleration = current_accel;
                 
+
                 detect_harsh_events(current_accel);
                 
+
                 update_safety_score();
                 
+
                 static int log_count = 0;
                 if (++log_count % 100 == 0) {
                     cout << "📱 Mobile [" << client_ip << "]: " 
@@ -506,7 +535,7 @@ private:
                 }
                 
             } else if (parts[0] == "ADAS_EVENT" && parts.size() >= 6) {
-                
+
                 string event_type = parts[1];
                 float event_value = stof(parts[2]);
                 double event_lat = stod(parts[3]);
@@ -529,6 +558,7 @@ private:
             safety_data.hard_brake_count++;
             broadcast_warning("hard_braking", value, lat, lon);
             
+
             if (trip_data.active.load() && http_client && !current_session_id.empty()) {
                 json request_data = {
                     {"session_id", current_session_id},
@@ -552,11 +582,12 @@ private:
             safety_data.impact_count++;
             broadcast_warning("impact", value, lat, lon);
             
+
             if (http_client && !current_session_id.empty()) {
                 json request_data = {
                     {"session_id", current_session_id},
                     {"vehicle_id", trip_data.vehicle_id.load()},
-                    {"type", "0"}, 
+                    {"type", "0"},
                     {"latitude", lat},
                     {"longitude", lon},
                     {"description", "Impact/Crash detected by mobile app"}
@@ -584,13 +615,14 @@ private:
             last_accel = current_accel;
             last_time = now;
             
+
             if (current_accel < -4.0) {
                 safety_data.hard_brake_count++;
                 broadcast_warning("hard_braking", current_accel, 
                                  mobile_data.latitude.load(), 
                                  mobile_data.longitude.load());
             }
-            
+
             else if (current_accel > 3.0) {
                 safety_data.rapid_accel_count++;
                 broadcast_warning("rapid_acceleration", current_accel,
@@ -610,6 +642,7 @@ private:
         safety_data.safety_score = max(0.0, min(1000.0, score));
     }
     
+
     void camera_loop() {
         cv::Mat frame;
         int frame_count = 0;
@@ -624,6 +657,7 @@ private:
                     frame_count++;
                     total_frames++;
                     
+
                     auto now = chrono::steady_clock::now();
                     auto fps_elapsed = chrono::duration_cast<chrono::milliseconds>(now - last_fps_time).count();
                     if (fps_elapsed >= 1000) {
@@ -632,8 +666,10 @@ private:
                         last_fps_time = now;
                     }
                     
+
                     process_camera_frame(frame, current_fps, last_warning_time, WARNING_COOLDOWN);
                     
+
                     send_video_frame(frame);
                     
                     this_thread::sleep_for(chrono::milliseconds(10));
@@ -650,7 +686,7 @@ private:
     void process_camera_frame(cv::Mat& frame, double fps, 
                               chrono::steady_clock::time_point& last_warning_time,
                               const chrono::milliseconds& warning_cooldown) {
-        
+
         cv::putText(frame, "FPS: " + to_string((int)fps),
                     cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.7,
                     cv::Scalar(0, 255, 0), 2);
@@ -667,11 +703,13 @@ private:
         cv::putText(frame, trip_status, cv::Point(10, 90),
                     cv::FONT_HERSHEY_SIMPLEX, 0.6, trip_color, 2);
         
+
         if (lane_detector) {
             try {
                 auto result = lane_detector->detectLanes(frame);
                 lane_detector->drawLanes(frame, result, true);
                 
+
                 string direction;
                 double deviation;
                 bool departure = lane_detector->checkLaneDeparture(result, frame, direction, deviation);
@@ -681,6 +719,7 @@ private:
                     safety_data.set_lane_status(direction);
                     lane_detector->drawDepartureWarning(frame, direction, deviation, true);
                     
+
                     auto now = chrono::steady_clock::now();
                     if (chrono::duration_cast<chrono::milliseconds>(now - last_warning_time) >= warning_cooldown) {
                         last_warning_time = now;
@@ -725,6 +764,7 @@ private:
         }
     }
     
+
     void gps_logging_loop() {
         while (running) {
             try {
@@ -734,6 +774,7 @@ private:
                     auto now = chrono::steady_clock::now();
                     auto elapsed = chrono::duration_cast<chrono::seconds>(now - last_gps_log).count();
                     
+
                     if (elapsed >= 10) {
                         last_gps_log = now;
                         
@@ -761,8 +802,9 @@ private:
         }
     }
     
+
     void broadcast_loop() {
-        const auto BROADCAST_INTERVAL = chrono::milliseconds(1000); 
+        const auto BROADCAST_INTERVAL = chrono::milliseconds(1000);
         
         while (running) {
             try {
@@ -822,6 +864,7 @@ private:
         broadcast_message(warning_msg.dump());
     }
     
+
     void on_open(connection_hdl hdl) {
         lock_guard<mutex> lock(clients_mutex);
         
@@ -927,6 +970,7 @@ private:
         double start_lon = data.value("longitude", mobile_data.longitude.load());
         string address = data.value("address", "");
         
+
         json request_data = {
             {"session_id", current_session_id},
             {"driver_id", driver_id},
@@ -987,6 +1031,7 @@ private:
         double end_lon = data.value("longitude", mobile_data.longitude.load());
         string address = data.value("address", "");
         
+
         json request_data = {
             {"session_id", current_session_id},
             {"trip_id", trip_id},
@@ -1166,6 +1211,7 @@ private:
             }
         }
         
+
         for (const auto& hdl : to_remove) {
             clients.erase(hdl);
         }
@@ -1187,14 +1233,15 @@ int main(int argc, char** argv) {
     }
     
     cout << endl << "Starting bridge server..." << endl;
-    cout << "  WebSocket: ws:
+    cout << "  WebSocket: ws://localhost:8081" << endl;
     cout << "  UDP Mobile: port 5555" << endl;
-    cout << "  Main Server: http:
+    cout << "  Main Server: http://localhost:8080" << endl;
     cout << "  All database operations go through main server" << endl;
     cout << endl;
     
     bridge.start();
     
+
     string command;
     while (bridge.is_running()) {
         cout << "> ";

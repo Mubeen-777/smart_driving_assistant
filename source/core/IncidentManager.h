@@ -114,6 +114,8 @@ public:
 
         update_driver_safety_after_incident(driver_id, type);
 
+        cache_.clear_query_cache();
+
         return incident_id;
     }
 
@@ -235,7 +237,7 @@ public:
         {
             return incident;
         }
-        return IncidentReport(); 
+        return IncidentReport();
     }
 
     vector<IncidentReport> get_driver_incidents(uint64_t driver_id, int limit = 100)
@@ -245,7 +247,7 @@ public:
 
     vector<IncidentReport> get_incidents_by_vehicle(uint64_t driver_id, uint64_t vehicle_id)
     {
-        
+
         vector<IncidentReport> incidents = get_driver_incidents(driver_id, 1000);
         vector<IncidentReport> result;
 
@@ -262,7 +264,7 @@ public:
 
     vector<IncidentReport> get_incidents_by_type(uint64_t driver_id, IncidentType type)
     {
-        
+
         vector<IncidentReport> incidents = get_driver_incidents(driver_id, 1000);
         vector<IncidentReport> result;
 
@@ -337,7 +339,7 @@ public:
                 stats.total_thefts++;
                 break;
             case IncidentType::VANDALISM:
-                
+
                 break;
             case IncidentType::TRAFFIC_VIOLATION:
                 stats.total_violations++;

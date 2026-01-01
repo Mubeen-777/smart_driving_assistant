@@ -156,7 +156,7 @@ public:
                           double monthly_limit,
                           uint64_t alert_percentage = 80)
     {
-        
+
         auto it = find_if(budget_limits_.begin(), budget_limits_.end(),
                                [driver_id, category](const BudgetLimit &b)
                                {
@@ -269,7 +269,7 @@ public:
         double other_expenses;
 
         map<ExpenseCategory, double> by_category;
-        map<uint64_t, double> by_vehicle; 
+        map<uint64_t, double> by_vehicle;
 
         double average_daily_expense;
         double average_monthly_expense;
@@ -364,6 +364,7 @@ public:
         return reports;
     }
 
+    
     bool update_expense(uint64_t expense_id, uint64_t vehicle_id, 
                         ExpenseCategory category, double amount, 
                         const string& description) {
@@ -375,7 +376,7 @@ public:
         expense.vehicle_id = vehicle_id;
         expense.category = category;
         expense.amount = amount;
-        expense.expense_date = get_current_timestamp(); 
+        expense.expense_date = get_current_timestamp();
         strncpy(expense.description, description.c_str(), sizeof(expense.description) - 1);
         
         if (!db_.update_expense(expense)) {
@@ -387,13 +388,13 @@ public:
     }
     
     bool delete_expense(uint64_t expense_id) {
-        
+
         ExpenseRecord expense;
         if (!db_.read_expense(expense_id, expense)) {
             return false;
         }
         
-        expense.amount = 0; 
+        expense.amount = 0;
         if (!db_.update_expense(expense)) {
             return false;
         }
@@ -407,9 +408,10 @@ public:
         if (db_.read_expense(expense_id, expense)) {
             return expense;
         }
-        return ExpenseRecord(); 
+        return ExpenseRecord();
     }
     
+
     struct SimpleExpenseSummary {
         double total_expenses;
         double fuel_expenses;
@@ -463,6 +465,7 @@ public:
         return summary;
     }
     
+
     struct TaxReport
     {
         double total_deductible_expenses;
@@ -530,7 +533,7 @@ public:
         auto expenses = get_expenses_by_date_range(driver_id, start_date, end_date);
 
         double total_distance = 0;
-        
+
         if (trip_mgr_) {
             auto trip_stats = trip_mgr_->get_driver_statistics(driver_id);
             total_distance = trip_stats.total_distance;
@@ -645,4 +648,4 @@ private:
     }
 };
 
-#endif 
+#endif // EXPENSEMANAGER_H

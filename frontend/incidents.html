@@ -10,7 +10,7 @@
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <style>
-        /* ===== CSS Variables & Reset ===== */
+        
         :root {
             --primary: #6d5dfc;
             --primary-dark: #5b4ff0;
@@ -90,13 +90,13 @@
             max-width: 100%;
         }
 
-        /* ===== Layout ===== */
+        
         .app-container {
             display: flex;
             min-height: 100vh;
         }
 
-        /* ===== Sidebar ===== */
+        
         .sidebar {
             width: var(--sidebar-width);
             background: linear-gradient(180deg, var(--dark) 0%, #131722 100%);
@@ -235,7 +235,7 @@
             color: var(--danger);
         }
 
-        /* ===== Main Content ===== */
+        
         .main-content {
             flex: 1;
             margin-left: var(--sidebar-width);
@@ -243,7 +243,7 @@
             transition: margin-left var(--transition-normal);
         }
 
-        /* ===== Header ===== */
+        
         .main-header {
             display: flex;
             justify-content: space-between;
@@ -331,7 +331,7 @@
             color: var(--white);
         }
 
-        /* ===== Buttons ===== */
+        
         .btn {
             padding: 12px 24px;
             border-radius: var(--radius-md);
@@ -391,7 +391,7 @@
             box-shadow: 0 8px 25px rgba(46, 204, 113, 0.4);
         }
 
-        /* ===== Stats Overview ===== */
+        
         .stats-overview {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -482,7 +482,7 @@
             font-weight: 500;
         }
 
-        /* ===== Filter Bar ===== */
+        
         .filter-bar {
             display: flex;
             justify-content: space-between;
@@ -569,7 +569,7 @@
             transform: translateY(-3px);
         }
 
-        /* ===== Incidents List ===== */
+        
         .incidents-list {
             background-color: var(--white);
             border-radius: var(--radius-lg);
@@ -751,7 +751,7 @@
             background-color: rgba(46, 204, 113, 0.2);
         }
 
-        /* ===== Loading State ===== */
+        
         .loading-state {
             display: flex;
             flex-direction: column;
@@ -786,7 +786,7 @@
             font-size: 16px;
         }
 
-        /* ===== Empty State ===== */
+        
         .empty-state {
             display: flex;
             flex-direction: column;
@@ -823,7 +823,7 @@
             line-height: 1.6;
         }
 
-        /* ===== Modals ===== */
+        
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -902,7 +902,7 @@
             padding: 30px;
         }
 
-        /* ===== Form Styles ===== */
+        
         .form-group {
             margin-bottom: 20px;
         }
@@ -972,7 +972,7 @@
             flex: 1;
         }
 
-        /* ===== Incident Type Colors ===== */
+        
         .incident-accident .incident-icon {
             background: linear-gradient(135deg, var(--danger) 0%, #ff7675 100%);
         }
@@ -997,7 +997,7 @@
             background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
         }
 
-        /* ===== Responsive ===== */
+        
         @media (max-width: 992px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -1072,7 +1072,7 @@
             }
         }
 
-        /* ===== Utilities ===== */
+        
         .text-center {
             text-align: center;
         }
@@ -1187,6 +1187,7 @@
             </div>
         </aside>
 
+        
         <main class="main-content">
             
             <header class="main-header">
@@ -1207,6 +1208,7 @@
                 </div>
             </header>
 
+            
             <div style="text-align: right; margin-bottom: 30px;">
                 <button class="btn btn-danger" onclick="showReportModal()">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -1214,6 +1216,7 @@
                 </button>
             </div>
 
+            
             <div class="stats-overview">
                 <div class="stat-card">
                     <div class="stat-icon">
@@ -1248,6 +1251,7 @@
                 </div>
             </div>
 
+            
             <div class="filter-bar">
                 <div class="filter-controls">
                     <div class="filter-group">
@@ -1299,6 +1303,7 @@
                 </div>
             </div>
 
+            
             <div class="incidents-list" id="incidentsList">
                 
                 <div class="loading-state" id="loadingState">
@@ -1306,6 +1311,7 @@
                     <div class="loading-text">Loading incidents...</div>
                 </div>
 
+                
                 <div class="empty-state" id="emptyState" style="display: none;">
                     <div class="empty-state-icon">
                         <i class="fas fa-exclamation-triangle"></i>
@@ -1316,10 +1322,12 @@
                     </p>
                 </div>
 
+                
             </div>
         </main>
     </div>
 
+    
     <div class="modal-overlay" id="reportModal">
         <div class="modal">
             <div class="modal-header">
@@ -1380,6 +1388,7 @@
         </div>
     </div>
 
+    
     <div class="modal-overlay" id="incidentDetailModal">
         <div class="modal">
             <div class="modal-header">
@@ -1396,10 +1405,10 @@
         </div>
     </div>
     <script>
-        // ===== Configuration =====
+        
         const API_URL = 'http://43.204.211.180:8080';
 
-        // ===== State Variables =====
+        
         let incidents = [];
         let vehicles = [];
         let filters = {
@@ -1408,7 +1417,7 @@
             vehicle: 'all'
         };
 
-        // ===== Authentication Check =====
+        
         const sessionId = localStorage.getItem('session_id');
         const driverId = localStorage.getItem('driver_id');
         const driverName = localStorage.getItem('driver_name');
@@ -1417,7 +1426,7 @@
             window.location.href = 'login.html';
         }
 
-        // ===== DOM Elements =====
+        
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.querySelector('.sidebar');
         const userAvatar = document.getElementById('userAvatar');
@@ -1426,20 +1435,20 @@
         const loadingState = document.getElementById('loadingState');
         const emptyState = document.getElementById('emptyState');
 
-        // ===== Initialize =====
+        
         document.addEventListener('DOMContentLoaded', function () {
-            // Set user info
+            
             if (driverName) {
                 userName.textContent = driverName;
                 userAvatar.textContent = driverName.charAt(0) + driverName.split(' ')[1]?.charAt(0) || driverName.charAt(1) || driverName.charAt(0);
             }
 
-            // Mobile menu toggle
+            
             mobileMenuBtn.addEventListener('click', function () {
                 sidebar.classList.toggle('active');
             });
 
-            // Close sidebar when clicking outside on mobile
+            
             document.addEventListener('click', function (event) {
                 if (window.innerWidth <= 992) {
                     if (!sidebar.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
@@ -1448,7 +1457,7 @@
                 }
             });
 
-            // Initialize date inputs
+            
             const today = new Date();
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(today.getDate() - 30);
@@ -1456,18 +1465,18 @@
             document.getElementById('startDate').valueAsDate = thirtyDaysAgo;
             document.getElementById('endDate').valueAsDate = today;
 
-            // Load vehicles, incidents, and statistics
+            
             loadVehicles();
             loadIncidents();
             loadStatistics();
         });
 
-        // ===== Format Date Display =====
+        
         function formatDateDisplay(timestamp) {
             if (!timestamp || timestamp === '0') return 'N/A';
 
             try {
-                // Handle seconds timestamp
+                
                 const timestampMs = parseInt(timestamp) * 1000;
                 const date = new Date(timestampMs);
 
@@ -1485,41 +1494,41 @@
             }
         }
 
-        // ===== Get Incident Type Class =====
+        
         function getIncidentTypeClass(type) {
             const classes = ['incident-accident', 'incident-breakdown', 'incident-theft',
                 'incident-vandalism', 'incident-violation', 'incident-other'];
             return classes[parseInt(type)] || 'incident-other';
         }
 
-        // ===== Get Incident Type Icon =====
+        
         function getIncidentTypeIcon(type) {
             const icons = ['fas fa-car-crash', 'fas fa-tools', 'fas fa-user-secret',
                 'fas fa-vandalism', 'fas fa-traffic-light', 'fas fa-exclamation-circle'];
             return icons[parseInt(type)] || 'fas fa-exclamation-circle';
         }
 
-        // ===== Get Incident Type Name =====
+        
         function getIncidentTypeName(type) {
             const names = ['Accident', 'Breakdown', 'Theft', 'Vandalism', 'Traffic Violation', 'Other'];
             return names[parseInt(type)] || 'Other';
         }
 
-        // ===== Get Status Class =====
+        
         function getStatusClass(status) {
             if (status === 'resolved' || status === '1') return 'status-resolved';
             if (status === 'investigating' || status === '2') return 'status-investigating';
             return 'status-pending';
         }
 
-        // ===== Get Status Text =====
+        
         function getStatusText(status) {
             if (status === 'resolved' || status === '1') return 'Resolved';
             if (status === 'investigating' || status === '2') return 'Investigating';
             return 'Pending';
         }
 
-        // ===== Load Statistics =====
+        
         async function loadStatistics() {
             try {
                 const response = await fetch(API_URL, {
@@ -1541,7 +1550,7 @@
                     document.getElementById('unresolvedCount').textContent = data.data.unresolved_incidents || 0;
                 } else {
                     console.error('Failed to load statistics:', data.message);
-                    // Set default values
+                    
                     document.getElementById('totalIncidents').textContent = '0';
                     document.getElementById('totalAccidents').textContent = '0';
                     document.getElementById('totalBreakdowns').textContent = '0';
@@ -1552,7 +1561,7 @@
             }
         }
 
-        // ===== Load Vehicles =====
+        
         async function loadVehicles() {
             try {
                 const response = await fetch(API_URL, {
@@ -1578,7 +1587,7 @@
             }
         }
 
-        // ===== Populate Vehicle Selects =====
+        
         function populateVehicleSelects() {
             const selects = ['vehicleFilter', 'vehicleSelect'];
 
@@ -1601,16 +1610,16 @@
             });
         }
 
-        // ===== Load Incidents =====
+        
         async function loadIncidents() {
             try {
-                // Show loading state
+                
                 loadingState.style.display = 'flex';
                 emptyState.style.display = 'none';
                 incidentsList.innerHTML = '';
                 incidentsList.appendChild(loadingState);
 
-                // Get filter values
+                
                 filters.type = document.getElementById('typeFilter').value;
                 filters.status = document.getElementById('statusFilter').value;
                 filters.vehicle = document.getElementById('vehicleFilter').value;
@@ -1619,7 +1628,7 @@
 
                 console.log('Loading incidents with filters:', filters);
 
-                // Build request body
+                
                 const requestBody = {
                     operation: 'incident_get_list',
                     session_id: sessionId,
@@ -1632,7 +1641,7 @@
                 }
 
                 if (filters.status !== 'all') {
-                    // Convert status text to backend format
+                    
                     if (filters.status === 'pending') requestBody.status = '0';
                     if (filters.status === 'resolved') requestBody.status = '1';
                     if (filters.status === 'investigating') requestBody.status = '2';
@@ -1642,14 +1651,14 @@
                     requestBody.vehicle_id = filters.vehicle;
                 }
 
-                // Add date range if provided
+                
                 if (startDate) {
                     const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
                     requestBody.start_date = startTimestamp.toString();
                 }
 
                 if (endDate) {
-                    // Add 1 day (86399 seconds) to end date to ensure it covers the entire end day
+                    
                     const endTimestamp = Math.floor(new Date(endDate).getTime() / 1000) + 86399;
                     requestBody.end_date = endTimestamp.toString();
                 }
@@ -1665,7 +1674,7 @@
                 const data = await response.json();
                 console.log('Incidents response:', data);
 
-                // Hide loading state
+                
                 loadingState.style.display = 'none';
 
                 if (data.status === 'success' && data.data.incidents && data.data.incidents.length > 0) {
@@ -1684,14 +1693,14 @@
             }
         }
 
-        // ===== Show Empty State =====
+        
         function showEmptyState() {
             emptyState.style.display = 'flex';
             incidentsList.innerHTML = '';
             incidentsList.appendChild(emptyState);
         }
 
-        // ===== Display Incidents =====
+        
         function displayIncidents(incidents) {
             incidentsList.innerHTML = '';
 
@@ -1770,7 +1779,7 @@
             });
         }
 
-        // ===== View Incident Details =====
+        
         function viewIncidentDetails(incidentId) {
             const incident = incidents.find(i => i.incident_id == incidentId);
             if (!incident) {
@@ -1867,27 +1876,27 @@
             document.body.style.overflow = 'hidden';
         }
 
-        // ===== Close Incident Detail Modal =====
+        
         function closeIncidentDetailModal() {
             document.getElementById('incidentDetailModal').classList.remove('active');
             document.body.style.overflow = 'auto';
         }
 
-        // ===== Show Report Modal =====
+        
         function showReportModal() {
             getCurrentLocation();
             document.getElementById('reportModal').classList.add('active');
             document.body.style.overflow = 'hidden';
         }
 
-        // ===== Close Report Modal =====
+        
         function closeReportModal() {
             document.getElementById('reportModal').classList.remove('active');
             document.getElementById('reportForm').reset();
             document.body.style.overflow = 'auto';
         }
 
-        // ===== Get Current Location =====
+        
         function getCurrentLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
@@ -1917,7 +1926,7 @@
             }
         }
 
-        // ===== Report Incident =====
+        
         async function reportIncident(event) {
             event.preventDefault();
 
@@ -1925,13 +1934,13 @@
             const type = document.getElementById('incidentType').value;
             const description = document.getElementById('description').value;
 
-            // Validate inputs
+            
             if (!vehicleId || !type || !description) {
                 showNotification('Please fill in all required fields', 'error');
                 return;
             }
 
-            // Get location
+            
             let location = { latitude: 0, longitude: 0 };
             if (navigator.geolocation) {
                 try {
@@ -1973,7 +1982,7 @@
                     showNotification('Incident reported successfully! Safety team has been notified.', 'success');
                     closeReportModal();
 
-                    // Reload incidents and statistics
+                    
                     setTimeout(() => {
                         loadIncidents();
                         loadStatistics();
@@ -1987,7 +1996,7 @@
             }
         }
 
-        // ===== Resolve Incident =====
+        
         async function resolveIncident(incidentId, fromModal = false) {
             if (!confirm('Are you sure you want to mark this incident as resolved?')) {
                 return;
@@ -2017,7 +2026,7 @@
                         closeIncidentDetailModal();
                     }
 
-                    // Reload incidents and statistics
+                    
                     setTimeout(() => {
                         loadIncidents();
                         loadStatistics();
@@ -2025,11 +2034,11 @@
                 } else {
                     console.error('Failed to resolve incident:', data.message);
 
-                    // Check if backend operation is missing
+                    
                     if (data.message && data.message.includes('Unknown operation')) {
                         showNotification('Incident resolution feature not implemented in backend', 'warning');
 
-                        // Update frontend state anyway for better UX
+                        
                         const incident = incidents.find(i => i.incident_id == incidentId);
                         if (incident) {
                             incident.is_resolved = '1';
@@ -2046,13 +2055,13 @@
             }
         }
 
-        // ===== Apply Filters =====
+        
         function applyFilters() {
             loadIncidents();
             loadStatistics();
         }
 
-        // ===== Reset Filters =====
+        
         function resetFilters() {
             document.getElementById('typeFilter').value = 'all';
             document.getElementById('statusFilter').value = 'all';
@@ -2069,15 +2078,15 @@
             loadStatistics();
         }
 
-        // ===== Show Notification =====
+        
         function showNotification(message, type = 'info') {
-            // Remove any existing notification
+            
             const existingNotification = document.querySelector('.notification-toast');
             if (existingNotification) {
                 existingNotification.remove();
             }
 
-            // Create notification
+            
             const notification = document.createElement('div');
             notification.className = `notification-toast ${type}`;
             notification.style.cssText = `
@@ -2107,12 +2116,12 @@
 
             document.body.appendChild(notification);
 
-            // Animate in
+            
             setTimeout(() => {
                 notification.style.transform = 'translateX(0)';
             }, 10);
 
-            // Remove after 5 seconds
+            
             setTimeout(() => {
                 notification.style.transform = 'translateX(150%)';
                 setTimeout(() => {
@@ -2122,7 +2131,7 @@
                 }, 300);
             }, 5000);
 
-            // Click to dismiss
+            
             notification.addEventListener('click', () => {
                 notification.style.transform = 'translateX(150%)';
                 setTimeout(() => {
@@ -2133,7 +2142,7 @@
             });
         }
 
-        // ===== Check Backend Operations =====
+        
         async function checkBackendOperations() {
             console.log('=== Checking Backend Operations for Incidents ===');
 
@@ -2154,7 +2163,7 @@
                         body: JSON.stringify({
                             operation: op,
                             session_id: sessionId,
-                            // Add minimal test data for incident_report
+                            
                             ...(op === 'incident_report' ? {
                                 vehicle_id: '1',
                                 type: '5',
@@ -2179,28 +2188,28 @@
             }
         }
 
-        // Uncomment to debug backend operations on page load
+        
         // window.addEventListener('load', checkBackendOperations);
 
-        // ===== Logout =====
+        
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                // Clear local storage
+                
                 localStorage.clear();
 
-                // Redirect to login page
+                
                 window.location.href = 'login.html';
             }
         }
 
-        // ===== Utility Functions =====
+        
         window.addEventListener('resize', function () {
             if (window.innerWidth > 992) {
                 sidebar.classList.remove('active');
             }
         });
 
-        // Close modals when clicking outside
+        
         document.querySelectorAll('.modal-overlay').forEach(modal => {
             modal.addEventListener('click', function (e) {
                 if (e.target === this) {
@@ -2210,7 +2219,7 @@
             });
         });
 
-        // Close modals with Escape key
+        
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 document.querySelectorAll('.modal-overlay').forEach(modal => {
@@ -2220,7 +2229,7 @@
             }
         });
 
-        // ===== Fallback Data for Testing =====
+        
         function getFallbackIncidents() {
             return [
                 {
@@ -2228,7 +2237,7 @@
                     driver_id: driverId,
                     vehicle_id: 1,
                     type: '0',
-                    incident_time: Math.floor(Date.now() / 1000) - 86400, // 1 day ago
+                    incident_time: Math.floor(Date.now() / 1000) - 86400, 
                     latitude: 31.5204,
                     longitude: 74.3587,
                     location_address: 'Test Location',
@@ -2238,31 +2247,31 @@
             ];
         }
 
-        // ===== Load Fallback Data (for testing when backend is down) =====
+        
         function loadFallbackData() {
             console.log('Loading fallback incident data for testing');
 
             incidents = getFallbackIncidents();
 
-            // Display incidents
+            
             displayIncidents(incidents);
 
-            // Show content
+            
             loadingState.style.display = 'none';
             emptyState.style.display = 'none';
 
             showNotification('Using demo data - Backend connection failed', 'warning');
         }
 
-        // Uncomment to use fallback data for testing when backend is unavailable
+        
         // window.addEventListener('load', function() {
-        //     // Try to load real data first, fall back to demo data after 3 seconds
-        //     setTimeout(() => {
-        //         if (incidents.length === 0) {
-        //             loadFallbackData();
-        //         }
-        //     }, 3000);
-        // });
+        
+        
+        
+        
+        
+        
+        
     </script>
 </body>
 

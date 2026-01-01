@@ -10,7 +10,7 @@
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <style>
-        /* ===== CSS Variables & Reset ===== */
+        
         :root {
             --primary: #6d5dfc;
             --primary-dark: #5b4ff0;
@@ -89,13 +89,13 @@
             max-width: 100%;
         }
 
-        /* ===== Layout ===== */
+        
         .app-container {
             display: flex;
             min-height: 100vh;
         }
 
-        /* ===== Sidebar ===== */
+        
         .sidebar {
             width: var(--sidebar-width);
             background: linear-gradient(180deg, var(--dark) 0%, #131722 100%);
@@ -234,7 +234,7 @@
             color: var(--danger);
         }
 
-        /* ===== Main Content ===== */
+        
         .main-content {
             flex: 1;
             margin-left: var(--sidebar-width);
@@ -242,7 +242,7 @@
             transition: margin-left var(--transition-normal);
         }
 
-        /* ===== Header ===== */
+        
         .main-header {
             display: flex;
             justify-content: space-between;
@@ -330,7 +330,7 @@
             color: var(--white);
         }
 
-        /* ===== Profile Grid ===== */
+        
         .profile-grid {
             display: grid;
             grid-template-columns: 1fr 2fr;
@@ -344,7 +344,7 @@
             }
         }
 
-        /* ===== Cards ===== */
+        
         .card {
             background: var(--white);
             border-radius: var(--radius-xl);
@@ -380,7 +380,7 @@
             color: var(--primary);
         }
 
-        /* ===== Profile Card ===== */
+        
         .profile-card {
             text-align: center;
         }
@@ -542,7 +542,7 @@
             box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
         }
 
-        /* ===== Safety Score Card ===== */
+        
         .safety-score-card {
             text-align: center;
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
@@ -608,7 +608,7 @@
             gap: 8px;
         }
 
-        /* ===== Rank Card ===== */
+        
         .rank-card {
             background: linear-gradient(135deg, var(--warning) 0%, #f1c40f 100%);
             color: var(--white);
@@ -630,7 +630,7 @@
             opacity: 0.9;
         }
 
-        /* ===== Behavior Stats ===== */
+        
         .behavior-stats {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -667,7 +667,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* ===== Penalties Section ===== */
+        
         .penalties-section {
             margin-bottom: 30px;
         }
@@ -733,7 +733,7 @@
             font-size: 18px;
         }
 
-        /* ===== Recommendations Section ===== */
+        
         .recommendations-section {
             margin-bottom: 30px;
         }
@@ -824,7 +824,7 @@
             font-weight: 600;
         }
 
-        /* ===== Loading State ===== */
+        
         .loading-state {
             display: flex;
             flex-direction: column;
@@ -859,7 +859,7 @@
             font-size: 16px;
         }
 
-        /* ===== Empty State ===== */
+        
         .empty-state {
             display: flex;
             flex-direction: column;
@@ -899,7 +899,7 @@
             line-height: 1.6;
         }
 
-        /* ===== Responsive ===== */
+        
         @media (max-width: 992px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -979,7 +979,7 @@
             }
         }
 
-        /* ===== Utilities ===== */
+        
         .hidden {
             display: none;
         }
@@ -1078,6 +1078,7 @@
             </div>
         </aside>
 
+        
         <main class="main-content">
             
             <header class="main-header">
@@ -1098,11 +1099,13 @@
                 </div>
             </header>
 
+            
             <div id="loadingState" class="loading-state">
                 <div class="spinner"></div>
                 <div class="loading-text">Loading profile data...</div>
             </div>
 
+            
             <div id="profileContent" class="hidden">
                 <div class="profile-grid">
                     
@@ -1168,6 +1171,7 @@
                         </div>
                     </div>
 
+                    
                     <div class="right-column">
                         
                         <div class="safety-score-card" id="safetyCard">
@@ -1184,6 +1188,7 @@
                             </div>
                         </div>
 
+                        
                         <div class="rank-card">
                             <div class="rank-display">
                                 🏆 #<span id="driverRank">5</span>
@@ -1193,6 +1198,7 @@
                             </div>
                         </div>
 
+                        
                         <div class="card">
                             <div class="card-header">
                                 <h2 class="card-title">
@@ -1221,6 +1227,7 @@
                             </div>
                         </div>
 
+                        
                         <div class="card penalties-section">
                             <div class="card-header">
                                 <h2 class="card-title">
@@ -1257,6 +1264,7 @@
                                 </div>
                             </div>
 
+                            
                             <div id="noPenalties" class="empty-state" style="display: none;">
                                 <div class="empty-state-icon">
                                     <i class="fas fa-check-circle"></i>
@@ -1268,6 +1276,7 @@
                             </div>
                         </div>
 
+                        
                         <div class="card recommendations-section">
                             <div class="card-header">
                                 <h2 class="card-title">
@@ -1312,6 +1321,7 @@
                                 </div>
                             </div>
 
+                            
                             <div id="noRecommendations" class="empty-state" style="display: none;">
                                 <div class="empty-state-icon">
                                     <i class="fas fa-trophy"></i>
@@ -1329,15 +1339,15 @@
     </div>
 
     <script>
-        // ===== Configuration =====
+        
         const API_URL = 'http://43.204.211.180:8080';
 
-        // ===== State Variables =====
+        
         let profileData = {};
         let penalties = [];
         let recommendations = [];
 
-        // ===== Authentication Check =====
+        
         const sessionId = localStorage.getItem('session_id');
         const driverId = localStorage.getItem('driver_id');
         const driverName = localStorage.getItem('driver_name');
@@ -1347,7 +1357,7 @@
             window.location.href = 'login.html';
         }
 
-        // ===== DOM Elements =====
+        
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.querySelector('.sidebar');
         const userAvatar = document.getElementById('userAvatar');
@@ -1355,20 +1365,20 @@
         const loadingState = document.getElementById('loadingState');
         const profileContent = document.getElementById('profileContent');
 
-        // ===== Initialize =====
+        
         document.addEventListener('DOMContentLoaded', function () {
-            // Set user info in sidebar
+            
             if (driverName) {
                 userName.textContent = driverName;
                 userAvatar.textContent = driverName.charAt(0) + driverName.split(' ')[1]?.charAt(0) || driverName.charAt(1) || driverName.charAt(0);
             }
 
-            // Mobile menu toggle
+            
             mobileMenuBtn.addEventListener('click', function () {
                 sidebar.classList.toggle('active');
             });
 
-            // Close sidebar when clicking outside on mobile
+            
             document.addEventListener('click', function (event) {
                 if (window.innerWidth <= 992) {
                     if (!sidebar.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
@@ -1377,14 +1387,14 @@
                 }
             });
 
-            // Load profile data
+            
             loadProfileData();
         });
 
-        // ===== Load Profile Data =====
+        
         async function loadProfileData() {
             try {
-                // Load profile information
+                
                 const profileResponse = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1401,16 +1411,16 @@
                     updateProfileUI();
                 }
 
-                // Load behavior data
+                
                 await loadBehaviorData();
 
-                // Load recommendations
+                
                 await loadRecommendations();
 
-                // Generate penalties based on data
+                
                 generatePenalties();
 
-                // Hide loading, show content
+                
                 setTimeout(() => {
                     loadingState.style.display = 'none';
                     profileContent.classList.remove('hidden');
@@ -1418,12 +1428,12 @@
 
             } catch (error) {
                 console.error('Error loading profile data:', error);
-                // Fallback to sample data
+                
                 showSampleData();
             }
         }
 
-        // ===== Load Behavior Data =====
+        
         async function loadBehaviorData() {
             try {
                 const response = await fetch(API_URL, {
@@ -1445,7 +1455,7 @@
             }
         }
 
-        // ===== Load Recommendations =====
+        
         async function loadRecommendations() {
             try {
                 const response = await fetch(API_URL, {
@@ -1463,7 +1473,7 @@
                     recommendations = data.data.recommendations;
                     displayRecommendations();
                 } else {
-                    // Generate sample recommendations
+                    
                     generateSampleRecommendations();
                 }
             } catch (error) {
@@ -1472,9 +1482,9 @@
             }
         }
 
-        // ===== Update Profile UI =====
+        
         function updateProfileUI() {
-            // Profile information
+            
             const name = profileData.name || driverName || 'Driver';
             const email = profileData.email || driverEmail || 'N/A';
             const phone = profileData.phone || 'N/A';
@@ -1482,7 +1492,7 @@
             const totalDistance = profileData.total_distance || 0;
             const safetyScore = profileData.safety_score || 1000;
 
-            // Update profile section
+            
             document.getElementById('profileName').textContent = name;
             document.getElementById('profileEmail').textContent = email;
             document.getElementById('driverId').textContent = `#${profileData.driver_id || driverId}`;
@@ -1490,7 +1500,7 @@
             document.getElementById('totalTrips').textContent = totalTrips;
             document.getElementById('totalDistance').textContent = Math.round(totalDistance) + ' km';
 
-            // Set avatar initials
+            
             const initials = name
                 .split(' ')
                 .map(n => n.charAt(0))
@@ -1499,15 +1509,15 @@
                 .slice(0, 2);
             document.getElementById('profileAvatar').textContent = initials;
 
-            // Update safety score
+            
             updateSafetyScore(safetyScore);
 
-            // Set member since (sample)
+            
             document.getElementById('memberSince').textContent = 'Jan 2023';
             document.getElementById('currentVehicle').textContent = 'Toyota Corolla';
         }
 
-        // ===== Update Behavior UI =====
+        
         function updateBehaviorUI(behaviorData) {
             const harshBraking = behaviorData.harsh_braking_rate || 0;
             const rapidAccel = behaviorData.acceleration_rate || 0;
@@ -1527,7 +1537,7 @@
             }
         }
 
-        // ===== Update Safety Score =====
+        
         function updateSafetyScore(score) {
             const safetyScore = parseInt(score);
             const safetyCard = document.getElementById('safetyCard');
@@ -1535,14 +1545,14 @@
             const scoreElement = document.getElementById('safetyScore');
             const scoreStatus = document.getElementById('scoreStatus');
 
-            // Update score value
+            
             scoreElement.textContent = safetyScore;
 
-            // Calculate percentage (max score is 1000)
+            
             const percentage = Math.min((safetyScore / 1000) * 100, 100);
             scoreFill.style.width = percentage + '%';
 
-            // Update card color based on score
+            
             if (safetyScore >= 900) {
                 safetyCard.style.background = 'linear-gradient(135deg, var(--success) 0%, #27ae60 100%)';
                 scoreStatus.innerHTML = '<i class="fas fa-check-circle"></i> Excellent - Keep it up!';
@@ -1562,7 +1572,7 @@
             }
         }
 
-        // ===== Generate Penalties =====
+        
         function generatePenalties() {
             penalties = [];
 
@@ -1591,7 +1601,7 @@
             displayPenalties();
         }
 
-        // ===== Display Penalties =====
+        
         function displayPenalties() {
             const container = document.getElementById('penaltiesList');
             const noPenalties = document.getElementById('noPenalties');
@@ -1626,14 +1636,14 @@
             });
         }
 
-        // ===== Generate Sample Recommendations =====
+        
         function generateSampleRecommendations() {
             recommendations = [];
 
             displayRecommendations();
         }
 
-        // ===== Display Recommendations =====
+        
         function displayRecommendations() {
             const container = document.getElementById('recommendationsList');
             const noRecommendations = document.getElementById('noRecommendations');
@@ -1673,11 +1683,11 @@
             });
         }
 
-        // ===== Show Empty/Error State (No Fake Data) =====
+        
         function showSampleData() {
-            // Instead of showing fake data, we show blanks or error message
+            
 
-            // Profile information placeholder
+            
             document.getElementById('profileName').textContent = driverName || 'Driver';
             document.getElementById('profileEmail').textContent = driverEmail || 'N/A';
             document.getElementById('driverId').textContent = `#${driverId}`;
@@ -1685,14 +1695,14 @@
             document.getElementById('totalTrips').textContent = '0';
             document.getElementById('totalDistance').textContent = '0 km';
 
-            // Update safety score to 0/Unknown
+            
             updateSafetyScore(0);
 
-            // Member since
+            
             document.getElementById('memberSince').textContent = 'N/A';
             document.getElementById('currentVehicle').textContent = 'None';
 
-            // Behavior data placeholders
+            
             updateBehaviorUI({
                 harsh_braking_rate: 0,
                 acceleration_rate: 0,
@@ -1702,41 +1712,41 @@
                 percentile: 0
             });
 
-            // Generate empty penalties and recommendations
+            
             penalties = [];
             recommendations = [];
             displayPenalties();
             displayRecommendations();
 
-            // Hide loading, show content
+            
             setTimeout(() => {
                 loadingState.style.display = 'none';
                 profileContent.classList.remove('hidden');
             }, 500);
 
-            // Show error notification
+            
             // const notif = document.createElement('div');
             // notif.className = 'notification-toast error';
             // notif.innerHTML = '<i class="fas fa-exclamation-circle"></i> Failed to load profile data';
-            // document.body.appendChild(notif);
+            
         }
 
-        // ===== Edit Profile =====
+        
         function editProfile() {
             alert('Edit profile feature would open a modal or redirect to edit page.');
-            // In a real implementation, this would open a modal or redirect to an edit page
+            
         }
 
-        // ===== View Achievements =====
+        
         function viewAchievements() {
             alert('Achievements feature would show driver achievements and badges.');
-            // In a real implementation, this would show achievements
+            
         }
 
-        // ===== Logout =====
+        
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                // Send logout request
+                
                 fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1745,16 +1755,16 @@
                         session_id: sessionId
                     })
                 }).finally(() => {
-                    // Clear local storage
+                    
                     localStorage.clear();
 
-                    // Redirect to login page
+                    
                     window.location.href = 'login.html';
                 });
             }
         }
 
-        // ===== Utility Functions =====
+        
         window.addEventListener('resize', function () {
             if (window.innerWidth > 992) {
                 sidebar.classList.remove('active');

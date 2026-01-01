@@ -1,3 +1,4 @@
+
 #include "MenuSystem.h"
 #include "../../include/sdm_config.hpp"
 
@@ -28,8 +29,8 @@ void signal_handler(int signal)
 
 int main(int argc, char *argv[])
 {
-    
-    string config_file = "../../include/sdm.conf";  
+
+    string config_file = "../../include/sdm.conf";
     bool server_mode = true;
 
     for (int i = 1; i < argc; i++)
@@ -62,7 +63,7 @@ int main(int argc, char *argv[])
     cout << "Loading config from: " << config_file << endl;
 
     string project_root = "";
-    
+
     ifstream test_file("../../include/sdm.conf");
     if (test_file.good()) {
         project_root = "../../";
@@ -76,13 +77,13 @@ int main(int argc, char *argv[])
     }
     
     vector<string> config_paths = {
-        config_file,  
-        project_root + "include/sdm.conf",  
-        "../../include/sdm.conf",  
-        "../include/sdm.conf",    
-        "include/sdm.conf",       
-        "../../config/default.sdmconf",  
-        "../config/default.sdmconf"     
+        config_file,
+        project_root + "include/sdm.conf",
+        "../../include/sdm.conf",
+        "../include/sdm.conf",
+        "include/sdm.conf",
+        "../../config/default.sdmconf",
+        "../config/default.sdmconf"
     };
 
     bool config_loaded = false;

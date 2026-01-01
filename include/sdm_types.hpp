@@ -65,27 +65,27 @@ enum class DrivingEventType : uint8_t
 
 struct SDMHeader
 {
-    char magic[8];          
-    uint32_t version;       
-    uint64_t total_size;    
-    uint64_t created_time;  
-    uint64_t last_modified; 
-    char creator_info[64];  
+    char magic[8];
+    uint32_t version;
+    uint64_t total_size;
+    uint64_t created_time;
+    uint64_t last_modified;
+    char creator_info[64];
 
-    uint64_t driver_table_offset;       
-    uint64_t vehicle_table_offset;      
-    uint64_t trip_table_offset;         
-    uint64_t maintenance_table_offset;  
-    uint64_t expense_table_offset;      
-    uint64_t document_table_offset;     
-    uint64_t incident_table_offset;     
+    uint64_t driver_table_offset;
+    uint64_t vehicle_table_offset;
+    uint64_t trip_table_offset;
+    uint64_t maintenance_table_offset;
+    uint64_t expense_table_offset;
+    uint64_t document_table_offset;
+    uint64_t incident_table_offset;
 
-    uint64_t primary_index_offset;      
-    uint64_t secondary_index_offset;    
+    uint64_t primary_index_offset;
+    uint64_t secondary_index_offset;
 
-    uint32_t max_drivers;               
-    uint32_t max_vehicles;              
-    uint32_t max_trips;                 
+    uint32_t max_drivers;
+    uint32_t max_vehicles;
+    uint32_t max_trips;
 
     uint8_t reserved[3912];
 
@@ -107,29 +107,33 @@ static_assert(sizeof(SDMHeader) == 4096, "SDMHeader must be 4096 bytes");
 
 struct DriverProfile
 {
-    uint64_t driver_id;          
-    char username[64];           
-    char password_hash[65];    
-    UserRole role;               
+    uint64_t driver_id;
+    char username[64];
+    char password_hash[65];
+    UserRole role;
     
-    char full_name[128];         
-    char email[128];             
-    char phone[32];              
-    char license_number[32];     
-    uint64_t license_expiry;     
+
+    char full_name[128];
+    char email[128];
+    char phone[32];
+    char license_number[32];
+    uint64_t license_expiry;
     
-    uint64_t total_trips;        
-    double total_distance;       
-    double total_fuel_consumed;  
-    uint32_t safety_score;       
-    uint32_t harsh_events_count; 
+
+    uint64_t total_trips;
+    double total_distance;
+    double total_fuel_consumed;
+    uint32_t safety_score;
+    uint32_t harsh_events_count;
     
-    uint64_t created_time;       
-    uint64_t last_login;         
-    uint8_t is_active;           
+
+    uint64_t created_time;
+    uint64_t last_login;
+    uint8_t is_active;
     
-    uint64_t trip_history_head;  
-    uint64_t trip_history_tail;  
+
+    uint64_t trip_history_head;
+    uint64_t trip_history_tail;
     
     uint8_t reserved[493];
 
@@ -153,36 +157,42 @@ static_assert(sizeof(DriverProfile) == 1024, "DriverProfile must be 1024 bytes")
 
 struct VehicleInfo
 {
-    uint64_t vehicle_id;         
-    uint64_t owner_driver_id;    
+    uint64_t vehicle_id;
+    uint64_t owner_driver_id;
     
-    char license_plate[32];      
-    char make[64];               
-    char model[64];              
-    uint32_t year;               
-    VehicleType type;            
-    char color[32];              
-    char vin[32];                
+    char license_plate[32];
+    char make[64];
+    char model[64];
+    uint32_t year;
+    VehicleType type;
+    char color[32];
+    char vin[32];
     
-    uint32_t engine_capacity;    
-    double fuel_tank_capacity;   
-    char fuel_type[16];          
+
+    uint32_t engine_capacity;
+    double fuel_tank_capacity;
+    char fuel_type[16];
     
-    double current_odometer;     
+
+    double current_odometer;
     double last_service_odometer;
     
-    char insurance_provider[64]; 
-    char insurance_policy[64];   
-    uint64_t insurance_expiry;   
+
+    char insurance_provider[64];
+    char insurance_policy[64];
+    uint64_t insurance_expiry;
     
+
     uint64_t registration_expiry;
     
-    uint64_t last_maintenance_date;  
-    uint64_t next_maintenance_due;   
+
+    uint64_t last_maintenance_date;
+    uint64_t next_maintenance_due;
     
-    uint64_t created_time;       
-    uint8_t is_active;           
+    uint64_t created_time;
+    uint8_t is_active;
     
+
     uint8_t reserved[566];
 
     VehicleInfo() : vehicle_id(0), owner_driver_id(0), year(0),
@@ -208,37 +218,44 @@ static_assert(sizeof(VehicleInfo) == 1024, "VehicleInfo must be 1024 bytes");
 
 struct TripRecord
 {
-    uint64_t trip_id;            
-    uint64_t driver_id;          
-    uint64_t vehicle_id;         
+    uint64_t trip_id;
+    uint64_t driver_id;
+    uint64_t vehicle_id;
     
-    uint64_t start_time;         
-    uint64_t end_time;           
-    uint32_t duration;           
+
+    uint64_t start_time;
+    uint64_t end_time;
+    uint32_t duration;
     
-    double start_latitude;       
-    double start_longitude;      
-    double end_latitude;         
-    double end_longitude;        
-    char start_address[128];     
-    char end_address[128];       
+
+    double start_latitude;
+    double start_longitude;
+    double end_latitude;
+    double end_longitude;
+    char start_address[128];
+    char end_address[128];
     
-    double distance;             
-    double avg_speed;            
-    double max_speed;            
-    double fuel_consumed;        
-    double fuel_efficiency;      
+
+    double distance;
+    double avg_speed;
+    double max_speed;
+    double fuel_consumed;
+    double fuel_efficiency;
     
-    uint16_t harsh_braking_count;        
-    uint16_t rapid_acceleration_count;   
-    uint16_t speeding_count;             
-    uint16_t sharp_turn_count;           
+
+    uint16_t harsh_braking_count;
+    uint16_t rapid_acceleration_count;
+    uint16_t speeding_count;
+    uint16_t sharp_turn_count;
     
-    uint64_t gps_data_offset;    
-    uint32_t gps_data_count;     
+
+    uint64_t gps_data_offset;
+    uint32_t gps_data_count;
     
-    char notes[256];             
+
+    char notes[256];
     
+
     uint8_t reserved[376];
 
     TripRecord() : trip_id(0), driver_id(0), vehicle_id(0), start_time(0),
@@ -263,9 +280,9 @@ struct GPSWaypoint
     uint64_t timestamp;
     double latitude;
     double longitude;
-    float speed;    
-    float altitude; 
-    float accuracy; 
+    float speed;
+    float altitude;
+    float accuracy;
     uint8_t satellites;
     uint8_t reserved[3];
 
@@ -278,32 +295,37 @@ struct GPSWaypoint
 
 struct MaintenanceRecord
 {
-    uint64_t maintenance_id;     
-    uint64_t vehicle_id;         
-    uint64_t driver_id;          
+    uint64_t maintenance_id;
+    uint64_t vehicle_id;
+    uint64_t driver_id;
     
-    MaintenanceType type;        
-    uint64_t service_date;       
-    double odometer_reading;     
+    MaintenanceType type;
+    uint64_t service_date;
+    double odometer_reading;
     
-    char service_center[128];    
-    char technician[64];         
-    char description[192];       
+    char service_center[128];
+    char technician[64];
+    char description[192];
     
-    double labor_cost;           
-    double parts_cost;           
-    double total_cost;           
-    char currency[8];            
+
+    double labor_cost;
+    double parts_cost;
+    double total_cost;
+    char currency[8];
     
-    char parts_replaced[192];    
+
+    char parts_replaced[192];
     
-    uint64_t next_service_date;  
+
+    uint64_t next_service_date;
     double next_service_odometer;
     
-    uint64_t receipt_doc_id;     
+
+    uint64_t receipt_doc_id;
     
-    char notes[191];             
+    char notes[191];
     
+
     uint8_t reserved[160];
 
     MaintenanceRecord() : maintenance_id(0), vehicle_id(0), driver_id(0),
@@ -326,32 +348,37 @@ static_assert(sizeof(MaintenanceRecord) == 1024, "MaintenanceRecord must be 1024
 
 struct ExpenseRecord
 {
-    uint64_t expense_id;         
-    uint64_t driver_id;          
-    uint64_t vehicle_id;         
-    uint64_t trip_id;            
+    uint64_t expense_id;
+    uint64_t driver_id;
+    uint64_t vehicle_id;
+    uint64_t trip_id;
     
-    ExpenseCategory category;    
-    uint64_t expense_date;       
+    ExpenseCategory category;
+    uint64_t expense_date;
     
-    double amount;               
-    char currency[8];            
-    char description[256];       
+    double amount;
+    char currency[8];
+    char description[256];
     
-    double fuel_quantity;        
-    double fuel_price_per_unit;  
-    char fuel_station[128];      
+
+    double fuel_quantity;
+    double fuel_price_per_unit;
+    char fuel_station[128];
     
-    char payment_method[32];     
-    char receipt_number[64];     
+
+    char payment_method[32];
+    char receipt_number[64];
     
-    uint8_t is_tax_deductible;   
-    double tax_amount;           
+
+    uint8_t is_tax_deductible;
+    double tax_amount;
     
-    uint64_t receipt_doc_id;     
+
+    uint64_t receipt_doc_id;
     
-    char notes[256];             
+    char notes[256];
     
+
     uint8_t reserved[198];
 
     ExpenseRecord() : expense_id(0), driver_id(0), vehicle_id(0), trip_id(0),
@@ -373,21 +400,22 @@ static_assert(sizeof(ExpenseRecord) == 1024, "ExpenseRecord must be 1024 bytes")
 
 struct DocumentMetadata
 {
-    uint64_t document_id;        
-    uint64_t owner_id;           
-    uint8_t owner_type;          
+    uint64_t document_id;
+    uint64_t owner_id;
+    uint8_t owner_type;
     
-    char filename[256];          
-    char mime_type[64];          
-    uint64_t file_size;          
-    uint64_t upload_date;        
-    uint64_t expiry_date;        
+    char filename[256];
+    char mime_type[64];
+    uint64_t file_size;
+    uint64_t upload_date;
+    uint64_t expiry_date;
     
-    uint64_t data_offset;        
-    uint32_t data_blocks;        
+
+    uint64_t data_offset;
+    uint32_t data_blocks;
     
-    char description[256];       
-    char tags[128];              
+    char description[256];
+    char tags[128];
     
     uint8_t reserved[267];
 
@@ -407,37 +435,44 @@ static_assert(sizeof(DocumentMetadata) == 1024, "DocumentMetadata must be 1024 b
 
 struct IncidentReport
 {
-    uint64_t incident_id;        
-    uint64_t driver_id;          
-    uint64_t vehicle_id;         
-    uint64_t trip_id;            
+    uint64_t incident_id;
+    uint64_t driver_id;
+    uint64_t vehicle_id;
+    uint64_t trip_id;
     
-    IncidentType type;           
-    uint64_t incident_time;      
+    IncidentType type;
+    uint64_t incident_time;
     
-    double latitude;             
-    double longitude;            
-    char location_address[256];  
+
+    double latitude;
+    double longitude;
+    char location_address[256];
     
-    char description[512];       
-    char police_report_number[64]; 
-    char insurance_claim_number[64]; 
+
+    char description[512];
+    char police_report_number[64];
+    char insurance_claim_number[64];
     
-    char other_party_info[256];  
-    char witness_info[256];      
+
+    char other_party_info[256];
+    char witness_info[256];
     
-    double estimated_damage;     
-    double insurance_payout;     
-    char currency[8];            
+
+    double estimated_damage;
+    double insurance_payout;
+    char currency[8];
     
-    uint64_t photo_doc_ids[5];   
-    uint64_t report_doc_id;      
+
+    uint64_t photo_doc_ids[5];
+    uint64_t report_doc_id;
     
-    uint8_t is_resolved;         
-    uint64_t resolved_date;      
+
+    uint8_t is_resolved;
+    uint64_t resolved_date;
     
-    char notes[256];             
+    char notes[256];
     
+
     uint8_t reserved[246];
 
     IncidentReport() : incident_id(0), driver_id(0), vehicle_id(0), trip_id(0),
@@ -463,13 +498,13 @@ static_assert(sizeof(IncidentReport) == 2048, "IncidentReport must be 2048 bytes
 
 struct SessionInfo
 {
-    char session_id[64];         
-    uint64_t driver_id;          
-    uint64_t login_time;         
-    uint64_t last_activity;      
-    uint32_t operations_count;   
-    char ip_address[64];         
-    uint8_t reserved[36];        
+    char session_id[64];
+    uint64_t driver_id;
+    uint64_t login_time;
+    uint64_t last_activity;
+    uint32_t operations_count;
+    char ip_address[64];
+    uint8_t reserved[36];
 
     SessionInfo() : driver_id(0), login_time(0), last_activity(0),
                     operations_count(0)
@@ -482,20 +517,21 @@ struct SessionInfo
 
 struct DatabaseStats
 {
-    uint64_t total_drivers;              
-    uint64_t active_drivers;             
-    uint64_t total_vehicles;             
-    uint64_t total_trips;                
-    uint64_t total_distance;             
-    uint64_t total_expenses;             
-    uint64_t total_maintenance_records;  
-    uint64_t total_documents;            
-    uint64_t total_incidents;            
-    uint64_t database_size;              
-    uint64_t used_space;                 
-    double fragmentation;                
-    uint32_t active_sessions;            
+    uint64_t total_drivers;
+    uint64_t active_drivers;
+    uint64_t total_vehicles;
+    uint64_t total_trips;
+    uint64_t total_distance;
+    uint64_t total_expenses;
+    uint64_t total_maintenance_records;
+    uint64_t total_documents;
+    uint64_t total_incidents;
+    uint64_t database_size;
+    uint64_t used_space;
+    double fragmentation;
+    uint32_t active_sessions;
     
+
     uint8_t reserved[28];
 
     DatabaseStats() : total_drivers(0), active_drivers(0), total_vehicles(0),
@@ -532,29 +568,35 @@ enum class DriverState : uint8_t
 
 struct ObjectDetection
 {
-    uint64_t detection_id;       
-    uint64_t trip_id;            
-    uint64_t timestamp;          
+    uint64_t detection_id;
+    uint64_t trip_id;
+    uint64_t timestamp;
     
-    DetectionType type;          
-    float confidence;            
+    DetectionType type;
+    float confidence;
     
-    float bbox_x;                
-    float bbox_y;                
-    float bbox_width;            
-    float bbox_height;           
+
+    float bbox_x;
+    float bbox_y;
+    float bbox_width;
+    float bbox_height;
     
-    float estimated_distance;    
-    float relative_speed;        
+
+    float estimated_distance;
+    float relative_speed;
     
-    double latitude;             
-    double longitude;            
+
+    double latitude;
+    double longitude;
     
-    uint8_t camera_id;           
+
+    uint8_t camera_id;
     
-    uint8_t alert_triggered;     
-    char alert_message[128];     
+
+    uint8_t alert_triggered;
+    char alert_message[128];
     
+
     uint8_t reserved[57];
 
     ObjectDetection() : detection_id(0), trip_id(0), timestamp(0),
@@ -573,32 +615,38 @@ static_assert(sizeof(ObjectDetection) == 256, "ObjectDetection must be 256 bytes
 
 struct DriverBehaviorDetection
 {
-    uint64_t detection_id;       
-    uint64_t trip_id;            
-    uint64_t driver_id;          
-    uint64_t timestamp;          
+    uint64_t detection_id;
+    uint64_t trip_id;
+    uint64_t driver_id;
+    uint64_t timestamp;
     
-    DriverState state;           
-    float confidence;            
-    uint32_t duration;           
+    DriverState state;
+    float confidence;
+    uint32_t duration;
     
-    uint8_t face_detected;       
-    float head_pitch;            
-    float head_yaw;              
-    float head_roll;             
+
+    uint8_t face_detected;
+    float head_pitch;
+    float head_yaw;
+    float head_roll;
     
-    uint8_t eyes_detected;       
-    float eye_closure_ratio;     
-    uint8_t blink_count;         
+
+    uint8_t eyes_detected;
+    float eye_closure_ratio;
+    uint8_t blink_count;
     
-    float attention_score;       
-    uint8_t looking_at_road;     
+
+    float attention_score;
+    uint8_t looking_at_road;
     
-    uint8_t alert_triggered;     
-    char alert_type[64];         
+
+    uint8_t alert_triggered;
+    char alert_type[64];
     
-    char frame_filename[128];    
+
+    char frame_filename[128];
     
+
     uint8_t reserved[254];
 
     DriverBehaviorDetection() : detection_id(0), trip_id(0), driver_id(0),
@@ -619,25 +667,30 @@ static_assert(sizeof(DriverBehaviorDetection) == 512, "DriverBehaviorDetection m
 
 struct VisionAnalytics
 {
-    uint64_t trip_id;                    
+    uint64_t trip_id;
     
-    uint32_t total_vehicles_detected;    
-    uint32_t total_pedestrians_detected; 
-    uint32_t total_cyclists_detected;    
-    uint32_t total_traffic_signs_detected; 
-    uint32_t total_obstacles_detected;   
+
+    uint32_t total_vehicles_detected;
+    uint32_t total_pedestrians_detected;
+    uint32_t total_cyclists_detected;
+    uint32_t total_traffic_signs_detected;
+    uint32_t total_obstacles_detected;
     
-    uint32_t forward_collision_warnings; 
-    uint32_t lane_departure_warnings;    
-    uint32_t blind_spot_warnings;        
+
+    uint32_t forward_collision_warnings;
+    uint32_t lane_departure_warnings;
+    uint32_t blind_spot_warnings;
     
-    uint32_t drowsiness_events;          
-    uint32_t distraction_events;         
-    uint32_t phone_usage_events;         
-    uint32_t total_attention_lapses;     
+
+    uint32_t drowsiness_events;
+    uint32_t distraction_events;
+    uint32_t phone_usage_events;
+    uint32_t total_attention_lapses;
     
-    float vision_safety_score;           
+
+    float vision_safety_score;
     
+
     uint8_t reserved[260];
 
     VisionAnalytics() : trip_id(0), total_vehicles_detected(0),

@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* ===== CSS Variables & Reset ===== */
+        
         :root {
             --primary: #6d5dfc;
             --primary-dark: #5b4ff0;
@@ -82,13 +82,13 @@
             max-width: 100%;
         }
         
-        /* ===== Layout ===== */
+        
         .app-container {
             display: flex;
             min-height: 100vh;
         }
         
-        /* ===== Sidebar ===== */
+        
         .sidebar {
             width: var(--sidebar-width);
             background: linear-gradient(180deg, var(--dark) 0%, #131722 100%);
@@ -227,7 +227,7 @@
             color: var(--danger);
         }
         
-        /* ===== Main Content ===== */
+        
         .main-content {
             flex: 1;
             margin-left: var(--sidebar-width);
@@ -235,7 +235,7 @@
             transition: margin-left var(--transition-normal);
         }
         
-        /* ===== Header ===== */
+        
         .main-header {
             display: flex;
             justify-content: space-between;
@@ -323,7 +323,7 @@
             color: var(--white);
         }
         
-        /* ===== Connection Status ===== */
+        
         .status-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -377,7 +377,7 @@
             color: var(--white);
         }
         
-        /* ===== Main Camera Grid ===== */
+        
         .camera-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -391,7 +391,7 @@
             }
         }
         
-        /* ===== Video Container ===== */
+        
         .video-container {
             background: linear-gradient(135deg, #0f111a 0%, #151924 100%);
             border-radius: var(--radius-xl);
@@ -470,7 +470,7 @@
             opacity: 0.5;
         }
         
-        /* ===== Controls Panel ===== */
+        
         .controls-panel {
             background: linear-gradient(135deg, var(--dark-light) 0%, #1f2332 100%);
             border-radius: var(--radius-xl);
@@ -498,7 +498,7 @@
             font-size: 14px;
         }
         
-        /* ===== Buttons ===== */
+        
         .btn {
             padding: 14px 24px;
             border-radius: var(--radius-md);
@@ -562,7 +562,7 @@
             margin-bottom: 25px;
         }
         
-        /* ===== Stats Grid ===== */
+        
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -598,7 +598,7 @@
             letter-spacing: 0.5px;
         }
         
-        /* ===== Event Log ===== */
+        
         .event-log {
             background: rgba(0, 0, 0, 0.2);
             border-radius: var(--radius-md);
@@ -680,7 +680,7 @@
             line-height: 1.4;
         }
         
-        /* ===== Camera Info ===== */
+        
         .camera-info {
             margin-top: 25px;
             padding-top: 25px;
@@ -709,7 +709,7 @@
             font-weight: 500;
         }
         
-        /* ===== Alert Banner ===== */
+        
         .alert-banner {
             background: linear-gradient(90deg, rgba(243, 156, 18, 0.1) 0%, rgba(243, 156, 18, 0.05) 100%);
             border-left: 4px solid var(--warning);
@@ -747,7 +747,7 @@
             font-size: 14px;
         }
         
-        /* ===== Loading State ===== */
+        
         .loading-state {
             display: flex;
             flex-direction: column;
@@ -777,7 +777,7 @@
             font-size: 16px;
         }
         
-        /* ===== Status Indicators ===== */
+        
         .status-indicator {
             display: inline-flex;
             align-items: center;
@@ -796,7 +796,7 @@
             animation: pulse 2s infinite;
         }
         
-        /* ===== Responsive ===== */
+        
         @media (max-width: 992px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -849,7 +849,7 @@
             }
         }
         
-        /* ===== Utilities ===== */
+        
         .text-center { text-align: center; }
         .text-right { text-align: right; }
         .mb-0 { margin-bottom: 0; }
@@ -941,6 +941,7 @@
             </div>
         </aside>
         
+        
         <main class="main-content">
             
             <header class="main-header">
@@ -960,6 +961,7 @@
                     </button>
                 </div>
             </header>
+            
             
             <div class="status-grid">
                 <div class="status-card">
@@ -1023,6 +1025,7 @@
                 </div>
             </div>
             
+            
             <div class="alert-banner" id="alertBanner" style="display: none;">
                 <div class="alert-icon">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -1032,6 +1035,7 @@
                     <div class="alert-message" id="alertMessage">Vehicle detected drifting left</div>
                 </div>
             </div>
+            
             
             <div class="camera-grid">
                 
@@ -1058,6 +1062,7 @@
                         <p style="color: var(--gray-light); font-size: 13px;">Ensure DroidCam is connected via USB</p>
                     </div>
                 </div>
+                
                 
                 <div class="controls-panel">
                     <div class="panel-header">
@@ -1134,11 +1139,11 @@
     </div>
 
     <script>
-        // ===== Configuration =====
+        
         const WS_URL = 'ws://localhost:8081';
         const API_URL = 'http://43.204.211.180:8080';
         
-        // ===== State Variables =====
+        
         let ws = null;
         let frameCount = 0;
         let totalDataReceived = 0;
@@ -1147,7 +1152,7 @@
         let lastFpsUpdate = Date.now();
         let lastFrameTime = Date.now();
         
-        // ===== Authentication Check =====
+        
         const sessionId = localStorage.getItem('session_id');
         const driverId = localStorage.getItem('driver_id');
         const driverName = localStorage.getItem('driver_name');
@@ -1156,26 +1161,26 @@
             window.location.href = 'login.html';
         }
         
-        // ===== DOM Elements =====
+        
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.querySelector('.sidebar');
         const userAvatar = document.getElementById('userAvatar');
         const userName = document.getElementById('userName');
         
-        // ===== Initialize =====
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // Set user info
+            
             if (driverName) {
                 userName.textContent = driverName;
                 userAvatar.textContent = driverName.charAt(0) + driverName.split(' ')[1]?.charAt(0) || driverName.charAt(1) || driverName.charAt(0);
             }
             
-            // Mobile menu toggle
+            
             mobileMenuBtn.addEventListener('click', function() {
                 sidebar.classList.toggle('active');
             });
             
-            // Close sidebar when clicking outside on mobile
+            
             document.addEventListener('click', function(event) {
                 if (window.innerWidth <= 992) {
                     if (!sidebar.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
@@ -1184,11 +1189,11 @@
                 }
             });
             
-            // Initialize WebSocket connection
+            
             connectWebSocket();
         });
         
-        // ===== WebSocket Connection =====
+        
         function connectWebSocket() {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 addLog('Already connected to WebSocket', 'info');
@@ -1206,7 +1211,7 @@
                     updateStatus('wsStatus', 'Connected', 'wsStatusDot', true);
                     document.getElementById('startBtn').disabled = false;
                     
-                    // Check DroidCam status on connection
+                    
                     setTimeout(checkDroidCam, 1000);
                 };
                 
@@ -1237,7 +1242,7 @@
                     document.getElementById('videoFeed').style.display = 'none';
                     document.getElementById('videoPlaceholder').style.display = 'flex';
                     
-                    // Try to reconnect after 3 seconds
+                    
                     setTimeout(connectWebSocket, 3000);
                 };
             } catch (error) {
@@ -1247,7 +1252,7 @@
             }
         }
         
-        // ===== WebSocket Message Handler =====
+        
         function handleWebSocketMessage(data) {
             switch (data.type) {
                 case 'video_frame':
@@ -1279,7 +1284,7 @@
             }
         }
         
-        // ===== Display Video Frame =====
+        
         function displayFrame(base64Data, timestamp) {
             const videoFeed = document.getElementById('videoFeed');
             const videoPlaceholder = document.getElementById('videoPlaceholder');
@@ -1288,16 +1293,16 @@
             videoFeed.style.display = 'block';
             videoPlaceholder.style.display = 'none';
             
-            // Update stats
+            
             frameCount++;
             document.getElementById('frameCount').textContent = frameCount;
             
             const dataSize = base64Data.length * 0.75;
             totalDataReceived += dataSize;
             document.getElementById('dataReceived').textContent = 
-                Math.round(totalDataReceived / 1048576 * 10) / 10; // Convert to MB
+                Math.round(totalDataReceived / 1048576 * 10) / 10; 
             
-            // Calculate FPS
+            
             fpsCounter++;
             const now = Date.now();
             const elapsed = now - lastFpsUpdate;
@@ -1309,17 +1314,17 @@
                 lastFpsUpdate = now;
             }
             
-            // Calculate latency
+            
             if (timestamp) {
                 const latency = Date.now() - (timestamp * 1000);
                 document.getElementById('latency').textContent = Math.max(0, Math.round(latency));
             }
             
-            // Update frame time
+            
             lastFrameTime = Date.now();
         }
         
-        // ===== Handle Camera Status =====
+        
         function handleCameraStatus(data) {
             const isActive = data.enabled;
             const status = isActive ? 'Active' : 'Inactive';
@@ -1337,7 +1342,7 @@
             }
         }
         
-        // ===== Handle Lane Warning =====
+        
         function handleLaneWarning(data) {
             warningCount++;
             document.getElementById('warnings').textContent = warningCount;
@@ -1351,19 +1356,19 @@
             directionSpan.textContent = `LANE DEPARTURE: ${data.direction.toUpperCase()}`;
             warningBadge.style.display = 'flex';
             
-            // Show alert banner
+            
             alertTitle.textContent = 'Lane Departure Warning';
             alertMessage.textContent = `Vehicle detected drifting ${data.direction}`;
             alertBanner.style.display = 'flex';
             
-            // Play warning sound (optional)
+            
             try {
                 const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQ=');
                 audio.volume = 0.3;
                 audio.play().catch(e => console.log('Audio play failed:', e));
             } catch (e) {}
             
-            // Hide warning after 3 seconds
+            
             setTimeout(() => {
                 warningBadge.style.display = 'none';
                 alertBanner.style.display = 'none';
@@ -1372,7 +1377,7 @@
             addLog(`Lane departure: ${data.direction} (${Math.round(data.deviation * 100)}%)`, 'warning');
         }
         
-        // ===== Handle DroidCam Status =====
+        
         function handleDroidCamStatus(data) {
             const isFound = data.found;
             updateStatus('droidcamStatus', data.found ? 'Connected' : 'Not Found', 
@@ -1392,7 +1397,7 @@
             }
         }
         
-        // ===== Start Camera =====
+        
         function startCamera() {
             if (!ws || ws.readyState !== WebSocket.OPEN) {
                 addLog('Not connected to WebSocket', 'error');
@@ -1410,7 +1415,7 @@
             updateStatus('cameraStatus', 'Starting...', 'cameraStatusDot', false);
         }
         
-        // ===== Stop Camera =====
+        
         function stopCamera() {
             if (!ws || ws.readyState !== WebSocket.OPEN) {
                 addLog('Not connected to WebSocket', 'error');
@@ -1426,12 +1431,12 @@
             document.getElementById('stopBtn').disabled = true;
             updateStatus('cameraStatus', 'Stopping...', 'cameraStatusDot', false);
             
-            // Hide video feed
+            
             document.getElementById('videoFeed').style.display = 'none';
             document.getElementById('videoPlaceholder').style.display = 'flex';
         }
         
-        // ===== Check DroidCam =====
+        
         function checkDroidCam() {
             if (!ws || ws.readyState !== WebSocket.OPEN) {
                 addLog('Not connected to WebSocket', 'error');
@@ -1444,7 +1449,7 @@
             }));
         }
         
-        // ===== Update Status Indicator =====
+        
         function updateStatus(elementId, text, dotId, isConnected = true) {
             const element = document.getElementById(elementId);
             if (element) {
@@ -1461,7 +1466,7 @@
             }
         }
         
-        // ===== Add Log Entry =====
+        
         function addLog(message, type = 'info') {
             const eventLog = document.getElementById('eventLog');
             const entry = document.createElement('div');
@@ -1469,7 +1474,7 @@
             
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             
-            // Determine icon based on type
+            
             let icon = 'fas fa-info-circle';
             if (type === 'success') icon = 'fas fa-check-circle';
             if (type === 'warning') icon = 'fas fa-exclamation-triangle';
@@ -1487,13 +1492,13 @@
             
             eventLog.insertBefore(entry, eventLog.firstChild);
             
-            // Keep only last 20 events
+            
             while (eventLog.children.length > 20) {
                 eventLog.removeChild(eventLog.lastChild);
             }
         }
         
-        // ===== Monitor Connection Health =====
+        
         setInterval(() => {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 const timeSinceLastFrame = Date.now() - lastFrameTime;
@@ -1501,15 +1506,15 @@
                     addLog('No frames received for 5 seconds', 'warning');
                 }
                 
-                // Send ping to keep connection alive
+                
                 ws.send(JSON.stringify({ command: 'ping' }));
             }
         }, 5000);
         
-        // ===== Logout =====
+        
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                // Stop camera if running
+                
                 if (ws && ws.readyState === WebSocket.OPEN) {
                     ws.send(JSON.stringify({ command: 'toggle_camera', enable: false }));
                     setTimeout(() => {
@@ -1517,22 +1522,22 @@
                     }, 500);
                 }
                 
-                // Clear local storage
+                
                 localStorage.clear();
                 
-                // Redirect to login page
+                
                 window.location.href = 'login.html';
             }
         }
         
-        // ===== Utility Functions =====
+        
         window.addEventListener('resize', function() {
             if (window.innerWidth > 992) {
                 sidebar.classList.remove('active');
             }
         });
         
-        // Close modal when clicking outside
+        
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 const alertBanner = document.getElementById('alertBanner');

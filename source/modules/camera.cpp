@@ -1,3 +1,4 @@
+
 #include "camera.h"
 #include <iostream>
 #include <chrono>
@@ -113,14 +114,14 @@ string CameraManager::findDroidCamDevice()
 }
 bool CameraManager::initializeImpl()
 {
-    
+
     if (config.source == "/dev/video4" || config.source.find("phone") != string::npos)
     {
-        
+
         config.source = findDroidCamDevice();
     }
 
-    if (config.source.find("http:
+    if (config.source.find("http://") == 0 || config.source.find("rtsp://") == 0)
     {
         config.type = CAMERA_GSTREAMER;
     }
@@ -207,7 +208,7 @@ bool CameraManager::initializeV4L2()
         return false;
     }
 
-    config.buffer_size = 2; 
+    config.buffer_size = 2;
 
     if (!setupV4L2Buffers())
     {
@@ -303,7 +304,7 @@ bool CameraManager::setupV4L2Format()
     return false;
 
 format_success:
-    
+
     config.width = format.fmt.pix.width;
     config.height = format.fmt.pix.height;
 
@@ -330,7 +331,7 @@ format_success:
 
 bool CameraManager::setupV4L2Buffers()
 {
-    
+
     struct v4l2_requestbuffers req = {};
     req.count = config.buffer_size;
     req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -428,7 +429,7 @@ Mat CameraManager::readV4L2Frame(bool blocking)
     pfd.fd = v4l2_fd;
     pfd.events = POLLIN;
 
-    int timeout_ms = blocking ? 1000 : 100; 
+    int timeout_ms = blocking ? 1000 : 100;
     int ret = poll(&pfd, 1, timeout_ms);
 
     if (ret < 0)
@@ -442,7 +443,7 @@ Mat CameraManager::readV4L2Frame(bool blocking)
 
     if (ret == 0)
     {
-        
+
         return Mat();
     }
 
@@ -463,20 +464,20 @@ Mat CameraManager::readV4L2Frame(bool blocking)
 
     if (v4l2_pixel_format == V4L2_PIX_FMT_MJPEG)
     {
-        
+
         vector<uchar> data((uchar *)v4l2_buffers[buf.index].start,
                            (uchar *)v4l2_buffers[buf.index].start + buf.bytesused);
         frame = imdecode(data, IMREAD_COLOR);
     }
     else if (v4l2_pixel_format == V4L2_PIX_FMT_YUYV)
     {
-        
+
         Mat yuyv(config.height, config.width, CV_8UC2, v4l2_buffers[buf.index].start);
         cvtColor(yuyv, frame, COLOR_YUV2BGR_YUYV);
     }
     else if (v4l2_pixel_format == V4L2_PIX_FMT_YUV420)
     {
-        
+
         int y_size = config.width * config.height;
         Mat yuv_frame(config.height + config.height / 2, config.width, CV_8UC1,
                       v4l2_buffers[buf.index].start);
@@ -560,7 +561,7 @@ bool CameraManager::initializeAndroidIP()
 {
     cout << "Initializing Android phone camera via IP..." << endl;
 
-    string pipeline = "souphttpsrc location=http:
+    string pipeline = "souphttpsrc location=http://" + config.phone_ip +
                       ":" + to_string(config.phone_port) + "/video is-live=true ! "
                                                            "jpegdec ! videoconvert ! appsink drop=true max-buffers=1";
 
@@ -576,7 +577,7 @@ bool CameraManager::initializeGStreamer()
 
     string pipeline;
 
-    if (config.source.find("rtsp:
+    if (config.source.find("rtsp://") == 0)
     {
         pipeline = "rtspsrc location=" + config.source + " latency=0 ! "
                                                          "rtph264depay ! h264parse ! avdec_h264 ! "
@@ -584,7 +585,7 @@ bool CameraManager::initializeGStreamer()
                    to_string(config.width) + ",height=" +
                    to_string(config.height) + " ! appsink drop=true max-buffers=1";
     }
-    else if (config.source.find("http:
+    else if (config.source.find("http://") == 0)
     {
         pipeline = "souphttpsrc location=" + config.source + " is-live=true ! "
                                                              "jpegdec ! videoconvert ! videoscale ! video/x-raw,width=" +
@@ -832,6 +833,7 @@ bool CameraManager::recover()
 {
     cout << "Attempting camera recovery [Type: " << config.type << "]..." << endl;
     
+
     camera_opened = false;
     
 #ifdef __linux__
@@ -853,8 +855,10 @@ bool CameraManager::recover()
 
     if (cap.isOpened()) cap.release();
     
+
     this_thread::sleep_for(chrono::milliseconds(500));
     
+
     return initializeImpl();
 }
 

@@ -10,7 +10,7 @@
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <style>
-        /* ===== CSS Variables & Reset ===== */
+        
         :root {
             --primary: #6d5dfc;
             --primary-dark: #5b4ff0;
@@ -93,13 +93,13 @@
             max-width: 100%;
         }
 
-        /* ===== Layout ===== */
+        
         .app-container {
             display: flex;
             min-height: 100vh;
         }
 
-        /* ===== Sidebar ===== */
+        
         .sidebar {
             width: var(--sidebar-width);
             background: linear-gradient(180deg, var(--dark) 0%, #131722 100%);
@@ -238,7 +238,7 @@
             color: var(--danger);
         }
 
-        /* ===== Main Content ===== */
+        
         .main-content {
             flex: 1;
             margin-left: var(--sidebar-width);
@@ -246,7 +246,7 @@
             transition: margin-left var(--transition-normal);
         }
 
-        /* ===== Header ===== */
+        
         .main-header {
             display: flex;
             justify-content: space-between;
@@ -334,7 +334,7 @@
             color: var(--white);
         }
 
-        /* ===== Hero Section ===== */
+        
         .hero-section {
             text-align: center;
             margin-bottom: 50px;
@@ -423,7 +423,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* ===== Podium Section ===== */
+        
         .podium-section {
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
             border-radius: var(--radius-xl);
@@ -569,7 +569,7 @@
             font-size: 14px;
         }
 
-        /* ===== Leaderboard Table ===== */
+        
         .leaderboard-section {
             background: var(--white);
             border-radius: var(--radius-xl);
@@ -744,7 +744,7 @@
             margin-left: 8px;
         }
 
-        /* ===== Filter Controls ===== */
+        
         .filter-section {
             background: var(--white);
             border-radius: var(--radius-xl);
@@ -835,7 +835,7 @@
             transform: translateY(-3px);
         }
 
-        /* ===== Loading State ===== */
+        
         .loading-state {
             display: flex;
             flex-direction: column;
@@ -870,7 +870,7 @@
             font-size: 16px;
         }
 
-        /* ===== Empty State ===== */
+        
         .empty-state {
             display: flex;
             flex-direction: column;
@@ -907,7 +907,7 @@
             line-height: 1.6;
         }
 
-        /* ===== Responsive ===== */
+        
         @media (max-width: 1200px) {
             .podium-container {
                 grid-template-columns: 1fr;
@@ -1014,7 +1014,7 @@
             }
         }
 
-        /* ===== Utilities ===== */
+        
         .hidden {
             display: none;
         }
@@ -1113,6 +1113,7 @@
             </div>
         </aside>
 
+        
         <main class="main-content">
             
             <header class="main-header">
@@ -1133,6 +1134,7 @@
                 </div>
             </header>
 
+            
             <div class="hero-section">
                 <h1 class="hero-title">🏆 Safety Performance Rankings</h1>
                 <p class="hero-subtitle">Track your progress against other drivers based on safety scores, driving
@@ -1171,6 +1173,7 @@
                 </div>
             </div>
 
+            
             <div class="filter-section">
                 <div class="filter-row">
                     <div class="filter-group">
@@ -1215,11 +1218,13 @@
                 </div>
             </div>
 
+            
             <div id="loadingState" class="loading-state">
                 <div class="spinner"></div>
                 <div class="loading-text">Loading leaderboard data...</div>
             </div>
 
+            
             <div class="podium-section" id="podiumSection" style="display: none;">
                 <div class="section-header">
                     <h2 class="section-title">
@@ -1234,6 +1239,7 @@
                 </div>
             </div>
 
+            
             <div class="leaderboard-section" id="leaderboardSection" style="display: none;">
                 <div class="section-header">
                     <h2 class="section-title">
@@ -1261,6 +1267,7 @@
                 </div>
             </div>
 
+            
             <div id="emptyState" class="empty-state" style="display: none;">
                 <div class="empty-state-icon">
                     <i class="fas fa-trophy"></i>
@@ -1279,10 +1286,10 @@
     </div>
 
     <script>
-        // ===== Configuration =====
+        
         const API_URL = 'http://43.204.211.180:8080';
 
-        // ===== State Variables =====
+        
         let leaderboardData = [];
         let currentFilters = {
             sortBy: 'score',
@@ -1293,7 +1300,7 @@
         let yourScore = 1000;
         let yourPercentile = 0;
 
-        // ===== Authentication Check =====
+        
         const sessionId = localStorage.getItem('session_id');
         const driverId = localStorage.getItem('driver_id');
         const driverName = localStorage.getItem('driver_name');
@@ -1302,7 +1309,7 @@
             window.location.href = 'login.html';
         }
 
-        // ===== DOM Elements =====
+        
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.querySelector('.sidebar');
         const userAvatar = document.getElementById('userAvatar');
@@ -1312,20 +1319,20 @@
         const leaderboardSection = document.getElementById('leaderboardSection');
         const emptyState = document.getElementById('emptyState');
 
-        // ===== Initialize =====
+        
         document.addEventListener('DOMContentLoaded', function () {
-            // Set user info
+            
             if (driverName) {
                 userName.textContent = driverName;
                 userAvatar.textContent = driverName.charAt(0) + driverName.split(' ')[1]?.charAt(0) || driverName.charAt(1) || driverName.charAt(0);
             }
 
-            // Mobile menu toggle
+            
             mobileMenuBtn.addEventListener('click', function () {
                 sidebar.classList.toggle('active');
             });
 
-            // Close sidebar when clicking outside on mobile
+            
             document.addEventListener('click', function (event) {
                 if (window.innerWidth <= 992) {
                     if (!sidebar.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
@@ -1334,34 +1341,34 @@
                 }
             });
 
-            // Load leaderboard data
+            
             loadLeaderboard();
         });
 
-        // ===== Load Leaderboard =====
+        
         async function loadLeaderboard() {
             try {
-                // Show loading state
+                
                 loadingState.style.display = 'flex';
                 podiumSection.style.display = 'none';
                 leaderboardSection.style.display = 'none';
                 emptyState.style.display = 'none';
 
-                // Get filter values
+                
                 currentFilters.sortBy = document.getElementById('sortFilter').value;
                 currentFilters.timePeriod = document.getElementById('timeFilter').value;
                 currentFilters.driverType = document.getElementById('driverFilter').value;
 
                 console.log('Loading leaderboard with filters:', currentFilters);
 
-                // Build request body
+                
                 const requestBody = {
                     operation: 'driver_get_leaderboard',
                     session_id: sessionId,
                     limit: 100
                 };
 
-                // Add filters if specified
+                
                 if (currentFilters.sortBy !== 'score') {
                     requestBody.sort_by = currentFilters.sortBy;
                 }
@@ -1378,7 +1385,7 @@
                     body: JSON.stringify(requestBody)
                 });
 
-                // Check if response is OK
+                
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -1386,7 +1393,7 @@
                 const data = await response.json();
                 console.log('Leaderboard API response:', data);
 
-                // Hide loading state
+                
                 loadingState.style.display = 'none';
 
                 if (data.status === 'success' && data.data && data.data.leaderboard) {
@@ -1398,17 +1405,17 @@
                         return;
                     }
 
-                    // Process and validate data
+                    
                     processLeaderboardData();
 
-                    // Update user stats
+                    
                     updateUserStats();
 
-                    // Display leaderboard
+                    
                     displayPodium();
                     displayLeaderboard();
 
-                    // Show content
+                    
                     podiumSection.style.display = 'block';
                     leaderboardSection.style.display = 'block';
                     emptyState.style.display = 'none';
@@ -1428,9 +1435,9 @@
             }
         }
 
-        // ===== Process and Validate Leaderboard Data =====
+        
         function processLeaderboardData() {
-            // Ensure all required fields exist and are properly formatted
+            
             leaderboardData = leaderboardData.map((driver, index) => {
                 return {
                     driver_id: driver.driver_id || `unknown_${index}`,
@@ -1444,10 +1451,10 @@
                 };
             });
 
-            // Sort by rank if not already sorted
+            
             leaderboardData.sort((a, b) => a.rank - b.rank);
 
-            // Calculate percentiles if not provided
+            
             if (!leaderboardData[0].percentile || leaderboardData[0].percentile === 0) {
                 const totalDrivers = leaderboardData.length;
                 leaderboardData.forEach((driver, index) => {
@@ -1456,9 +1463,9 @@
             }
         }
 
-        // ===== Update User Stats =====
+        
         function updateUserStats() {
-            // Try to find current driver in leaderboard
+            
             const currentDriver = leaderboardData.find(driver =>
                 driver.driver_id == driverId ||
                 driver.driver_name === driverName
@@ -1469,20 +1476,20 @@
                 yourScore = currentDriver.safety_score;
                 yourPercentile = currentDriver.percentile;
             } else {
-                // If not in leaderboard, load from profile
+                
                 loadDriverProfile();
                 return;
             }
 
             console.log(`Current driver stats: Rank ${yourRank}, Score ${yourScore}, Percentile ${yourPercentile}`);
 
-            // Update hero section
+            
             document.getElementById('yourRank').textContent = `#${yourRank}`;
             document.getElementById('yourScore').textContent = yourScore;
             document.getElementById('yourPercentile').textContent = `Top ${yourPercentile.toFixed(1)}%`;
         }
 
-        // ===== Load Driver Profile as Fallback =====
+        
         async function loadDriverProfile() {
             try {
                 const response = await fetch(API_URL, {
@@ -1507,12 +1514,12 @@
             }
         }
 
-        // ===== Display Podium =====
+        
         function displayPodium() {
             const podiumContainer = document.getElementById('podiumContainer');
             podiumContainer.innerHTML = '';
 
-            // Get top 3 drivers
+            
             const top3 = leaderboardData.slice(0, 3);
 
             top3.forEach((driver, index) => {
@@ -1520,7 +1527,7 @@
                 const podiumClass = ['first', 'second', 'third'][index];
                 const rankEmoji = ['🥇', '🥈', '🥉'][index];
 
-                // Get initials for avatar
+                
                 const initials = driver.driver_name
                     .split(' ')
                     .map(name => name.charAt(0))
@@ -1551,35 +1558,35 @@
                 podiumContainer.appendChild(podiumCard);
             });
 
-            // If less than 3 drivers, do not add placeholders. 
-            // Just show what we have.
+            
+            
         }
 
-        // ===== Display Leaderboard Table =====
+        
         function displayLeaderboard() {
             const tableBody = document.getElementById('leaderboardTableBody');
             const leaderboardCount = document.getElementById('leaderboardCount');
 
             tableBody.innerHTML = '';
 
-            // Update count
+            
             leaderboardCount.textContent = `${leaderboardData.length} drivers ranked`;
 
             leaderboardData.forEach((driver, index) => {
                 const row = document.createElement('tr');
 
-                // Check if this is the current user
+                
                 const isCurrentUser = driver.driver_id == driverId || driver.driver_name === driverName;
                 if (isCurrentUser) {
                     row.classList.add('highlight');
                 }
 
-                // Add rank class for top 3
+                
                 if (driver.rank === 1) row.classList.add('rank-1');
                 if (driver.rank === 2) row.classList.add('rank-2');
                 if (driver.rank === 3) row.classList.add('rank-3');
 
-                // Get initials for avatar
+                
                 const initials = driver.driver_name
                     .split(' ')
                     .map(name => name.charAt(0))
@@ -1587,10 +1594,10 @@
                     .toUpperCase()
                     .slice(0, 2);
 
-                // Calculate score percentage for progress bar (assuming max score is 1000)
+                
                 const scorePercentage = Math.min((driver.safety_score / 1000) * 100, 100);
 
-                // Ensure percentile is a number and format it
+                
                 const percentileValue = parseFloat(driver.percentile) || 0;
                 const percentileText = isNaN(percentileValue) ? 'N/A' : `Top ${percentileValue.toFixed(1)}%`;
 
@@ -1633,7 +1640,7 @@
             });
         }
 
-        // ===== Show Empty State =====
+        
         function showEmptyState() {
             loadingState.style.display = 'none';
             podiumSection.style.display = 'none';
@@ -1641,19 +1648,19 @@
             emptyState.style.display = 'flex';
         }
 
-        // ===== Apply Filters =====
+        
         function applyFilters() {
-            // Show loading state
+            
             loadingState.style.display = 'flex';
             podiumSection.style.display = 'none';
             leaderboardSection.style.display = 'none';
             emptyState.style.display = 'none';
 
-            // Load data with new filters
+            
             loadLeaderboard();
         }
 
-        // ===== Reset Filters =====
+        
         function resetFilters() {
             document.getElementById('sortFilter').value = 'score';
             document.getElementById('timeFilter').value = 'all';
@@ -1662,15 +1669,15 @@
             applyFilters();
         }
 
-        // ===== Show Notification =====
+        
         function showNotification(message, type = 'info') {
-            // Remove any existing notification
+            
             const existingNotification = document.querySelector('.notification-toast');
             if (existingNotification) {
                 existingNotification.remove();
             }
 
-            // Create notification
+            
             const notification = document.createElement('div');
             notification.className = `notification-toast ${type}`;
             notification.style.cssText = `
@@ -1700,12 +1707,12 @@
 
             document.body.appendChild(notification);
 
-            // Animate in
+            
             setTimeout(() => {
                 notification.style.transform = 'translateX(0)';
             }, 10);
 
-            // Remove after 5 seconds
+            
             setTimeout(() => {
                 notification.style.transform = 'translateX(150%)';
                 setTimeout(() => {
@@ -1715,7 +1722,7 @@
                 }, 300);
             }, 5000);
 
-            // Click to dismiss
+            
             notification.addEventListener('click', () => {
                 notification.style.transform = 'translateX(150%)';
                 setTimeout(() => {
@@ -1726,25 +1733,25 @@
             });
         }
 
-        // ===== Logout =====
+        
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                // Clear local storage
+                
                 localStorage.clear();
 
-                // Redirect to login page
+                
                 window.location.href = 'login.html';
             }
         }
 
-        // ===== Utility Functions =====
+        
         window.addEventListener('resize', function () {
             if (window.innerWidth > 992) {
                 sidebar.classList.remove('active');
             }
         });
 
-        // ===== Debug Backend Operations =====
+        
         async function debugBackendOperations() {
             console.log('=== DEBUGGING BACKEND OPERATIONS ===');
 
@@ -1784,10 +1791,10 @@
             }
         }
 
-        // Uncomment to debug backend operations on load
+        
         // window.addEventListener('load', debugBackendOperations);
 
-        // ===== Fallback Data for Testing =====
+        
         function getFallbackLeaderboardData() {
             return [
                 {
@@ -1843,20 +1850,20 @@
             ];
         }
 
-        // ===== Load Fallback Data (for testing when backend is down) =====
+        
         function loadFallbackData() {
             console.log('Loading fallback leaderboard data for testing');
 
             leaderboardData = getFallbackLeaderboardData();
 
-            // Update user stats
+            
             updateUserStats();
 
-            // Display leaderboard
+            
             displayPodium();
             displayLeaderboard();
 
-            // Show content
+            
             loadingState.style.display = 'none';
             podiumSection.style.display = 'block';
             leaderboardSection.style.display = 'block';
@@ -1865,15 +1872,15 @@
             showNotification('Using demo data - Backend connection failed', 'warning');
         }
 
-        // Uncomment to use fallback data for testing
+        
         // window.addEventListener('load', function() {
-        //     // Try to load real data first, fall back to demo data
-        //     setTimeout(() => {
-        //         if (leaderboardData.length === 0) {
-        //             loadFallbackData();
-        //         }
-        //     }, 3000);
-        // });
+        
+        
+        
+        
+        
+        
+        
     </script>
 </body>
 

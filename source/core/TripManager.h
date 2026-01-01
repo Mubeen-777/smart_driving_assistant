@@ -13,6 +13,8 @@
 #include <chrono>
 #include <iostream>
 
+#include <mutex>
+
 class TripManager
 {
 private:
@@ -22,6 +24,7 @@ private:
     uint64_t next_trip_id_;
     
     CircularQueue<GPSWaypoint> gps_buffer_;
+    std::mutex trip_mutex_;
 
     struct ActiveTrip
     {
@@ -93,6 +96,7 @@ public:
                         double start_lat, double start_lon,
                         const std::string &start_address = "")
     {
+        std::lock_guard<std::mutex> lock(trip_mutex_);
         
         ActiveTrip* existing = find_active_trip(driver_id);
         if (existing) {
@@ -136,7 +140,7 @@ public:
     bool log_gps_point(uint64_t trip_id, double latitude, double longitude,
                        float speed, float altitude = 0, float accuracy = 0)
     {
-        
+        std::lock_guard<std::mutex> lock(trip_mutex_);
         GPSWaypoint waypoint;
         memset(&waypoint, 0, sizeof(GPSWaypoint));
         waypoint.timestamp = get_current_timestamp();
@@ -174,6 +178,7 @@ public:
     bool end_trip(uint64_t trip_id, double end_lat, double end_lon,
                   const std::string &end_address = "")
     {
+        std::lock_guard<std::mutex> lock(trip_mutex_);
         ActiveTrip* active_ptr = nullptr;
         uint64_t current_driver_id = 0;
 
@@ -412,8 +417,9 @@ public:
         return false;
     }
 
-    TripRecord get_active_trip(uint64_t driver_id)
+    TripRecord get_active_trip_for_driver(uint64_t driver_id)
     {
+        std::lock_guard<std::mutex> lock(trip_mutex_);
         ActiveTrip *active = find_active_trip(driver_id);
         if (active)
         {

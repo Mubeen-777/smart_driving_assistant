@@ -8,6 +8,7 @@
 #include "../../source/data_structures/Map.h"
 #include <string>
 #include <chrono>
+#include <mutex>
 #include <iostream>
 
 using namespace std;
@@ -19,6 +20,7 @@ private:
     DatabaseManager& db_;
     uint32_t session_timeout_;
     Map<uint64_t, vector<string>> driver_sessions_;
+    mutable std::mutex session_mutex_;
     
 public:
     SessionManager(SecurityManager& security, CacheManager& cache, 
@@ -27,6 +29,7 @@ public:
     
     bool login(const string& username, const string& password, 
                string& session_id, DriverProfile& driver) {
+        std::lock_guard<std::mutex> lock(session_mutex_);
         DriverProfile found_driver;
         bool found = false;
         
@@ -79,6 +82,7 @@ public:
     }
     
     bool logout(const string& session_id) {
+        std::lock_guard<std::mutex> lock(session_mutex_);
         SessionInfo session;
         if (cache_.get_session(session_id, session)) {
             uint64_t driver_id = session.driver_id;
@@ -100,6 +104,7 @@ public:
     }
     
     bool validate_session(const string& session_id, SessionInfo& session) {
+        std::lock_guard<std::mutex> lock(session_mutex_);
         if (!security_.is_valid_session_id(session_id)) {
             return false;
         }
@@ -238,6 +243,7 @@ public:
     }
     
     void logout_all_driver_sessions(uint64_t driver_id) {
+        std::lock_guard<std::mutex> lock(session_mutex_);
         vector<string>* sessions = driver_sessions_.find(driver_id);
         if (sessions) {
             for (const auto& session_id : *sessions) {
@@ -248,6 +254,7 @@ public:
     }
     
     size_t get_active_session_count(uint64_t driver_id) const {
+        std::lock_guard<std::mutex> lock(session_mutex_);
         vector<string> sessions;
         if (driver_sessions_.get(driver_id, sessions)) {
             return sessions.size();
@@ -262,6 +269,7 @@ public:
     }
     
     void cleanup_expired_and_orphaned() {
+        std::lock_guard<std::mutex> lock(session_mutex_);
         cleanup_expired_sessions();
         
         vector<uint64_t> drivers_to_clean;

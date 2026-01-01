@@ -106,6 +106,15 @@ private:
         }
     }
 
+    double safe_stod(const string& value, double default_val = 0.0) {
+        if (value.empty()) return default_val;
+        try {
+            return stod(value);
+        } catch (...) {
+            return default_val;
+        }
+    }
+
     Map<string, string> trip_to_map(const TripRecord &trip)
     {
         Map<string, string> result;
@@ -373,9 +382,9 @@ public:
 
         if (operation == "trip_start")
         {
-            uint64_t vehicle_id = stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
-            double start_lat = stod(SimpleJSON::get_value(params, "latitude", "0"));
-            double start_lon = stod(SimpleJSON::get_value(params, "longitude", "0"));
+            uint64_t vehicle_id = safe_stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
+            double start_lat = safe_stod(SimpleJSON::get_value(params, "latitude", "0"));
+            double start_lon = safe_stod(SimpleJSON::get_value(params, "longitude", "0"));
             string address = SimpleJSON::get_value(params, "address", "");
 
             uint64_t trip_id = trip_mgr_.start_trip(driver.driver_id, vehicle_id,
@@ -394,9 +403,9 @@ public:
         }
         else if (operation == "trip_log_gps")
         {
-            uint64_t trip_id = stoull(SimpleJSON::get_value(params, "trip_id", "0"));
-            double lat = stod(SimpleJSON::get_value(params, "latitude", "0"));
-            double lon = stod(SimpleJSON::get_value(params, "longitude", "0"));
+            uint64_t trip_id = safe_stoull(SimpleJSON::get_value(params, "trip_id", "0"));
+            double lat = safe_stod(SimpleJSON::get_value(params, "latitude", "0"));
+            double lon = safe_stod(SimpleJSON::get_value(params, "longitude", "0"));
             float speed = stof(SimpleJSON::get_value(params, "speed", "0"));
 
             if (trip_mgr_.log_gps_point(trip_id, lat, lon, speed, 0.0f, 5.0f))
@@ -411,9 +420,9 @@ public:
         }
         else if (operation == "trip_end")
         {
-            uint64_t trip_id = stoull(SimpleJSON::get_value(params, "trip_id", "0"));
-            double end_lat = stod(SimpleJSON::get_value(params, "latitude", "0"));
-            double end_lon = stod(SimpleJSON::get_value(params, "longitude", "0"));
+            uint64_t trip_id = safe_stoull(SimpleJSON::get_value(params, "trip_id", "0"));
+            double end_lat = safe_stod(SimpleJSON::get_value(params, "latitude", "0"));
+            double end_lon = safe_stod(SimpleJSON::get_value(params, "longitude", "0"));
             string address = SimpleJSON::get_value(params, "address", "");
 
             if (trip_mgr_.end_trip(trip_id, end_lat, end_lon, address))
@@ -478,7 +487,7 @@ public:
         else if (operation == "trip_get_active")
         {
             
-            auto active_trip = trip_mgr_.get_active_trip(driver.driver_id);
+            auto active_trip = trip_mgr_.get_active_trip_for_driver(driver.driver_id);
 
             if (active_trip.trip_id > 0)
             {
@@ -518,8 +527,8 @@ public:
             string plate = SimpleJSON::get_value(params, "license_plate");
             string make = SimpleJSON::get_value(params, "make");
             string model = SimpleJSON::get_value(params, "model");
-            uint32_t year = stoi(SimpleJSON::get_value(params, "year", "2020"));
-            int type = stoi(SimpleJSON::get_value(params, "type", "0"));
+            uint32_t year = safe_stoi(SimpleJSON::get_value(params, "year", "2020"));
+            int type = safe_stoi(SimpleJSON::get_value(params, "type", "0"));
             string vin = SimpleJSON::get_value(params, "vin", "");
 
             uint64_t vehicle_id = vehicle_mgr_.add_vehicle(
@@ -551,8 +560,8 @@ public:
         }
         else if (operation == "vehicle_update_odometer")
         {
-            uint64_t vehicle_id = stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
-            double reading = stod(SimpleJSON::get_value(params, "odometer", "0"));
+            uint64_t vehicle_id = safe_stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
+            double reading = safe_stod(SimpleJSON::get_value(params, "odometer", "0"));
 
             if (vehicle_mgr_.update_odometer(vehicle_id, reading))
             {
@@ -566,12 +575,12 @@ public:
         }
         else if (operation == "vehicle_add_maintenance")
         {
-            uint64_t vehicle_id = stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
-            int type = stoi(SimpleJSON::get_value(params, "type", "0"));
-            double odometer = stod(SimpleJSON::get_value(params, "odometer", "0"));
+            uint64_t vehicle_id = safe_stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
+            int type = safe_stoi(SimpleJSON::get_value(params, "type", "0"));
+            double odometer = safe_stod(SimpleJSON::get_value(params, "odometer", "0"));
             string center = SimpleJSON::get_value(params, "service_center");
             string description = SimpleJSON::get_value(params, "description");
-            double cost = stod(SimpleJSON::get_value(params, "cost", "0"));
+            double cost = safe_stod(SimpleJSON::get_value(params, "cost", "0"));
 
             uint64_t maintenance_id = vehicle_mgr_.add_maintenance_record(
                 vehicle_id, driver.driver_id, static_cast<MaintenanceType>(type),
@@ -609,7 +618,7 @@ public:
         }
         else if (operation == "vehicle_get_maintenance_history")
         {
-            uint64_t vehicle_id = stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
+            uint64_t vehicle_id = safe_stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
 
             if (vehicle_id == 0)
             {
@@ -653,11 +662,11 @@ public:
 
         if (operation == "expense_add")
         {
-            uint64_t vehicle_id = stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
-            int category = stoi(SimpleJSON::get_value(params, "category", "0"));
-            double amount = stod(SimpleJSON::get_value(params, "amount", "0"));
+            uint64_t vehicle_id = safe_stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
+            int category = safe_stoi(SimpleJSON::get_value(params, "category", "0"));
+            double amount = safe_stod(SimpleJSON::get_value(params, "amount", "0"));
             string description = SimpleJSON::get_value(params, "description");
-            uint64_t trip_id = stoull(SimpleJSON::get_value(params, "trip_id", "0"));
+            uint64_t trip_id = safe_stoull(SimpleJSON::get_value(params, "trip_id", "0"));
 
             uint64_t expense_id = expense_mgr_.add_expense(
                 driver.driver_id, vehicle_id, static_cast<ExpenseCategory>(category),
@@ -676,10 +685,10 @@ public:
         }
         else if (operation == "expense_add_fuel")
         {
-            uint64_t vehicle_id = stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
-            uint64_t trip_id = stoull(SimpleJSON::get_value(params, "trip_id", "0"));
-            double quantity = stod(SimpleJSON::get_value(params, "quantity", "0"));
-            double price_per_unit = stod(SimpleJSON::get_value(params, "price_per_unit", "0"));
+            uint64_t vehicle_id = safe_stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
+            uint64_t trip_id = safe_stoull(SimpleJSON::get_value(params, "trip_id", "0"));
+            double quantity = safe_stod(SimpleJSON::get_value(params, "quantity", "0"));
+            double price_per_unit = safe_stod(SimpleJSON::get_value(params, "price_per_unit", "0"));
             string station = SimpleJSON::get_value(params, "station");
 
             uint64_t expense_id = expense_mgr_.add_fuel_expense(
@@ -699,9 +708,9 @@ public:
         }
         else if (operation == "expense_get_list")
         {
-            int limit = stoi(SimpleJSON::get_value(params, "limit", "100"));
-            int category = stoi(SimpleJSON::get_value(params, "category", "-1"));
-            uint64_t vehicle_id = stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
+            int limit = safe_stoi(SimpleJSON::get_value(params, "limit", "100"));
+            int category = safe_stoi(SimpleJSON::get_value(params, "category", "-1"));
+            uint64_t vehicle_id = safe_stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
 
             vector<ExpenseRecord> expenses;
             if (category >= 0)
@@ -737,8 +746,8 @@ public:
             uint64_t start_date = 0;
             uint64_t end_date = get_current_timestamp();
 
-            if (start_str != "0" && !start_str.empty()) start_date = stoull(start_str);
-            if (end_str != "0" && !end_str.empty()) end_date = stoull(end_str);
+            if (start_str != "0" && !start_str.empty()) start_date = safe_stoull(start_str);
+            if (end_str != "0" && !end_str.empty()) end_date = safe_stoull(end_str);
 
             auto summary = expense_mgr_.get_expense_summary_simple(driver.driver_id, start_date, end_date);
 
@@ -756,8 +765,8 @@ public:
         }
         else if (operation == "expense_set_budget")
         {
-            int category = stoi(SimpleJSON::get_value(params, "category", "0"));
-            double limit = stod(SimpleJSON::get_value(params, "monthly_limit", "0"));
+            int category = safe_stoi(SimpleJSON::get_value(params, "category", "0"));
+            double limit = safe_stod(SimpleJSON::get_value(params, "monthly_limit", "0"));
 
             if (expense_mgr_.set_budget_limit(driver.driver_id,
                                               static_cast<ExpenseCategory>(category), limit))
@@ -784,10 +793,10 @@ public:
         }
         else if (operation == "expense_update")
         {
-            uint64_t expense_id = stoull(SimpleJSON::get_value(params, "expense_id", "0"));
-            uint64_t vehicle_id = stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
-            int category = stoi(SimpleJSON::get_value(params, "category", "0"));
-            double amount = stod(SimpleJSON::get_value(params, "amount", "0"));
+            uint64_t expense_id = safe_stoull(SimpleJSON::get_value(params, "expense_id", "0"));
+            uint64_t vehicle_id = safe_stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
+            int category = safe_stoi(SimpleJSON::get_value(params, "category", "0"));
+            double amount = safe_stod(SimpleJSON::get_value(params, "amount", "0"));
             string description = SimpleJSON::get_value(params, "description");
 
             auto existing_expense = expense_mgr_.get_expense_by_id(expense_id);
@@ -808,7 +817,7 @@ public:
         }
         else if (operation == "expense_delete")
         {
-            uint64_t expense_id = stoull(SimpleJSON::get_value(params, "expense_id", "0"));
+            uint64_t expense_id = safe_stoull(SimpleJSON::get_value(params, "expense_id", "0"));
 
             auto existing_expense = expense_mgr_.get_expense_by_id(expense_id);
             if (existing_expense.driver_id != driver.driver_id)
@@ -880,7 +889,7 @@ public:
         }
         else if (operation == "driver_get_leaderboard")
         {
-            int limit = stoi(SimpleJSON::get_value(params, "limit", "10"));
+            int limit = safe_stoi(SimpleJSON::get_value(params, "limit", "10"));
             string sort_by = SimpleJSON::get_value(params, "sort_by", "score");
             string time_period = SimpleJSON::get_value(params, "time_period", "all");
 
@@ -910,8 +919,8 @@ public:
         {
             string event_type = SimpleJSON::get_value(params, "event_type");
             string description = SimpleJSON::get_value(params, "description");
-            int point_deduction = stoi(SimpleJSON::get_value(params, "point_deduction", "0"));
-            uint64_t trip_id = stoull(SimpleJSON::get_value(params, "trip_id", "0"));
+            int point_deduction = safe_stoi(SimpleJSON::get_value(params, "point_deduction", "0"));
+            uint64_t trip_id = safe_stoull(SimpleJSON::get_value(params, "trip_id", "0"));
 
             if (driver_mgr_.report_driver_event(driver.driver_id, event_type, description, point_deduction, trip_id))
             {
@@ -947,10 +956,10 @@ public:
 
         if (operation == "incident_report")
         {
-            uint64_t vehicle_id = stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
-            int type = stoi(SimpleJSON::get_value(params, "type", "0"));
-            double lat = stod(SimpleJSON::get_value(params, "latitude", "0"));
-            double lon = stod(SimpleJSON::get_value(params, "longitude", "0"));
+            uint64_t vehicle_id = safe_stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
+            int type = safe_stoi(SimpleJSON::get_value(params, "type", "0"));
+            double lat = safe_stod(SimpleJSON::get_value(params, "latitude", "0"));
+            double lon = safe_stod(SimpleJSON::get_value(params, "longitude", "0"));
             string description = SimpleJSON::get_value(params, "description");
 
             uint64_t incident_id = incident_mgr_.report_incident(
@@ -970,12 +979,12 @@ public:
         }
         else if (operation == "incident_get_list")
         {
-            int limit = stoi(SimpleJSON::get_value(params, "limit", "100"));
-            int type = stoi(SimpleJSON::get_value(params, "type", "-1"));
+            int limit = safe_stoi(SimpleJSON::get_value(params, "limit", "100"));
+            int type = safe_stoi(SimpleJSON::get_value(params, "type", "-1"));
             string status = SimpleJSON::get_value(params, "status", "all");
-            uint64_t vehicle_id = stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
-            uint64_t start_date = stoull(SimpleJSON::get_value(params, "start_date", "0"));
-            uint64_t end_date = stoull(SimpleJSON::get_value(params, "end_date", to_string(get_current_timestamp())));
+            uint64_t vehicle_id = safe_stoull(SimpleJSON::get_value(params, "vehicle_id", "0"));
+            uint64_t start_date = safe_stoull(SimpleJSON::get_value(params, "start_date", "0"));
+            uint64_t end_date = safe_stoull(SimpleJSON::get_value(params, "end_date", to_string(get_current_timestamp())));
 
             vector<IncidentReport> incidents;
 
@@ -1048,7 +1057,7 @@ public:
         }
         else if (operation == "incident_resolve")
         {
-            uint64_t incident_id = stoull(SimpleJSON::get_value(params, "incident_id", "0"));
+            uint64_t incident_id = safe_stoull(SimpleJSON::get_value(params, "incident_id", "0"));
             bool resolved = SimpleJSON::get_value(params, "resolved") == "true" ||
                             SimpleJSON::get_value(params, "resolved") == "1";
             string resolution_notes = SimpleJSON::get_value(params, "resolution_notes", "");

@@ -50,12 +50,12 @@ Smart Driving Assistant is a robust C++ backend engineered for extreme performan
 
 ## ⚙️ Building and Deployment
 
-The project is designed to be lean. Building the core server requires `g++` and common library dependencies (OpenCV, SQLite3, JSONCPP).
+The project is designed to be lean. Building the core server requires `g++` and common library dependencies (OpenCV, JSONCPP).
 
 ```bash
 # Example build command for the CLI server
 g++ -std=c++14 -o main main.cpp \
-    -lopencv_core -lpthread -lsqlite3 -ljsoncpp -ldlib -lcrypto
+    -lopencv_core -lpthread -ljsoncpp -ldlib -lcrypto
 ```
 
 ---
